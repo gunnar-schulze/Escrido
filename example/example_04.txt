@@ -1,0 +1,76 @@
+/*# @_page_ tags_formatting Escrido Formatting Examples
+
+Escrido contains some default text formatting options that are described
+on this page:
+- @ref formatting_html_tags "HTML tags"
+- @ref formatting_ul "unordered lists"
+- @ref formatting_tables "tables"
+- @ref formatting_nesting "nesting"
+
+@section formatting_html_tags HTML Tags
+
+Escrido allows the usage of HTML inline tags for text formatting. Note that
+the tags are not evaluated by the program but simply forwarded into the HTML
+output but converted for the LaTeX output.
+
+@example
+Format text <b>big</b> and <em>italic</em>.
+@par
+
+creates the following output:
+
+Format text <b>big</b> and <em>italic</em>.
+
+@section formatting_ul Unordered Lists
+
+Unordered lists can be created by starting a newline with a dash character
+(-). Every following newline/dash will create the next bullet. An
+unordered list can be closed by a double newline. The result looks
+like this:
+- Item 1
+- Item 2
+- Item 3
+
+Unordered lists can be nested into tables. In this case, the "new cell"
+character (|) or the new line tag @ref tag_lb "&#64;lb" will close the
+unordered list.
+
+@section formatting_tables Tables
+
+Tables start with the @ref tag_table "&#64;table" tag and end with the
+tag_endtable "&#64;endtable" tag. Each row of the table is seperated by
+a line break tag @ref tag_lb "&#64;lb". (The last row should not end with
+a line break tag to avoid an empty last row.) Consecutive cells are seperated
+by a vertical bar (|).
+
+An example table:
+
+@table
+Cell A1 | Cell A2 | Cell A3 @lb
+Cell B1 | Cell B2 | Cell B3
+@endtable
+
+@section formatting_nesting Nested Unordered Lists and Tables
+
+Unordered lists and table can be mutually included. This can be usefull to
+organize data more clearly
+
+Table in an unordered list:
+
+- Item 1
+- Table1:
+  @table
+    Cell A1 | Cell A2 @lb
+    Cell B1 | Cell B2
+  @endtable
+- Item 2
+
+Unordered list inside a table:
+
+@table
+  - Item 1
+  - Item 2 | Cell A2 @lb
+  Cell B1 | Cell B2
+@endtable
+
+#*/

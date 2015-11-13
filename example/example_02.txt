@@ -1,0 +1,109 @@
+/*# @_page_ commands Escrido Commands
+
+Escrido uses <em>tags</em> to define commands inside its markup.
+Tags are strings that start with an "at" sign (&#64;) followed by the
+command name. In general there are three different groups of tags:
+
+- @ref page_tags "page tags",
+- @ref block_tags "block tags" and
+- @ref inline_tags "inline tags"
+
+@section page_tags Page Tags
+
+The class of <em>page tags</em> are tags that start a new <em>page</em>
+section, like a chapter in a document or a subpage in a website.
+Page tags differ from other tags by the fact that their names start and end
+with an underscore sign, e.g. '&#64;_page_'. Some
+(but not all) page tags expect an <em>identifier name</em> and/or a
+<em>title</em> following the tag. The identifiers are used for referencing
+to the page (see @ref tag_ref "&#64;ref") while the titles are displayed
+as page titles in the output documents.
+
+The table shows all page tags that are currently available:
+
+@table
+
+ <b>Page Opening Tag</b> | <b>Identifier</b> | <b>Title</b> |
+ <b>Description</b> @lb
+
+ @ref tag_mainpage "&#64;_mainpage_" | no | no |
+ Content of the document that becomes either the index page or the
+ first chapter.@lb
+
+ @ref tag_page "&#64;_page_" | yes | yes |
+ A page (like this page) that represents either a singe web page or a chapter. @lb
+
+ @ref tag_dtype "&#64;_dtype_" | ?? | ?? |
+ A page with technical information about a specific data type. @lb
+
+ @ref tag_function "&#64;_fn_" | ?? | ?? |
+ A page with technical information about a specific function.
+
+@endtable
+
+@section block_tags Block Tags
+
+<em>Block tags</em> can be used inside a page. Unlike page tags they
+have no leading or trailing underscore characters (_) in their names.
+Block tags are only valid after a line break / new line and mark the beginning of
+a new data block or text section. Data blocks are usually used for storeing specific
+data (like @ref tag_date "&#64;date" or @ref tag_author "&#64;author") or to
+start text sections (like @ref tag_details "&#64;details" or
+@ref tag_section "&#64;section").
+
+The following table shows all block tags that are currently available:
+
+@table
+
+ @ref tag_author "&#64;author" |
+ @ref tag_brief "&#64;brief" |
+ @ref tag_copyright "&#64;copyright" @lb
+
+ @ref tag_date "&#64;date" |
+ @ref tag_details "&#64;details" |
+ @ref tag_example "&#64;example" @lb
+
+ @ref tag_image "&#64;image" |
+ @ref tag_ingroup "&#64;ingroup" |
+ @ref tag_internal "&#64;internal" @lb
+
+ @ref tag_namespace "&#64;namespace" |
+ @ref tag_note "&#64;note" |
+ @ref tag_par "&#64;par" @lb
+
+ @ref tag_param "&#64;param" |
+ @ref tag_output "&#64;output" |
+ @ref tag_remark "&#64;remark" @lb
+
+ @ref tag_return "&#64;return" |
+ @ref tag_see "&#64;see" |
+ @ref tag_section "&#64;section" @lb
+
+ @ref tag_subsection "&#64;subsection" |
+ @ref tag_version "&#64;version"
+
+@endtable
+
+@section inline_tags Inline Tags
+
+<em>Inline tags</em> may appear anywhere inside the text. Their task is
+often to mark up links or references or specially formatted environments
+like tables.
+
+The following inline tags are available:
+
+@table
+
+ @ref_tag_code "&#64;code" |
+ @ref_tag_endcode "&#64;endcode" |
+ @ref tag_lb "&#64;lb" @lb
+
+ @ref tag_link "&#64;link" |
+ @ref tag_ref "&#64;ref" |
+ @ref tag_table "&#64;table" @lb
+
+ @ref tag_endtable "&#64;endtable"
+
+@endtable
+
+#*/

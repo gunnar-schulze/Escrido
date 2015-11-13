@@ -1,0 +1,190 @@
+*{
+  margin: 0;
+  padding:0;
+}
+
+body
+{
+  font-family: "Arial Black", Gadget, sans-serif;
+}
+
+#wrapper
+{
+  width: 980px;
+  margin: 0 auto;
+  position: relative;
+  padding: 8px;
+  /*border:1px dotted blue;*/
+}
+
+#pagetop
+{}
+
+#pagetop a
+{
+  text-decoration: none;
+  color: #000000;
+}
+
+#overview
+{
+  width: 220px;
+  float: left;
+  border: 1px solid lightgray;
+  margin: 8px 4px 0 0;
+  padding: 10px;
+}
+
+#overview a
+{
+  text-decoration: none;
+}
+
+#overview h2
+{
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+#overview h3
+{
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+#overview h4
+{
+  font-size: 12px;
+  font-weight: bolder;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+#overview ul li
+{
+  padding: 0;
+  margin-bottom: 2px;
+  list-style-type: none;
+  font-size: 12px;
+}
+
+#documentation
+{
+  margin: 8px 0 0 4px;
+  padding: 10px;
+  width: 708px;
+  float: left;
+  font-size: 14px;
+  font-family: "Times New Roman", Times, serif;
+}
+
+#documentation #type,
+#documentation h1,
+#documentation h2
+{
+  font-family:"Times New Roman", Times, serif;
+}
+
+#documentation #type
+{
+  font-size: 12px;
+}
+
+#documentation h1
+{
+  font-size: 40px;
+  font-weight:normal;
+  color:#333;
+  letter-spacing:-1px;
+  margin:20px 0;
+}
+
+#documentation h1 .paramDefaultValue
+{
+  font-weight: normal;
+  font-size: 14px;
+}
+
+/* Vertical distances between content elements. */
+#documentation p,
+#documentation ol,
+#documentation ul,
+#documentation table
+{
+  margin-top: 13px;
+  margin-bottom: 13px;
+}
+
+/* Horizontal line between blocks. */
+#documentation .details,
+#documentation .parameters,
+#documentation .return,
+#documentation .examples,
+#documentation .see,
+#documentation .internal,
+#documentation .note,
+#documentation .remark
+{
+  border-top: 1px solid #D0D0D0;
+}
+
+#documentation h2
+{
+  font-size: 14px;
+  font-weight: bold;
+  margin: 12px 0;
+}
+
+#documentation .parameters h3
+{
+  font-family: "Courier New", Courier, monospace;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #E7E7E7;
+  padding: 1px 2px;
+}
+
+#documentation .note p
+{
+  padding: 10px;
+  background-color: #FFD6D6;
+}
+
+#documentation .example
+{
+  padding: 0 10px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12px;
+  background-color: #F2F2DC;
+  border: 1px solid #E6E6B8;
+}
+
+#documentation .example .htmltag
+{
+  color: #880000;
+}
+
+#documentation .example .bracket
+{
+  font-weight: bold;
+}
+
+#documentation table
+{
+  width: 100%;
+  border-collapse: separate;
+}
+
+#documentation ul
+{
+  list-style-type: square;
+   padding-left: 15px;
+}
+
+#documentation td
+{
+  padding: 3px;
+  border: 1px solid #C0C0C0;
+  background-color: #F2F2DC;
+}
+

@@ -1,0 +1,34 @@
+This is an example file containing different Escrido markup.
+
+Everything outside the Escrido markup deliminators is ignored.
+
+"Markup deliminators inside single or double quotes are ignored: //#, /*#, #*/"
+
+/*# @_mainpage_ Escrido Short Manual
+ *  @author     Gunnar Schulze
+ *  @date       2015-10-13
+ *  @version    0.0.0
+ *  @copyright  2015 Gunnar Schulze
+ *  @brief      Manual to the Escrido multi-language documentation generator.
+ *  @details    "Escrido" is a tool that generates LaTeX and web documents of
+ *              references and manuals for code and/or programming languages.
+ *              It is strongly influenced by Doxygen and has a similar syntax.
+ *              Nevertheless it differs from Doxygen in several points:
+ *              - Escrido is not bound to any programming language. This allows
+ *                the markup text to be stored in any place, not only the
+ *                original code file. In the same way elements that have no
+ *                actual source code can be documented by Escrido.
+ *              - Its output can be controlled easily by the use of template
+ *                files.
+ *              - It uses markup deliminators &#47;*#, *#&#47; and &#47;&#47;#
+ *                that can neutrally coexist with Doxygen markup.
+ *              - Syntax is keept as similar to Doxygen as possible. Nevertheless
+ *                there are certain deviations from the Doxygen syntax.
+ *              - Certain commands extend the functionality of Doxygen, like
+ *                the @ref tag_table "&#64;table" command.
+ *              - Some Doxygen functions are not supported.
+ *
+ *  @details    See the example files for a quick start into Escrido.
+ *
+#*/
+

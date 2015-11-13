@@ -1,0 +1,16 @@
+/*#
+@_dtype_        color
+@constructor    rgb( int red, int green, int blue )
+@constructor    cmyk( float cyan, float magenta, float yellow, float key )
+
+@details        The data type describes a surface color that can be constructed
+                in either RGB or CMYK representation.
+
+@param          red
+                Red value in RGB representation. Allowed value range is [0,255].
+@param          green
+                Green value in RGB representation. Allowed value range is [0,255].
+@param          blue
+                Blue value in RGB representation. Allowed value range is [0,255].
+
+#*/
