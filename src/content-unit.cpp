@@ -44,13 +44,15 @@ const escrido::SWriteHTMLInfo& escrido::SWriteHTMLInfo::operator--() const
 // -----------------------------------------------------------------------------
 
 escrido::CContentChunk::CContentChunk():
-  fType ( cont_chunk_type::UNDEFINED )
+  fType           ( cont_chunk_type::UNDEFINED ),
+  fSkipFirstWhite ( skip_first_white::OFF )
 {}
 
 // .............................................................................
 
 escrido::CContentChunk::CContentChunk( const cont_chunk_type fType_i ):
-  fType ( fType_i )
+  fType           ( fType_i ),
+  fSkipFirstWhite ( skip_first_white::OFF )
 {}
 
 // .............................................................................
@@ -116,8 +118,23 @@ std::string escrido::CContentChunk::GetPlainAllButFirstWord() const
 
 // .............................................................................
 
+void escrido::CContentChunk::SetSkipFirstWhiteMode( skip_first_white fSkipFirstWhite_i )
+{
+  fSkipFirstWhite = fSkipFirstWhite_i;
+}
+
+// .............................................................................
+
 void escrido::CContentChunk::AppendChar( const char cChar_i )
 {
+  // Check "skip first whitespace" mode.
+  if( fSkipFirstWhite == skip_first_white::INIT )
+  {
+    if( cChar_i == ' ' || cChar_i == '\t' )
+      return;
+    fSkipFirstWhite = skip_first_white::OFF;
+  }
+
   // In HTML mode: skip multiple blank spaces.
   if( fType == cont_chunk_type::HTML_TEXT )
     if( cChar_i == ' ' )
@@ -235,6 +252,20 @@ void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteHT
 
     case cont_chunk_type::END_CODE:
       oOutStrm_i << "</span>";
+      break;
+
+    case cont_chunk_type::LINK:
+    {
+      const CContentChunk* pNextContentChunk = oWriteInfo_i.pTagBlock->GetNextContentChunk( this );
+      if( pNextContentChunk == NULL )
+        oOutStrm_i << "<a>";
+      else
+        oOutStrm_i << "<a href=\"" << pNextContentChunk->GetPlainText() << "\" target=\"_blank\">";
+      break;
+    }
+
+    case cont_chunk_type::END_LINK:
+      oOutStrm_i << "</a>";
       break;
   }
 }
@@ -442,6 +473,22 @@ void escrido::CTagBlock::CloseWrite()
     }
     faWriteMode.pop_back();
   }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Returns the next content chunk or NULL.
+// *****************************************************************************
+
+const escrido::CContentChunk* escrido::CTagBlock::GetNextContentChunk( const CContentChunk* pContentChunk ) const
+{
+  for( size_t c = 0; c < oaChunkList.size(); c++ )
+    if( &oaChunkList[c] == pContentChunk )
+      if( c < oaChunkList.size() )
+        return &oaChunkList[c+1];
+
+  return NULL;
 }
 
 // .............................................................................
@@ -818,6 +865,7 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
       // Add CODE chunk and PLAIN TEXT chunk.
       this->oaChunkList.emplace_back( cont_chunk_type::CODE );
       this->oaChunkList.emplace_back( cont_chunk_type::PLAIN_TEXT );
+      this->oaChunkList.back().SetSkipFirstWhiteMode( skip_first_white::INIT );
       break;
     }
 
@@ -834,6 +882,40 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
       }
 
       this->oaChunkList.emplace_back( cont_chunk_type::END_CODE );
+      break;
+    }
+
+    // Tag '@link':
+    // -----------
+    case tag_type::LINK:
+    {
+      // Write mode dependend behavior:
+      if( faWriteMode.empty() )
+      {
+        faWriteMode.emplace_back( tag_block_write_mode::PARAGRAPH );
+        oaChunkList.emplace_back( cont_chunk_type::START_PARAGRAPH );
+      }
+
+      // Add LINK chunk and PLAIN TEXT chunk.
+      this->oaChunkList.emplace_back( cont_chunk_type::LINK );
+      this->oaChunkList.emplace_back( cont_chunk_type::PLAIN_TEXT );
+      this->oaChunkList.back().SetSkipFirstWhiteMode( skip_first_white::INIT );
+      break;
+    }
+
+    // Tag '@endlink':
+    // -----------
+    case tag_type::END_LINK:
+    {
+      // Eventually delete one last whitespace before end link.
+      if( this->oaChunkList.back().GetType() ==  cont_chunk_type::PLAIN_TEXT )
+      {
+        std::string& sCodeText = this->oaChunkList.back().GetContent();
+        if( sCodeText.back() == ' ' || sCodeText.back() == '\t' )
+          sCodeText.pop_back();
+      }
+
+      this->oaChunkList.emplace_back( cont_chunk_type::END_LINK );
       break;
     }
   }
@@ -940,6 +1022,9 @@ void escrido::CTagBlock::AppendDoubleNewLine()
 
 void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
   switch( this->fType )
   {
     case tag_type::PARAM:
@@ -990,6 +1075,9 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLIn
 
 void escrido::CTagBlock::WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
   // Loop through all text chunks until the first word was written.
   for( size_t c = 0; c < oaChunkList.size(); c++ )
     if( oaChunkList[c].WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i ) )
@@ -1008,6 +1096,9 @@ void escrido::CTagBlock::WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWr
 
 void escrido::CTagBlock::WriteHTMLTitleLine( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
   // Write all chunks up to the title line delimitor.
   for( size_t c = 0; c < oaChunkList.size(); c++ )
   {
@@ -1032,6 +1123,9 @@ void escrido::CTagBlock::WriteHTMLTitleLine( std::ostream& oOutStrm_i, const SWr
 
 void escrido::CTagBlock::WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
   // Loop through all text chunks until the something after the first word was written.
   size_t c = 0;
   for( c = 0; c < oaChunkList.size(); c++ )
@@ -1064,6 +1158,9 @@ void escrido::CTagBlock::WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_
 
 void escrido::CTagBlock::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
   // Loop through all text chunks until the something but the first word was written.
   size_t c = 0;
   for( c = 0; c < oaChunkList.size(); c++ )
@@ -1088,6 +1185,9 @@ void escrido::CTagBlock::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, con
 
 void escrido::CTagBlock::WriteHTMLAllButTitleLine( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
   // Loop through all text chunks until the title line delimitor is found.
   size_t c = 0;
   for( c = 0; c < oaChunkList.size(); c++ )
@@ -1103,7 +1203,7 @@ void escrido::CTagBlock::WriteHTMLAllButTitleLine( std::ostream& oOutStrm_i, con
 
 void escrido::CTagBlock::DebugOutput() const
 {
-  std::cout << "block tag type: ";
+  std::cout << "block " << (unsigned long) this << " tag type: ";
   for( size_t btt = 0; btt < nBlockTagTypeN; btt++ )
     if( oaBlockTagTypeList[btt].fType == fType )
     {
@@ -1172,11 +1272,9 @@ void escrido::CTagBlock::AppendCharDefault( const char cChar_i )
 
   // Check if the last chunk in the chunklist is a text chunk. If not,
   // add one.
-  // Attention: tag blocks that are native with cont_chunk_type::HTML_TEXT
-  //            may end on a cont_chunk_type::PLAIN_TEXT chunk, e.g.
-  //            if a @code inline tag was set. This should be treated as
-  //            correct then.
-  //
+  // Attention: also tag blocks that are native with cont_chunk_type::HTML_TEXT
+  //            may end on a cont_chunk_type::PLAIN_TEXT chunk, e.g. if a @code
+  //            inline tag was appended. This should be treated as correct then.
   if( oaChunkList.empty() )
     oaChunkList.emplace_back( fTextChunkType );
   else

@@ -87,7 +87,9 @@ enum class cont_chunk_type
   UL_ITEM,
   REF,
   CODE,
-  END_CODE
+  END_CODE,
+  LINK,
+  END_LINK,
 };
 
 // Tag types:
@@ -112,6 +114,7 @@ enum class tag_type
   PARAM,
   REF,
   LINK,
+  END_LINK,
   REMARK,
   RETURN,
   SEE,
@@ -152,6 +155,14 @@ enum class verbatim_start_mode
 {
   OFF,
   INIT
+};
+
+// Flag for skipping the first whitespace of a content chunk, e.g. plain text
+// chunk in CODE or LINK tags.
+enum class skip_first_white
+{
+  INIT,
+  OFF
 };
 
 // Parser state types:
@@ -204,14 +215,16 @@ namespace escrido
     { tag_type::VERSION,    "version" } };
 
   // Inline tag types:
-  const unsigned int nInlineTagTypeN = 6;
+  const unsigned int nInlineTagTypeN = 8;
   const escrido::STagType oaInlineTagTypeList[nInlineTagTypeN] = {
     { tag_type::LINE_BREAK, "lb" },
     { tag_type::REF,        "ref" },
     { tag_type::TABLE,      "table" },
     { tag_type::END_TABLE,  "endtable" },
     { tag_type::CODE,       "code" },
-    { tag_type::END_CODE,   "endcode" } };
+    { tag_type::END_CODE,   "endcode" },
+    { tag_type::LINK,       "link" },
+    { tag_type::END_LINK,   "endlink" } };
 }
 
 // -----------------------------------------------------------------------------
@@ -240,9 +253,10 @@ namespace escrido
 
 struct escrido::SWriteHTMLInfo
 {
-  CRefTable          oRefTable;
-  bool               fShowInternal;
-  mutable signed int nIndent;     // TODO Change to unsigned int
+  CRefTable                  oRefTable;
+  bool                       fShowInternal;
+  mutable const CTagBlock*   pTagBlock;
+  mutable signed int         nIndent;     // TODO Change to unsigned int
 
   const SWriteHTMLInfo& operator++() const;   // Prefix: ++c
   const SWriteHTMLInfo& operator--() const;   // Prefix: --c
@@ -261,6 +275,8 @@ class escrido::CContentChunk
     cont_chunk_type fType;                  ///< Content chunk type.
     std::string sContent;                   ///< General type content.
 
+    skip_first_white fSkipFirstWhite;       ///< Flag for skipping the first whitespace.
+
   public:
 
     // Constructor:
@@ -273,6 +289,7 @@ class escrido::CContentChunk
     std::string GetPlainText() const;
     std::string GetPlainFirstWord() const;
     std::string GetPlainAllButFirstWord() const;
+    void SetSkipFirstWhiteMode( skip_first_white fSkipFirstWhite_i );
 
     // Append parsing content:
     void AppendChar( const char cChar_i );
@@ -319,6 +336,9 @@ class escrido::CTagBlock
     std::string GetPlainText() const;
     std::string GetPlainFirstWord() const;
     void CloseWrite();
+
+    // Content chunk navigation:
+    const CContentChunk* GetNextContentChunk( const CContentChunk* pContentChunk ) const;
 
     // Append parsing content:
     void AppendChar( const char cChar_i );
