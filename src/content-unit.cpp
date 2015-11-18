@@ -1772,7 +1772,7 @@ const escrido::CTagBlock* escrido::CContentUnit::GetNextTagBlock( const CTagBloc
 }
 
 // .............................................................................
-
+/*
 void escrido::CContentUnit::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
   // Write brief block(s), if existing.
@@ -1913,7 +1913,7 @@ void escrido::CContentUnit::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTM
     oOutStrm_i << "  </ul>" << std::endl
                << "</div>" << std::endl;
   }
-}
+}*/
 
 // .............................................................................
 

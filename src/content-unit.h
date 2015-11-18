@@ -110,6 +110,7 @@ enum class tag_type
   NAMESPACE,
   NOTE,
   OUTPUT,
+  ORDER,
   PARAGRAPH,
   PARAM,
   REF,
@@ -204,6 +205,7 @@ namespace escrido
     { tag_type::INTERNAL,   "internal" },
     { tag_type::NAMESPACE,  "namespace" },
     { tag_type::NOTE,       "note" },
+    { tag_type::ORDER,      "order" },
     { tag_type::OUTPUT,     "output" },
     { tag_type::PARAGRAPH,  "par" },
     { tag_type::PARAM,      "param"},
@@ -406,7 +408,7 @@ class escrido::CContentUnit
     const CTagBlock* GetNextTagBlock( const CTagBlock* pLast_i, tag_type fTagType_i ) const;
 
     // Output method:
-    void WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
+//     void WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
     void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
 
     // Debug output:

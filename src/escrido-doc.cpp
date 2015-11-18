@@ -515,6 +515,10 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
       }
   }
 
+  // Create reference list from the @order tags.
+  std::vector <std::string> saOrderRefList;
+
+
   // Create index file.
   {
     // Try to read template.
@@ -582,7 +586,7 @@ void escrido::CDocumentation::DebugOutput() const
 void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
   if( !fGroupOrdered )
-    this->OrderByGroups();
+    this->FillGroupListOrdered();
 
   WriteHTMLTag( "<div id=\"toc\">", oOutStrm_i, oWriteInfo_i );
   ++oWriteInfo_i;
@@ -671,13 +675,13 @@ void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
 // .............................................................................
 
 // *****************************************************************************
-/// \brief      Sorts all pages by groups.
+/// \brief      Fills the group list oaGroupList in an ordered form.
 // *****************************************************************************
 
-void escrido::CDocumentation::OrderByGroups() const
+void escrido::CDocumentation::FillGroupListOrdered() const
 {
+  // Step 1: create group list and fill in all pages.
   oaGroupList.clear();
-
   for( size_t f = 0; f < this->paDocPageList.size(); f++ )
   {
     bool fFound = false;
@@ -695,6 +699,86 @@ void escrido::CDocumentation::OrderByGroups() const
       oaGroupList.back().naDocPageIdxList.push_back( f );
     }
   }
+
+  // Step 2: create a reference list from the @order tags of the main page.
+  std::vector <std::string> saOrderRefList;
+  {
+    // Check if a main page exists.
+    CPageMainpage* pMainpage = NULL;
+    for( size_t p = 0; p < paDocPageList.size(); p++ )
+      if( paDocPageList[p]->GetIdent() == "mainpage" )
+      {
+        pMainpage = static_cast<CPageMainpage*>( this->paDocPageList[p] );
+        break;
+      }
+
+    if( pMainpage != NULL )
+    {
+      const CContentUnit& oMainpageCUnit = pMainpage->GetContentUnit();
+      const CTagBlock* pTagBlockOrder = oMainpageCUnit.GetFirstTagBlock( tag_type::ORDER );
+      while( pTagBlockOrder != NULL )
+      {
+        std::string sOrderText = pTagBlockOrder->GetPlainText();
+
+        // Tokenize and add to the order list.
+        size_t nBeg = sOrderText.find_first_not_of( " \t," );
+        while( nBeg != std::string::npos )
+        {
+          size_t nEnd = sOrderText.find_first_of( " \t,", nBeg );
+          if( nEnd == std::string::npos )
+          {
+            saOrderRefList.emplace_back( sOrderText.substr( nBeg ) );
+            break;
+          }
+          else
+          {
+            saOrderRefList.emplace_back( sOrderText.substr( nBeg, nEnd - nBeg ) );
+            nBeg = sOrderText.find_first_not_of( " \t,", nEnd );
+          }
+        }
+
+        pTagBlockOrder = oMainpageCUnit.GetNextTagBlock( pTagBlockOrder, tag_type::ORDER );
+      }
+    }
+  }
+
+  // Step 3: order groups by the @order tags.
+  // (This implements the most primitive sorting algorithm but it only has to work on
+  // small sets.)
+  if( !saOrderRefList.empty() )
+    for( size_t g = 0; g < oaGroupList.size(); g++ )
+      for( size_t p1 = 0; p1 < oaGroupList[g].naDocPageIdxList.size(); p1++ )
+      {
+        // Get identifier of page p1.
+        const std::string sIdentP1 = paDocPageList[oaGroupList[g].naDocPageIdxList[p1]]->GetIdent();
+
+        // Check if order reference list contains p1.
+        bool fRef = false;
+        for( size_t r1 = 0; r1 < saOrderRefList.size(); r1++ )
+          if( saOrderRefList[r1] == sIdentP1 )
+          {
+            // For each element after r1...
+            for( size_t r2 = r1 + 1; r2 < saOrderRefList.size(); r2++ )
+            {
+              // ... check if there is an element p2 before p1...
+              for( size_t p2 = 0; p2 < p1; p2++ )
+              {
+                // Get identifier of page p2.
+                const std::string sIdentP2 = paDocPageList[oaGroupList[g].naDocPageIdxList[p2]]->GetIdent();
+
+                if( saOrderRefList[r2] == sIdentP2 )
+                {
+                  // ... and exchange p1 and p2.
+                  size_t nBuf = oaGroupList[g].naDocPageIdxList[p1];
+                  oaGroupList[g].naDocPageIdxList[p1] = oaGroupList[g].naDocPageIdxList[p2];
+                  oaGroupList[g].naDocPageIdxList[p2] = nBuf;
+                  break;
+                }
+              }
+            }
+            break;
+          }
+      }
 
   fGroupOrdered = true;
 }

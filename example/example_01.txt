@@ -30,5 +30,9 @@ Everything outside the Escrido markup deliminators is ignored.
  *
  *  @details    See the example files for a quick start into Escrido.
  *
+ *  @order      commands
+ *              tags_reference
+ *              tags_formatting
+ *
 #*/
 

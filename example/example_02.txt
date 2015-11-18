@@ -69,16 +69,17 @@ The following table shows all block tags that are currently available:
 
  @ref tag_namespace "&#64;namespace" |
  @ref tag_note "&#64;note" |
- @ref tag_par "&#64;par" @lb
+ @ref tag_order "&#64;order" @lb
 
- @ref tag_param "&#64;param" |
  @ref tag_output "&#64;output" |
- @ref tag_remark "&#64;remark" @lb
+ @ref tag_par "&#64;par" |
+ @ref tag_param "&#64;param" @lb
 
+ @ref tag_remark "&#64;remark" |
  @ref tag_return "&#64;return" |
- @ref tag_see "&#64;see" |
- @ref tag_section "&#64;section" @lb
+ @ref tag_see "&#64;see" @lb
 
+ @ref tag_section "&#64;section" |
  @ref tag_subsection "&#64;subsection" |
  @ref tag_version "&#64;version"
 

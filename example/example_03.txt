@@ -31,27 +31,34 @@ currently available:
 
  @ref tag_namespace "&#64;namespace" |
  @ref tag_note "&#64;note" |
- @ref tag_output "&#64;output" @lb
+ @ref tag_order "&#64;order" @lb
 
+ @ref tag_output "&#64;output" |
  @ref tag_page "&#64;_page_" |
- @ref tag_par "&#64;par" |
- @ref tag_param "&#64;param" @lb
+ @ref tag_par "&#64;par" @lb
 
+ @ref tag_param "&#64;param" |
  @ref tag_ref "&#64;ref" |
- @ref tag_remark "&#64;remark" |
- @ref tag_return "&#64;return" @lb
+ @ref tag_remark "&#64;remark" @lb
 
+ @ref tag_return "&#64;return" |
  @ref tag_see "&#64;see" |
- @ref tag_section "&#64;section" |
- @ref tag_subsection "&#64;subsection" @lb
+ @ref tag_section "&#64;section" @lb
 
+ @ref tag_subsection "&#64;subsection" |
  @ref tag_table "&#64;table" |
  @ref tag_version "&#64;version"
 
 @endtable
 
+Argument values formatting:
+- () : content in paranthese must be in the same line as the tag
+- <> : text in angle bracket are single words (e.g names or identifiers)
+- [] : content in squared brackets is optional
+- {} : content in curly bracket is the tag main content (e.g. text)
+
 <HR>
-@section tag_author &#64;author {author name(s)}
+@section tag_author &#64;author {author name}
 
 The <em>author</em> data block stores information about authorship
 of an document.
@@ -181,6 +188,15 @@ flag in the settings file.
 This command adds a <em>note</em> section to the current page.
 A <em>note</em> section will be specially emphasized in the output. It is
 typically used to express warnings of different kinds.
+
+<HR>
+@section tag_order &#64;order [&lt;name&gt; &lt;name&gt; ...]
+
+This tag is used to define an order for selected pages of the document. The &#64;order command
+takes a list of identifiers as argument (seperated by commas, whitespaces or line breaks).
+The order of this list is then applied to the groups and pages. &#64;order commands can
+be used multiple times and they get combined in the order of their appearance. Only
+&#64;order commands in the main page are processed.
 
 <HR>
 @section tag_output &#64;output { output text }

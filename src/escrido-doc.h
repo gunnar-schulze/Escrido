@@ -355,7 +355,8 @@ class escrido::CDocumentation
                            const page_type& fPageType_i,
                            std::ostream& oOutStrm_i,
                            const SWriteHTMLInfo& oWriteInfo_i ) const;
-    void OrderByGroups() const;
+
+    void FillGroupListOrdered() const;
 };
 
 
