@@ -211,9 +211,6 @@ class escrido::CDocPage
 {
   protected:
 
-    //TEST
-public:
-
     // Headline related:
     std::string sIdent;            ///< The page identifier. (Often given as first word after the page tag.)
     std::string sTitle;            ///< The page title. (Often given as follow-up words after the page tag.)

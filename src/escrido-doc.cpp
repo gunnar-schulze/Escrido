@@ -198,9 +198,6 @@ const std::string escrido::CDocPage::GetURL( const std::string& sOutputPostfix_i
 
 void escrido::CDocPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
-  // Title:
-  WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h1 class=\"title\">" << sTitle << "</h1>"<< std::endl;
-
   // Brief (abstract):
   if( oContUnit.HasTagBlock( tag_type::BRIEF ) )
   {
@@ -284,9 +281,6 @@ const std::string escrido::CPageMainpage::GetURL( const std::string& sOutputPost
 
 void escrido::CPageMainpage::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
 {
-  // Title:
-  WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h1 class=\"title\">" << sTitle << "</h1>"<< std::endl;
-
   // Start description list.
   WriteHTMLTag( "<dl>", oOutStrm_i, oWriteInfo_i );
   ++oWriteInfo_i;
@@ -503,10 +497,9 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
   for( size_t p = 0; p < this->paDocPageList.size(); p++ )
     this->paDocPageList[p]->AddToRefTable( oWriteInfo.oRefTable, sOutputPostfix_i );
 
-  // Search "mainpage".
-  CPageMainpage* pMainpage;
+  // Find "mainpage".
+  CPageMainpage* pMainpage = NULL;
   {
-    pMainpage = NULL;
     for( size_t p = 0; p < this->paDocPageList.size(); p++ )
       if( this->paDocPageList[p]->GetIdent() == "mainpage" )
       {
@@ -514,10 +507,6 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
         break;
       }
   }
-
-  // Create reference list from the @order tags.
-  std::vector <std::string> saOrderRefList;
-
 
   // Create index file.
   {
@@ -529,11 +518,13 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
       if( pMainpage == NULL )
       {
         ReplacePlaceholder( "*escrido-maintitle*", "Document Title", sTemplateData );
+        ReplacePlaceholder( "*escrido-title*", "Document Title", sTemplateData );
         ReplacePlaceholder( "*escrido-mainpage*", "", sTemplateData );
       }
       else
       {
         ReplacePlaceholder( "*escrido-maintitle*", pMainpage->GetTitle(), sTemplateData );
+        ReplacePlaceholder( "*escrido-title*", pMainpage->GetTitle(), sTemplateData );
         ReplacePlaceholder( "*escrido-mainpage*", *pMainpage, &CDocPage::WriteHTML, oWriteInfo, sTemplateData );
       }
       ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteTableOfContentHTML, oWriteInfo, sTemplateData );
@@ -563,6 +554,7 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
         {
           ReplacePlaceholder( "*escrido-maintitle*", pMainpage->GetTitle(), sTemplateData );
         }
+        ReplacePlaceholder( "*escrido-groupname*", paDocPageList[p]->GetGroupName(), sTemplateData );
         ReplacePlaceholder( "*escrido-title*", paDocPageList[p]->GetTitle(), sTemplateData );
         ReplacePlaceholder( "*escrido-page*", *paDocPageList[p], &CDocPage::WriteHTML, oWriteInfo, sTemplateData );
         ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteTableOfContentHTML, oWriteInfo, sTemplateData );
@@ -742,7 +734,7 @@ void escrido::CDocumentation::FillGroupListOrdered() const
     }
   }
 
-  // Step 3: order groups by the @order tags.
+  // Step 3: order pages of each group by the @order tags.
   // (This implements the most primitive sorting algorithm but it only has to work on
   // small sets.)
   if( !saOrderRefList.empty() )
@@ -779,6 +771,82 @@ void escrido::CDocumentation::FillGroupListOrdered() const
             break;
           }
       }
+
+
+  // Step 4: order groups by the @order tags
+  if( !saOrderRefList.empty() )
+  {
+    // Create a list of group indices that has the correct order.
+    std::vector <size_t> naOrderGroupIdxList;
+
+    // Eventually add the group with empty name first, if this one exists.
+    for( size_t g = 0; g < oaGroupList.size(); g++ )
+      if( oaGroupList[g].sGroupName.empty() )
+      {
+        naOrderGroupIdxList.push_back( g );
+        break;
+      }
+
+    // Add other groups in the order of their appearance in the order reference list.
+    for( size_t r = 0; r < saOrderRefList.size(); r++ )
+    {
+      // Check if there is a group assoziated with this reference
+      size_t nGroupIdx;
+      bool fFound = false;
+      for( nGroupIdx = 0; nGroupIdx < oaGroupList.size(); nGroupIdx++ )
+      {
+        for( size_t p = 0; p < oaGroupList[nGroupIdx].naDocPageIdxList.size(); p++ )
+        {
+          // Check whether the reference points to this page.
+          if( saOrderRefList[r] == paDocPageList[oaGroupList[nGroupIdx].naDocPageIdxList[p]]->GetIdent() )
+          {
+            fFound = true;
+            break;
+          }
+        }
+        if( fFound )
+          break;
+      }
+
+     // Appending to ordered group list.
+     if( fFound )
+     {
+       // Check whether the index is already listed.
+       bool fNewIndex = true;
+       for( size_t og = 0; og < naOrderGroupIdxList.size(); og++ )
+         if( naOrderGroupIdxList[og] == nGroupIdx )
+         {
+           fNewIndex = false;
+           break;
+         }
+
+       if( fNewIndex )
+         naOrderGroupIdxList.push_back( nGroupIdx );
+     }
+    } // Creation of ordered group index list.
+
+    // Append all group indices that are not in the order group index list yet.
+    for( int g = 0; g < oaGroupList.size(); g++ )
+    {
+      bool fListed = false;
+      for( size_t og = 0; og < naOrderGroupIdxList.size(); og++ )
+        if( naOrderGroupIdxList[og] == g )
+        {
+          fListed = true;
+          break;
+        }
+
+      if( !fListed )
+        naOrderGroupIdxList.push_back( g );
+    }
+
+    // Create a full copy of the group list.
+    std::vector <CGroup> oaGroupListCpy( oaGroupList );
+
+    // Refill the group list in the correct order.
+    for( size_t g = 0; g < oaGroupList.size(); g++ )
+      oaGroupList[g] = oaGroupListCpy[naOrderGroupIdxList[g]];
+  }
 
   fGroupOrdered = true;
 }
