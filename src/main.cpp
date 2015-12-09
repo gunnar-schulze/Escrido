@@ -56,9 +56,9 @@ namespace applicationInfo
 {
   const char szName[]        = "Escrido";
   const char szDescription[] = "Multi-language documentation generator.";
-  const char szVersion[]     = "0.2.0";
+  const char szVersion[]     = "0.2.1";
   const char szFirstDate[]   = "October 2015";
-  const char szDate[]        = "November 2015";
+  const char szDate[]        = "December 2015";
   const char szAuthor[]      = "Gunnar Schulze";
 }
 
@@ -234,7 +234,8 @@ int main( int argc, char* argv[] )
   // Output LaTeX document.
   if( fLOutput )
   {
-    std::cout << "Writing of LaTeX document not implemented yet. Sorry." << std::endl;
+    std::cout << "Writing LaTeX document into \"" << sLOutputDir << "\"..." << std::endl;
+    escrido::oDocumentation.WriteLaTeXDoc( sTemplateDir, sLOutputDir, fShowInternal );
   }
 
   return 0;

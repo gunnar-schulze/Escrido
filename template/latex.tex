@@ -1,0 +1,127 @@
+% -----------------------------------------------------------------
+
+% DOCUMENT CLASS
+
+% -----------------------------------------------------------------
+
+\documentclass[11pt]{report}
+
+% -----------------------------------------------------------------
+
+% PACKAGES
+
+% -----------------------------------------------------------------
+
+*escrido_latex_packages*
+
+% -----------------------------------------------------------------
+
+% STYLING
+
+% -----------------------------------------------------------------
+
+\setlength{\parskip}{\baselineskip}%
+\setlength{\parindent}{1em}%
+
+\definecolor{codebgcolor}{HTML}{FFFFFF}
+\definecolor{codecolor}{HTML}{666666}
+\definecolor{commentcolor}{HTML}{B0B0B0}
+
+% Appearance of "lstlisting" environment (= examples)
+% See: http://texdoc.net/texmf-dist/doc/latex/listings/listings.pdf
+\lstset{%
+  % -----------------------------
+  % Background, caption and frame
+  % -----------------------------
+  backgroundcolor=\color{codebgcolor},
+  captionpos=t,
+  frame=lines,
+  rulecolor=\color{commentcolor},
+  %title={Example},
+  % ------------
+  % Text styling
+  % ------------
+  basicstyle=\footnotesize\color{codecolor}\sffamily,
+  commentstyle=\color{commentcolor}\bfseries,
+  %keywordstyle=\color{black}\bfseries\underbar,
+  %identifierstyle=,               % nothing happens
+  %stringstyle=,                   % nothing happens
+  showstringspaces=false,          % no special string spaces
+  showtabs=false,
+  tabsize=2,
+  % ----------------
+  % Column alignment
+  % ----------------
+  columns=fixed,
+  keepspaces=true,
+  basewidth=0.50em,
+  % -------------------
+  % Space and placement
+  % -------------------
+  belowskip=0pt,
+  % ------------------------------
+  % Syntax recognition and styling
+  % ------------------------------
+  morecomment=[l][commentstyle]{//},
+  morecomment=[s][commentstyle]{/*}{*/},
+  % ------------
+  % Line numbers
+  % ------------
+  %numbers=left,
+  %numberstyle=\tiny,
+  %stepnumber=1,
+  %numbersep=10pt
+  % -----------
+  % Line breaks
+  % -----------
+  breaklines=true,
+  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{purple}\hookrightarrow\space}}
+}
+
+% -----------------------------------------------------------------
+
+% OWN COMMANDS
+
+% -----------------------------------------------------------------
+
+*escrido_latex_commands*
+
+% -----------------------------------------------------------------
+
+% DOCUMENT BODY
+
+% -----------------------------------------------------------------
+
+\begin{document}
+
+% ----------------------
+% Title page
+% ----------------------
+
+\title{*escrido-maintitle*}
+\author{*escrido-mainauthor*}
+\date{*escrido-maindate*}
+\maketitle
+
+% ----------------------
+% Abstract
+% ----------------------
+
+\begin{abstract}
+*escrido-mainbrief*
+\end{abstract}
+
+% ----------------------
+% Table of contents
+% ----------------------
+
+\newpage
+\tableofcontents
+\newpage
+
+% ----------------------
+% Content
+% ----------------------
+*escrido-pages*
+
+\end{document}

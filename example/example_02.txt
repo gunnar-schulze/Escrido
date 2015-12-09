@@ -46,7 +46,7 @@ The table shows all page tags that are currently available:
 <em>Block tags</em> can be used inside a page. Unlike page tags they
 have no leading or trailing underscore characters (_) in their names.
 Block tags are only valid after a line break / new line and mark the beginning of
-a new data block or text section. Data blocks are usually used for storeing specific
+a new data block or text section. Data blocks are usually used for storing specific
 data (like @ref tag_date "&#64;date" or @ref tag_author "&#64;author") or to
 start text sections (like @ref tag_details "&#64;details" or
 @ref tag_section "&#64;section").

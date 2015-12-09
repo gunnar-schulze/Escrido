@@ -145,12 +145,20 @@ span.code {
   margin:10px 0;
 }
 
+#content img{
+max-width: 100%;
+}
+
 #content .note{
  background-color: #EFF9E1;
 }
 
 #content .note h4{
  background-color: #bce77c;
+}
+
+#content .remark{
+ background-color: #fffff5;
 }
 
 #content .remark h4{
@@ -257,7 +265,14 @@ img {
 	color:#222;
 }
 
-#content .example{
+#content .example,
+#content .output
+{
+  border-top:1px solid #eee;
+  border-bottom:1px solid #eee;
+}
+
+#content .o{
   border-top:1px solid #eee;
   border-bottom:1px solid #eee;
 }

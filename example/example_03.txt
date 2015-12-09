@@ -92,7 +92,7 @@ creation and/or modification date.
 @section tag_details &#64;details { detailed description }
 
 The <em>details</em> section works like the @ref tag_brief "&#64;brief" tag
-but it is intended for storeing detailed information about an object. The
+but it is intended for storing detailed information about an object. The
 details section may appear multiple times and multiple details sections will
 be put together in the output document.
 

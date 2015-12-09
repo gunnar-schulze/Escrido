@@ -65,7 +65,7 @@ WEBDOC_FILE_ENDING =
 #
 # Equals the "-ld" and "--latex" command line options
 
-GENERATE_LATEX     =
+GENERATE_LATEX     = YES
 
 # This parameter should point to a directory that will be filled with the LaTeX
 # output files. Default is "./latex/".

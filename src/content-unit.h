@@ -32,7 +32,7 @@
 
 // *********************
 // *                   *
-// *  SWriteHTMLInfo   *
+// *    SWriteInfo     *
 // *                   *
 // *********************
 
@@ -56,7 +56,7 @@
 
 namespace escrido
 {
-  struct SWriteHTMLInfo;
+  struct SWriteInfo;
   class CContentChunk;
   class CTagBlock;
   class CContentUnit;
@@ -237,9 +237,12 @@ namespace escrido
 
 namespace escrido
 {
-  std::ostream& WriteHTMLIndents( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i );
-  void          WriteHTMLTag( const char* szTagText_i, std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i );
+  std::ostream& WriteHTMLIndents( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i );
+  void          WriteHTMLTag( const char* szTagText_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i );
   std::string   HTMLEscape( const std::string& sText_i );
+  std::string   LaTeXEscape( const std::string& sText_i );
+  std::string   ConvertHTMLToLaTeX( const std::string& sText_i );
+  bool          ReplaceIfMatch( std::string& sText_i, size_t& nPos_i, const char* szPattern_i, const char* szReplacement_i );
   bool          FirstWord( const std::string& sText_i, std::string& sFirstWord_o );
   bool          AllButFirstWord( const std::string& sText_i, std::string& sAllButFirstWord_o );
   std::string   MakeIdentifier( const std::string& sWord_i );
@@ -249,19 +252,19 @@ namespace escrido
 
 // -----------------------------------------------------------------------------
 
-// STRUCT SWriteHTMLInfo
+// STRUCT SWriteInfo
 
 // -----------------------------------------------------------------------------
 
-struct escrido::SWriteHTMLInfo
+struct escrido::SWriteInfo
 {
   CRefTable                  oRefTable;
   bool                       fShowInternal;
   mutable const CTagBlock*   pTagBlock;
   mutable signed int         nIndent;     // TODO Change to unsigned int
 
-  const SWriteHTMLInfo& operator++() const;   // Prefix: ++c
-  const SWriteHTMLInfo& operator--() const;   // Prefix: --c
+  const SWriteInfo& operator++() const;   // Prefix: ++c
+  const SWriteInfo& operator--() const;   // Prefix: --c
 };
 
 // -----------------------------------------------------------------------------
@@ -297,9 +300,13 @@ class escrido::CContentChunk
     void AppendChar( const char cChar_i );
 
     // Output method:
-    void WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
-    bool WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
-    bool WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
+    void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    bool WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    bool WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
+    void WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    bool WriteLaTeXFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    bool WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
     void DebugOutput() const;
@@ -349,12 +356,19 @@ class escrido::CTagBlock
     void AppendDoubleNewLine();
 
     // Output method:
-    void WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
-    void WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
-    void WriteHTMLTitleLine( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
-    void WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
-    void WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
-    void WriteHTMLAllButTitleLine( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
+    void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLAllButTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
+    void WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXAllButTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
     void DebugOutput() const;
@@ -408,8 +422,9 @@ class escrido::CContentUnit
     const CTagBlock* GetNextTagBlock( const CTagBlock* pLast_i, tag_type fTagType_i ) const;
 
     // Output method:
-//     void WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
-    void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
+//     void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
     void DebugOutput() const;

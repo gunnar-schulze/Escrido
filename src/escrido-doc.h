@@ -126,13 +126,13 @@ namespace escrido
                            std::string& sTemplateData_io );
   void ReplacePlaceholder( const char* szPlaceholder_i,
                            const CDocPage& oPage_i,
-                           void (CDocPage::*WriteMethodHTML)( std::ostream&, const SWriteHTMLInfo& ) const,
-                           const SWriteHTMLInfo& oWriteInfo_i,
+                           void (CDocPage::*WriteMethodHTML)( std::ostream&, const SWriteInfo& ) const,
+                           const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
   void ReplacePlaceholder( const char* szPlaceholder_i,
                            const CDocumentation& oDocumentation_i,
-                           void (CDocumentation::*WriteMethodHTML)( std::ostream&, const SWriteHTMLInfo& ) const,
-                           const SWriteHTMLInfo& oWriteInfo_i,
+                           void (CDocumentation::*WriteMethodHTML)( std::ostream&, const SWriteInfo& ) const,
+                           const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
   const std::string GetPageTypeStr( const page_type& fPageType_i );
 }
@@ -239,7 +239,8 @@ class escrido::CDocPage
     // Output method:
     virtual const page_type   GetPageType() const;
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
-    virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
+    virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    virtual void WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Appending to reference table:
     void AddToRefTable( CRefTable& oRefTable_o, const std::string& sOutputPostfix_i ) const;
@@ -273,7 +274,7 @@ class escrido::CPageMainpage : public CDocPage
     // Output method:
     virtual const page_type   GetPageType() const;
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
-    virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
+    virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 };
 
 // -----------------------------------------------------------------------------
@@ -302,7 +303,7 @@ class escrido::CPageFunc : public CDocPage
     // Output method:
     virtual const page_type   GetPageType() const;
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
-    virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
+    virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 };
 
 // -----------------------------------------------------------------------------
@@ -338,8 +339,9 @@ class escrido::CDocumentation
     // Special methods:
     void RemoveNamespaces( const std::vector<std::string>& saNSWhiteList_i );
 
-    // Output method:
+    // Output methods:
     void WriteWebDoc( const std::string& sTemplateDir_i, const std::string& sOutputDir_i, const std::string& sOutputPostfix_i, bool fShowInternal_i ) const;
+    void WriteLaTeXDoc( const std::string& sTemplateDir_i, const std::string& sOutputDir_i, bool fShowInternal_i ) const;
 
     // Debug output:
     void DebugOutput() const;
@@ -347,11 +349,11 @@ class escrido::CDocumentation
   private:
 
     // Helper functions:
-    void WriteTableOfContentHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const;
+    void WriteTableOfContentHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteTOCPageType( const CGroup& oGroup_i,
                            const page_type& fPageType_i,
                            std::ostream& oOutStrm_i,
-                           const SWriteHTMLInfo& oWriteInfo_i ) const;
+                           const SWriteInfo& oWriteInfo_i ) const;
 
     void FillGroupListOrdered() const;
 };

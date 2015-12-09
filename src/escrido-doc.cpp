@@ -196,7 +196,7 @@ const std::string escrido::CDocPage::GetURL( const std::string& sOutputPostfix_i
 /// \brief      Writes HTML output in the format that is default for pages.
 // *****************************************************************************
 
-void escrido::CDocPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CDocPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Brief (abstract):
   if( oContUnit.HasTagBlock( tag_type::BRIEF ) )
@@ -214,6 +214,22 @@ void escrido::CDocPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInf
 
 
   // TODO HIER WEITERMACHEN
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes LaTeX output in the format that is default for pages.
+// *****************************************************************************
+
+void escrido::CDocPage::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Add title.
+  oOutStrm_i << "\\section{" << LaTeXEscape( sTitle ) << "}%" << std::endl
+             << "\\label{" << this->sIdent << "}%" << std::endl << std::endl;
+
+  // PARAGRAPH, SECTION and DETAILS paragraphs:
+  oContUnit.WriteLaTeXParSectDet( oOutStrm_i, oWriteInfo_i );
 }
 
 // .............................................................................
@@ -279,7 +295,7 @@ const std::string escrido::CPageMainpage::GetURL( const std::string& sOutputPost
 
 // .............................................................................
 
-void escrido::CPageMainpage::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CPageMainpage::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Start description list.
   WriteHTMLTag( "<dl>", oOutStrm_i, oWriteInfo_i );
@@ -364,7 +380,7 @@ const std::string escrido::CPageFunc::GetURL( const std::string& sOutputPostfix_
 
 // .............................................................................
 
-void escrido::CPageFunc::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CPageFunc::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
 //   oOutStrm_i << "<div id=\"documentation\">" << std::endl
 //              << "  <div id=\"type\">function</div>" << std::endl
@@ -489,7 +505,7 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
                                            bool fShowInternal_i ) const
 {
   // Create a write information container.
-  SWriteHTMLInfo oWriteInfo;
+  SWriteInfo oWriteInfo;
   oWriteInfo.fShowInternal = fShowInternal_i;
   oWriteInfo.nIndent = 0;
 
@@ -567,6 +583,133 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
 
 // .............................................................................
 
+void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
+                                             const std::string& sOutputDir_i,
+                                             bool fShowInternal_i ) const
+{
+  // Create a write information container.
+  SWriteInfo oWriteInfo;
+  oWriteInfo.fShowInternal = fShowInternal_i;
+  oWriteInfo.nIndent = 0;
+
+  // Find "mainpage".
+  CPageMainpage* pMainpage = NULL;
+  CContentUnit* pMainContentUnit = NULL;
+  {
+    for( size_t p = 0; p < this->paDocPageList.size(); p++ )
+      if( this->paDocPageList[p]->GetIdent() == "mainpage" )
+      {
+        pMainpage = static_cast<CPageMainpage*>( this->paDocPageList[p] );
+        pMainContentUnit = &( pMainpage->GetContentUnit() );
+        break;
+      }
+  }
+
+  // Create LaTeX file.
+  {
+    // Try to read template.
+    std::string sTemplateData;
+    if( ReadTemp( sTemplateDir_i, "latex.tex", "latex.tex", sTemplateData ) )
+    {
+      // Replace LaTeX settings placeholders.
+      ReplacePlaceholder( "*escrido_latex_packages*", "\
+% Math symbols:\n\
+\\usepackage{amsmath}\n\
+\\usepackage{amssymb}\n\
+\\usepackage{amsfonts}\n\
+% Additional symbols:\n\
+\\usepackage{textcomp}\n\
+% Package for graphics inclusion:\n\
+\\usepackage{graphicx}\n\
+% Extended color support:\n\
+\\usepackage{xcolor}\n\
+% Program code listings:\n\
+\\usepackage{listings}\n\
+% Extended tables:\n\
+\\usepackage{tabularx}\n\
+% Hyperlinks and hyper references:\n\
+\\usepackage{hyperref}\n\
+% Boxes with frames and colors:\n\
+\\usepackage{framed}", sTemplateData );
+
+      ReplacePlaceholder( "*escrido_latex_commands*", "\
+% Maxwidth definition for images:\n\
+\\makeatletter\n\
+\\def\\maxwidth#1{\\ifdim\\Gin@nat@width>#1 #1\\else\\Gin@nat@width\\fi}\n\
+\\makeatother\n\
+\n\
+% Verbatim blocks (@example, @output etc.):\n\
+\\newcommand{\\verbatimtitle}[1]{\\noindent\\textbf{\\footnotesize #1}}\n\
+\\newcommand{\\code}[1]{\\lstinline[breaklines=false,columns=fixed,basewidth=0.50em]^#1^}\n\
+\n\
+% @remark and @note type blocks:\n\
+\\definecolor{notecolorhead}{HTML}{BCE77C}\n\
+\\definecolor{notecolorbody}{HTML}{EFF9E1}\n\
+\\definecolor{remarkcolorhead}{HTML}{FFFFCC}\n\
+\\definecolor{remarkcolorbody}{HTML}{FFFFF5}\n\
+\\newenvironment{note}\n\
+{ \\colorlet{shadecolor}{notecolorbody}\n\
+  \\begin{shaded*}\n\
+  \\noindent\\colorbox{notecolorhead}{\\begin{minipage}{\\textwidth}\\textbf{Note:}\\end{minipage}} }\n\
+{ \\end{shaded*} }\n\
+\\newenvironment{remark}\n\
+{ \\colorlet{shadecolor}{remarkcolorbody}\n\
+  \\begin{shaded*}\n\
+  \\noindent\\colorbox{remarkcolorhead}{\\begin{minipage}{\\textwidth}\\textbf{Remark:}\\end{minipage}} }\n\
+{ \\end{shaded*} }\n\
+", sTemplateData );
+
+      // Replace mainpage placeholders.
+      if( pMainpage != NULL )
+      {
+        ReplacePlaceholder( "*escrido-maintitle*", pMainpage->GetTitle(), sTemplateData );
+
+        if( pMainContentUnit->HasTagBlock( tag_type::AUTHOR ) )
+          ReplacePlaceholder( "*escrido-mainauthor*", pMainContentUnit->GetFirstTagBlock( tag_type::AUTHOR )->GetPlainText(), sTemplateData );
+
+        if( pMainContentUnit->HasTagBlock( tag_type::DATE ) )
+          ReplacePlaceholder( "*escrido-maindate*", pMainContentUnit->GetFirstTagBlock( tag_type::DATE )->GetPlainText(), sTemplateData );
+
+        if( pMainContentUnit->HasTagBlock( tag_type::BRIEF ) )
+          ReplacePlaceholder( "*escrido-mainbrief*", pMainContentUnit->GetFirstTagBlock( tag_type::BRIEF )->GetPlainText(), sTemplateData );
+      }
+
+      // Create all other pages. Loop over groups:
+      for( size_t g = 0; g < this->oaGroupList.size(); g++ )
+      {
+        // Expand "*escrido-pages*":
+        ReplacePlaceholder( "*escrido-pages*", "\\chapter{*escrido-grouptitle*}\n*escrido-pages*", sTemplateData );
+
+        // Insert group name as chapter title:
+        if( oaGroupList[g].sGroupName.empty() )
+          ReplacePlaceholder( "*escrido-grouptitle*", "Introduction", sTemplateData );
+        else
+          ReplacePlaceholder( "*escrido-grouptitle*", oaGroupList[g].sGroupName, sTemplateData );
+
+        // Write pages.
+        for( size_t p = 0; p < oaGroupList[g].naDocPageIdxList.size(); p++ )
+        {
+          // Expand "*escrido-pages*":
+          ReplacePlaceholder( "*escrido-pages*", "*escrido-page*\n*escrido-pages*", sTemplateData );
+
+          // Write page.
+          ReplacePlaceholder( "*escrido-page*", *paDocPageList[oaGroupList[g].naDocPageIdxList[p]], &CDocPage::WriteLaTeX, oWriteInfo, sTemplateData );
+        }
+      }
+
+      // Delete final "*escrido-pages*":
+      ReplacePlaceholder( "*escrido-pages*", "", sTemplateData );
+
+      // Save data.
+      WriteOutput( sOutputDir_i + "latex.tex", sTemplateData );
+    }
+    else
+      std::cerr << "Unable to read LaTeX template file 'latex.tex'." << std::endl;
+  }
+}
+
+// .............................................................................
+
 void escrido::CDocumentation::DebugOutput() const
 {
   for( size_t f = 0; f < this->paDocPageList.size(); f++ )
@@ -575,7 +718,7 @@ void escrido::CDocumentation::DebugOutput() const
 
 // .............................................................................
 
-void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   if( !fGroupOrdered )
     this->FillGroupListOrdered();
@@ -605,7 +748,7 @@ void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i,
 void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
                                                 const page_type& fPageType_i,
                                                 std::ostream& oOutStrm_i,
-                                                const SWriteHTMLInfo& oWriteInfo_i ) const
+                                                const SWriteInfo& oWriteInfo_i ) const
 {
   // Count all pages of the group of the specific type.
   size_t nPagesN = 0;
@@ -927,7 +1070,7 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
   while( nReplPos != std::string::npos )
   {
     sTemplateData_io.replace( nReplPos, nPlaceholderLen, sReplacement_i );
-    nReplPos = sTemplateData_io.find( szPlaceholder_i );
+    nReplPos = sTemplateData_io.find( szPlaceholder_i, nReplPos + sReplacement_i.length() );
   }
 }
 
@@ -956,8 +1099,8 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
 
 void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
                                   const CDocPage& oPage_i,
-                                  void (CDocPage::*WriteMethodHTML)( std::ostream&, const SWriteHTMLInfo& ) const,
-                                  const SWriteHTMLInfo& oWriteInfo_i,
+                                  void (CDocPage::*WriteMethodHTML)( std::ostream&, const SWriteInfo& ) const,
+                                  const SWriteInfo& oWriteInfo_i,
                                   std::string& sTemplateData_io )
 {
   // Only proceed if the placeholder can be found in the string.
@@ -998,8 +1141,8 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
 
 void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
                                   const CDocumentation& oDocumentation_i,
-                                  void (CDocumentation::*WriteMethodHTML)( std::ostream&, const SWriteHTMLInfo& ) const,
-                                  const SWriteHTMLInfo& oWriteInfo_i,
+                                  void (CDocumentation::*WriteMethodHTML)( std::ostream&, const SWriteInfo& ) const,
+                                  const SWriteInfo& oWriteInfo_i,
                                   std::string& sTemplateData_io )
 {
   // Only proceed if the placeholder can be found in the string.

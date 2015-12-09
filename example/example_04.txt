@@ -21,6 +21,14 @@ creates the following output:
 
 Format text <b>big</b> and <em>italic</em>.
 
+@example
+<HR>
+@par
+
+creates a horizontal line:
+
+<HR>
+
 @section formatting_ul Unordered Lists
 
 Unordered lists can be created by starting a newline with a dash character

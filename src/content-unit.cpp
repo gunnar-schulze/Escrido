@@ -19,11 +19,11 @@
 
 // -----------------------------------------------------------------------------
 
-// STRUCT SWriteHTMLInfo
+// STRUCT SWriteInfo
 
 // -----------------------------------------------------------------------------
 
-const escrido::SWriteHTMLInfo& escrido::SWriteHTMLInfo::operator++() const
+const escrido::SWriteInfo& escrido::SWriteInfo::operator++() const
 {
   nIndent += 2;
   return *this;
@@ -31,7 +31,7 @@ const escrido::SWriteHTMLInfo& escrido::SWriteHTMLInfo::operator++() const
 
 // .............................................................................
 
-const escrido::SWriteHTMLInfo& escrido::SWriteHTMLInfo::operator--() const
+const escrido::SWriteInfo& escrido::SWriteInfo::operator--() const
 {
   nIndent -= 2;
   return *this;
@@ -73,6 +73,9 @@ std::string& escrido::CContentChunk::GetContent()
 
 std::string escrido::CContentChunk::GetPlainText() const
 {
+  if( fType == cont_chunk_type::NEW_LINE )
+    return "\n";
+
   return sContent;
 }
 
@@ -147,7 +150,7 @@ void escrido::CContentChunk::AppendChar( const char cChar_i )
 
 // .............................................................................
 
-void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   switch( fType )
   {
@@ -281,7 +284,7 @@ void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteHT
 /// \return     True if one or more characters were written, false otherwise.
 // *****************************************************************************
 
-bool escrido::CContentChunk::WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+bool escrido::CContentChunk::WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Get first word.
   std::string sFirstWord;
@@ -316,7 +319,7 @@ bool escrido::CContentChunk::WriteHTMLFirstWord( std::ostream& oOutStrm_i, const
 /// \return     True if one or more characters were written, false otherwise.
 // *****************************************************************************
 
-bool escrido::CContentChunk::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+bool escrido::CContentChunk::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Get all-but-first-word.
   std::string sAllButFirstWord ;
@@ -333,6 +336,204 @@ bool escrido::CContentChunk::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i,
     case cont_chunk_type::PLAIN_TEXT:
       // Do HTML escaping.
       oOutStrm_i << HTMLEscape( sAllButFirstWord );
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+// .............................................................................
+
+void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  switch( fType )
+  {
+    case cont_chunk_type::HTML_TEXT:
+      oOutStrm_i << ConvertHTMLToLaTeX( sContent );
+      break;
+
+    case cont_chunk_type::PLAIN_TEXT:
+    {
+      // Do LaTeX escaping of plain text.
+      oOutStrm_i << LaTeXEscape( sContent );
+      break;
+    }
+
+    case cont_chunk_type::NEW_LINE:
+      oOutStrm_i << "\n";
+      break;
+
+    case cont_chunk_type::START_PARAGRAPH:
+      break;
+
+    case cont_chunk_type::END_PARAGRAPH:
+      oOutStrm_i << std::endl << std::endl;
+      break;
+
+    case cont_chunk_type::START_TABLE:
+    {
+      // Find out maximum column number of the table.
+      int nMaxColN = 0;
+      {
+        int nColN = 1;
+        const CContentChunk* pNextContentChunk = this;
+        while( true )
+        {
+          if( pNextContentChunk->fType == cont_chunk_type::END_TABLE ||
+              pNextContentChunk->fType == cont_chunk_type::NEW_TABLE_ROW )
+          {
+            if( nMaxColN < nColN )
+              nMaxColN = nColN;
+            nColN = 1;
+            break;
+          }
+
+          if( pNextContentChunk->fType == cont_chunk_type::NEW_TABLE_CELL )
+            nColN++;
+
+          pNextContentChunk = oWriteInfo_i.pTagBlock->GetNextContentChunk( pNextContentChunk );
+        }
+      }
+
+      oOutStrm_i << "\\vspace{\\baselineskip}" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\begin{tabularx}{\\textwidth}{";
+      for( int i = 0; i < nMaxColN; i++ )
+        oOutStrm_i << "X";
+      oOutStrm_i << "}" << std::endl;
+      ++oWriteInfo_i;
+      break;
+    }
+
+    case cont_chunk_type::END_TABLE:
+      oOutStrm_i << std::endl;
+      WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "\\end{tabularx}" << std::endl;
+      break;
+
+    case cont_chunk_type::NEW_TABLE_CELL:
+      oOutStrm_i << " & ";
+      break;
+
+    case cont_chunk_type::NEW_TABLE_ROW:
+      oOutStrm_i << " \\\\" << std::endl;
+      break;
+
+    case cont_chunk_type::START_UL:
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\begin{itemize}" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, ++oWriteInfo_i ) << "\\item";
+      break;
+
+    case cont_chunk_type::END_UL:
+      oOutStrm_i << std::endl;
+      WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "\\end{itemize}" << std::endl;
+      break;
+
+    case cont_chunk_type::UL_ITEM:
+      oOutStrm_i << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\item";
+      break;
+
+    case cont_chunk_type::REF:
+    {
+      oOutStrm_i << "\\hyperref[" << MakeIdentifier( this->GetPlainFirstWord() ) << "]{";
+
+      std::string sText = this->GetPlainAllButFirstWord();
+      if( !sText.empty() )
+        oOutStrm_i << ConvertHTMLToLaTeX( sText );
+      else
+        oOutStrm_i << ConvertHTMLToLaTeX( sContent );
+
+      oOutStrm_i << "}";
+      break;
+    }
+
+    case cont_chunk_type::CODE:
+      oOutStrm_i << "\\code{";
+      break;
+
+    case cont_chunk_type::END_CODE:
+      oOutStrm_i << "}";
+      break;
+
+    case cont_chunk_type::LINK:
+    {
+      const CContentChunk* pNextContentChunk = oWriteInfo_i.pTagBlock->GetNextContentChunk( this );
+      if( pNextContentChunk != NULL )
+        oOutStrm_i << "\\url{";
+      else
+        oOutStrm_i << "\\url{" << pNextContentChunk->GetPlainText();
+      break;
+    }
+
+    case cont_chunk_type::END_LINK:
+      oOutStrm_i << "}";
+      break;
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the first word (i.e. the first group of non-whitespace
+///             characters) of the chunk as LaTeX into the stream.
+///
+/// \see        escrido::FirstWord()
+///
+/// \return     True if one or more characters were written, false otherwise.
+// *****************************************************************************
+
+bool escrido::CContentChunk::WriteLaTeXFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Get first word.
+  std::string sFirstWord;
+  if( !FirstWord( sContent, sFirstWord ) )
+    return false;
+
+  // Chunk dependend writing of the word.
+  switch( fType )
+  {
+    case cont_chunk_type::HTML_TEXT:
+      oOutStrm_i << ConvertHTMLToLaTeX( sFirstWord );
+      return true;
+
+    case cont_chunk_type::PLAIN_TEXT:
+      // Do LaTeX escaping.
+      oOutStrm_i << LaTeXEscape( sFirstWord );
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the group of characters that form the text after the
+///             first word of the chunk as LaTeX into the stream.
+///
+/// \see        escrido::AllButFirstWord()
+///
+/// \return     True if one or more characters were written, false otherwise.
+// *****************************************************************************
+
+bool escrido::CContentChunk::WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Get all-but-first-word.
+  std::string sAllButFirstWord ;
+  if( !AllButFirstWord( sContent, sAllButFirstWord ) )
+    return false;
+
+  // Chunk dependend writing of the word.
+  switch( fType )
+  {
+    case cont_chunk_type::HTML_TEXT:
+      oOutStrm_i << ConvertHTMLToLaTeX( sAllButFirstWord );
+      return true;
+
+    case cont_chunk_type::PLAIN_TEXT:
+      // Do LaTeX escaping.
+      oOutStrm_i << LaTeXEscape( sAllButFirstWord );
       return true;
 
     default:
@@ -1020,7 +1221,7 @@ void escrido::CTagBlock::AppendDoubleNewLine()
 
 // .............................................................................
 
-void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Set pointer to this tag block.
   oWriteInfo_i.pTagBlock = this;
@@ -1073,7 +1274,7 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLIn
 ///             characters) of the tag block as HTML into the stream.
 // *****************************************************************************
 
-void escrido::CTagBlock::WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CTagBlock::WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Set pointer to this tag block.
   oWriteInfo_i.pTagBlock = this;
@@ -1094,7 +1295,7 @@ void escrido::CTagBlock::WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWr
 ///             delimitor (e.g. section).
 // *****************************************************************************
 
-void escrido::CTagBlock::WriteHTMLTitleLine( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CTagBlock::WriteHTMLTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Set pointer to this tag block.
   oWriteInfo_i.pTagBlock = this;
@@ -1121,7 +1322,7 @@ void escrido::CTagBlock::WriteHTMLTitleLine( std::ostream& oOutStrm_i, const SWr
 ///             delimitor (e.g. section).
 // *****************************************************************************
 
-void escrido::CTagBlock::WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CTagBlock::WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Set pointer to this tag block.
   oWriteInfo_i.pTagBlock = this;
@@ -1156,7 +1357,7 @@ void escrido::CTagBlock::WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_
 ///             as HTML into the stream.
 // *****************************************************************************
 
-void escrido::CTagBlock::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CTagBlock::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Set pointer to this tag block.
   oWriteInfo_i.pTagBlock = this;
@@ -1183,7 +1384,7 @@ void escrido::CTagBlock::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, con
 ///             delimitor (e.g. section).
 // *****************************************************************************
 
-void escrido::CTagBlock::WriteHTMLAllButTitleLine( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CTagBlock::WriteHTMLAllButTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Set pointer to this tag block.
   oWriteInfo_i.pTagBlock = this;
@@ -1197,6 +1398,193 @@ void escrido::CTagBlock::WriteHTMLAllButTitleLine( std::ostream& oOutStrm_i, con
   // Write full remaining chunks;
   for( c++; c < oaChunkList.size(); c++ )
     oaChunkList[c].WriteHTML( oOutStrm_i, oWriteInfo_i );
+}
+
+// .............................................................................
+
+void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  switch( this->fType )
+  {
+    case tag_type::PARAM:
+    {
+      // TODO
+      /* HTML-Version
+      oOutStrm_i << "<h3>";
+      WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "</h3>" << std::endl
+                 << "<p>" << std::endl;
+      WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "</p>" << std::endl;
+      */
+      break;
+    }
+
+    case tag_type::SEE:
+    {
+      // TODO
+      /* HTML-Version
+      if( !this->oaChunkList.empty() )
+      {
+        oOutStrm_i << "<li>";
+        size_t nRefIdx;
+        if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->oaChunkList[0].GetPlainFirstWord() ), nRefIdx ) )
+        {
+          oOutStrm_i << "<a href=\"" + oWriteInfo_i.oRefTable.GetLink( nRefIdx ) + "\">";
+          this->oaChunkList[0].WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << "</a>";
+        }
+        else
+          this->oaChunkList[0].WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
+        oOutStrm_i << "</li>";
+      }
+      */
+      break;
+    }
+
+    default:
+    {
+      for( size_t c = 0; c < this->oaChunkList.size(); c++ )
+        this->oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+      break;
+    }
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the first word (i.e. the first group of non-whitespace
+///             characters) of the tag block as LaTeX into the stream.
+// *****************************************************************************
+
+void escrido::CTagBlock::WriteLaTeXFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Loop through all text chunks until the first word was written.
+  for( size_t c = 0; c < oaChunkList.size(); c++ )
+    if( oaChunkList[c].WriteLaTeXFirstWord( oOutStrm_i, oWriteInfo_i ) )
+      return;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the title line (i.e. the first line up to the title
+///             delimitor chunk) of the tag block as LaTeX into the stream.
+///
+/// \remark     This works only for tag block types that include a title line
+///             delimitor (e.g. section).
+// *****************************************************************************
+
+void escrido::CTagBlock::WriteLaTeXTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Write all chunks up to the title line delimitor.
+  for( size_t c = 0; c < oaChunkList.size(); c++ )
+  {
+    // Break off on new line or new paragraph.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the title line (i.e. the first line up to the title
+///             delimitor chunk) without the first word of the tag block as
+///             LaTeX into the stream.
+///
+/// \remark     This works only for tag block types that include a title line
+///             delimitor (e.g. section).
+// *****************************************************************************
+
+void escrido::CTagBlock::WriteLaTeXTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Loop through all text chunks until the something after the first word was written.
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+  {
+    // Break off in the title line delimitor is reached.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    if( oaChunkList[c].WriteLaTeXAllButFirstWord( oOutStrm_i, oWriteInfo_i ) )
+      break;
+  }
+
+  // Write remaining chunks up to the title line delimitor.
+  for( c++; c < oaChunkList.size(); c++ )
+  {
+    // Break off in the title line delimitor is reached.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes all the content without the first word of the tag block
+///             as LaTeX into the stream.
+// *****************************************************************************
+
+void escrido::CTagBlock::WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Loop through all text chunks until the something but the first word was written.
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+    if( oaChunkList[c].WriteLaTeXAllButFirstWord( oOutStrm_i, oWriteInfo_i ) )
+      break;
+
+  // Write full remaining chunks;
+  for( c++; c < oaChunkList.size(); c++ )
+    oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes all the content without the title line (i.e. the first
+///             line up to the title delimitor chunk) of the tag block as LaTeX
+///             into the stream.
+///
+/// \remark     This works only for tag block types that include a title line
+///             delimitor (e.g. section).
+// *****************************************************************************
+
+void escrido::CTagBlock::WriteLaTeXAllButTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Loop through all text chunks until the title line delimitor is found.
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      break;
+
+  // Write full remaining chunks;
+  for( c++; c < oaChunkList.size(); c++ )
+    oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
 }
 
 // .............................................................................
@@ -1773,7 +2161,7 @@ const escrido::CTagBlock* escrido::CContentUnit::GetNextTagBlock( const CTagBloc
 
 // .............................................................................
 /*
-void escrido::CContentUnit::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CContentUnit::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Write brief block(s), if existing.
   if( HasTagBlock( tag_type::BRIEF ) )
@@ -1923,7 +2311,7 @@ void escrido::CContentUnit::WriteHTML( std::ostream& oOutStrm_i, const SWriteHTM
 ///             standardized way.
 // *****************************************************************************
 
-void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i ) const
+void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Text section type blocks: default, section or details blocks in their order
   // of their appearance.
@@ -1961,9 +2349,9 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
           }
 
           // Surrounding "<div>".
-          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<div id=\"";
-          oaBlockList[t].WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
-          oOutStrm_i << "\" class=\"section\">" << std::endl;
+          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<div id=\""
+                                                       << oaBlockList[t].GetPlainFirstWord()
+                                                       << "\" class=\"section\">" << std::endl;
           ++oWriteInfo_i;
 
           // Title line.
@@ -1980,9 +2368,9 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
         case tag_type::SUBSECTION:
         {
           // Surrounding "<div>".
-          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<div id=\"";
-          oaBlockList[t].WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
-          oOutStrm_i << "\" class=\"subsection\">" << std::endl;
+          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<div id=\""
+                                                       << oaBlockList[t].GetPlainFirstWord()
+                                                       << "\" class=\"subsection\">" << std::endl;
           ++oWriteInfo_i;
 
           // Title line.
@@ -2014,7 +2402,7 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
           ++oWriteInfo_i;
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<img src=\"" << oaBlockList[t].GetPlainFirstWord() << "\">" << std::endl;
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<figcaption>";
-          oaBlockList[t].WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oaBlockList[t].WriteHTMLTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</figcaption>" << std::endl;
           WriteHTMLTag( "</figure>", oOutStrm_i, --oWriteInfo_i );
           break;
@@ -2065,6 +2453,131 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Writes the PARAGRAPH, the SECTION, the DETAILS and embedded
+///             EXAMPLE, IMAGE, NOTES, OUTPUT and REMARK tag blocks in a
+///             standardized way.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Text section type blocks: default, section or details blocks in their order
+  // of their appearance.
+  {
+    // Flag whether the writing is inside one or multiple "details" tag block(s).
+    bool fInDetails = false;
+
+    // Loop over all text blocks.
+    for( size_t t = 0; t < oaBlockList.size(); t++ )
+    {
+      switch( oaBlockList[t].GetTagType() )
+      {
+        case tag_type::PARAGRAPH:
+          oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+          break;
+
+        case tag_type::DETAILS:
+        {
+          if( !fInDetails )
+          {
+            oOutStrm_i << "\\subsection{Details}%" << std::endl << std::endl;
+            fInDetails = true;
+          }
+
+          oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+
+          break;
+        }
+
+        case tag_type::SECTION:
+        {
+          if( fInDetails )
+            fInDetails = false;
+
+          // Title line.
+          oOutStrm_i << "\\subsection{";
+          oaBlockList[t].WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << "}%" << std::endl
+                     << "\\label{" << oaBlockList[t].GetPlainFirstWord() << "}%" << std::endl << std::endl;
+
+          // Content.
+          oaBlockList[t].WriteLaTeXAllButTitleLine( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+
+          break;
+        }
+
+        case tag_type::SUBSECTION:
+        {
+          // Title line.
+          oOutStrm_i << "\\subsubsection{";
+          oaBlockList[t].WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << "}%" << std::endl
+                     << "\\label{" << oaBlockList[t].GetPlainFirstWord() << "}%" << std::endl << std::endl;
+
+          // Content.
+          oaBlockList[t].WriteLaTeXAllButTitleLine( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::EXAMPLE:
+        {
+          oOutStrm_i << "\\verbatimtitle{Example}" << std::endl
+                     << "\\begin{lstlisting}" << std::endl
+                     << oaBlockList[t].GetPlainText()
+                     << "\\end{lstlisting}" << std::endl;
+          break;
+        }
+
+        case tag_type::IMAGE:
+        {
+          oOutStrm_i << "\\begin{minipage}{\\textwidth}" << std::endl
+                     << "  \\begin{center}" << std::endl
+                     << "    \\includegraphics[width=\\maxwidth{\\textwidth}]{" << oaBlockList[t].GetPlainFirstWord() << "}\\\\" << std::endl
+                     << "    {";
+          oaBlockList[t].WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << "}" << std::endl
+                     << "  \\end{center}" << std::endl
+                     << "\\end{minipage}" << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::NOTE:
+        {
+          oOutStrm_i << "\\begin{note}" << std::endl;
+          oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << "\\end{note}" << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::OUTPUT:
+        {
+          oOutStrm_i << "\\verbatimtitle{Output}" << std::endl
+                     << "\\begin{lstlisting}" << std::endl
+                     << oaBlockList[t].GetPlainText()
+                     << "\\end{lstlisting}" << std::endl;
+          break;
+        }
+
+        case tag_type::REMARK:
+        {
+          oOutStrm_i << "\\begin{remark}" << std::endl;
+          oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << "\\end{remark}" << std::endl << std::endl;
+          break;
+        }
+      }
+    }
+
+    if( fInDetails )
+      fInDetails = false;
+  }
+}
+
+// .............................................................................
+
 void escrido::CContentUnit::DebugOutput() const
 {
   switch( fContUnitType )
@@ -2104,7 +2617,7 @@ void escrido::CContentUnit::SetParseState( parse_state fParseState_i )
 
 // -----------------------------------------------------------------------------
 
-std::ostream& escrido::WriteHTMLIndents( std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i )
+std::ostream& escrido::WriteHTMLIndents( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i )
 {
   for( unsigned int i = 0; i < oWriteInfo_i.nIndent; i++ )
     oOutStrm_i << " ";
@@ -2113,7 +2626,7 @@ std::ostream& escrido::WriteHTMLIndents( std::ostream& oOutStrm_i, const SWriteH
 
 // -----------------------------------------------------------------------------
 
-void escrido::WriteHTMLTag( const char* szTagText_i, std::ostream& oOutStrm_i, const SWriteHTMLInfo& oWriteInfo_i )
+void escrido::WriteHTMLTag( const char* szTagText_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i )
 {
   for( unsigned int i = 0; i < oWriteInfo_i.nIndent; i++ )
     oOutStrm_i << " ";
@@ -2157,6 +2670,148 @@ std::string escrido::HTMLEscape( const std::string& sText_i )
   }
 
   return sReturn;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns a string that is LaTeX escaped, i.e. it will show the
+///             original string when added into an LaTeX document.
+// *****************************************************************************
+
+std::string escrido::LaTeXEscape( const std::string& sText_i )
+{
+  std::string sReturn;
+  for( size_t c = 0; c < sText_i.size(); c++ )
+  {
+    switch( sText_i[c] )
+    {
+      case '$':
+        sReturn += "\\$";
+        break;
+
+      case '%':
+        sReturn += "\\%";
+        break;
+
+      case '_':
+        sReturn += "\\_";
+        break;
+
+      case '{':
+        sReturn += "\\{";
+        break;
+
+      case '}':
+        sReturn += "\\}";
+        break;
+
+      case '[':
+        sReturn += "{[}";
+        break;
+
+      case ']':
+        sReturn += "{]}";
+        break;
+
+      case '&':
+        sReturn += "\\&";
+        break;
+
+      case '#':
+        sReturn += "\\#";
+        break;
+
+      case '|':
+        sReturn += "\\textbar ";
+        break;
+
+      default:
+        sReturn += sText_i[c];
+        break;
+    }
+  }
+
+  return sReturn;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Converts a string containing HTML content into pure LaTeX type
+///             content and returns it.
+// *****************************************************************************
+
+std::string escrido::ConvertHTMLToLaTeX( const std::string& sText_i )
+{
+  std::string sTextCpy( sText_i );
+  for( size_t nPos = 0; nPos < sTextCpy.size(); )
+  {
+    // Keep order of the exchange rules from high to low precedence:
+
+    // Very special commands:
+    if( ReplaceIfMatch( sTextCpy, nPos, "LaTeX", "{\\LaTeX}" ) ) continue;
+
+    // HTML specific commands:
+    if( ReplaceIfMatch( sTextCpy, nPos, "<HR>", "\\noindent\\rule{\\textwidth}{0.4pt} " ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "<em>", "\\textit{" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "</em>", "}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "<b>", "\\textbf{" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "</b>", "}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "<sup>", "$^\\textrm{\\footnotesize " ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "</sup>", "}$" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "<sub>", "$_\\textrm{\\footnotesize " ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "</sub>", "}$" ) ) continue;
+
+    // HTML entities:
+    if( ReplaceIfMatch( sTextCpy, nPos, "&amp;", "\\&" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&gamma;", "$\\gamma$" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#42;", "*" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#124;", "{\\textbar}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#47;", "/" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#64;", "@" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&lt;", "{\\textless}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&gt;", "{\\textgreater}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#8477;", "$\\mathbb{R}$" ) ) continue;
+
+    // Avoid certain LaTeX ligatures:
+    if( ReplaceIfMatch( sTextCpy, nPos, "--", "-{}-" ) ) continue;
+
+    // Characters:
+    if( ReplaceIfMatch( sTextCpy, nPos, "$", "\\$" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "%", "\\%" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "_", "\\_" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "{", "\\{" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "}", "\\}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "[", "{[}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "]", "{]}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&", "\\&" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "#", "\\#" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "|", "{\\textbar}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "<", "{\\textless}" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, ">", "{\\textgreater}" ) ) continue;
+
+    // Increase counter;
+    nPos++;
+  }
+
+  return sTextCpy;
+}
+
+// -----------------------------------------------------------------------------
+
+bool escrido::ReplaceIfMatch( std::string& sText_i, size_t& nPos_i, const char* szPattern_i, const char* szReplacement_i )
+{
+  size_t nPatternLen = strlen( szPattern_i );
+  if( sText_i.compare( nPos_i, nPatternLen, szPattern_i ) == 0 )
+  {
+    sText_i.replace( nPos_i, strlen( szPattern_i ), szReplacement_i );
+    size_t nReplaceLen = strlen( szReplacement_i );
+    nPos_i += nReplaceLen;
+    return true;
+  }
+  else
+    return false;
 }
 
 // -----------------------------------------------------------------------------
