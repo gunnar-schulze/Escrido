@@ -625,12 +625,14 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
 \\usepackage{xcolor}\n\
 % Program code listings:\n\
 \\usepackage{listings}\n\
-% Extended tables:\n\
-\\usepackage{tabularx}\n\
+% Auto-aligned tables:\n\
+\\usepackage{tabulary}\n\
 % Hyperlinks and hyper references:\n\
 \\usepackage{hyperref}\n\
 % Boxes with frames and colors:\n\
-\\usepackage{framed}", sTemplateData );
+\\usepackage{framed}\n", sTemplateData );
+
+//       ReplacePlaceholder( "*escrido_latex_settings*", "", sTemplateData );
 
       ReplacePlaceholder( "*escrido_latex_commands*", "\
 % Maxwidth definition for images:\n\
@@ -645,19 +647,19 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
 % @remark and @note type blocks:\n\
 \\definecolor{notecolorhead}{HTML}{BCE77C}\n\
 \\definecolor{notecolorbody}{HTML}{EFF9E1}\n\
-\\definecolor{remarkcolorhead}{HTML}{FFFFCC}\n\
-\\definecolor{remarkcolorbody}{HTML}{FFFFF5}\n\
 \\newenvironment{note}\n\
 { \\colorlet{shadecolor}{notecolorbody}\n\
   \\begin{shaded*}\n\
   \\noindent\\colorbox{notecolorhead}{\\begin{minipage}{\\textwidth}\\textbf{Note:}\\end{minipage}} }\n\
 { \\end{shaded*} }\n\
+\n\
+\\definecolor{remarkcolorhead}{HTML}{FFFFCC}\n\
+\\definecolor{remarkcolorbody}{HTML}{FFFFF5}\n\
 \\newenvironment{remark}\n\
 { \\colorlet{shadecolor}{remarkcolorbody}\n\
   \\begin{shaded*}\n\
   \\noindent\\colorbox{remarkcolorhead}{\\begin{minipage}{\\textwidth}\\textbf{Remark:}\\end{minipage}} }\n\
-{ \\end{shaded*} }\n\
-", sTemplateData );
+{ \\end{shaded*} }\n", sTemplateData );
 
       // Replace mainpage placeholders.
       if( pMainpage != NULL )

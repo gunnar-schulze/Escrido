@@ -396,10 +396,12 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
         }
       }
 
-      oOutStrm_i << "\\vspace{\\baselineskip}" << std::endl;
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\begin{tabularx}{\\textwidth}{";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\noindent\\parbox{\\textwidth}{%" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, ++oWriteInfo_i ) << "\\tymin=" << 1.0 / ( nMaxColN + 1 ) << "\\textwidth%" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\centering%" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\begin{tabulary}{\\textwidth}{";
       for( int i = 0; i < nMaxColN; i++ )
-        oOutStrm_i << "X";
+        oOutStrm_i << "L";
       oOutStrm_i << "}" << std::endl;
       ++oWriteInfo_i;
       break;
@@ -407,7 +409,8 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
 
     case cont_chunk_type::END_TABLE:
       oOutStrm_i << std::endl;
-      WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "\\end{tabularx}" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "\\end{tabulary}" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "}" << std::endl;
       break;
 
     case cont_chunk_type::NEW_TABLE_CELL:
@@ -419,13 +422,15 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
       break;
 
     case cont_chunk_type::START_UL:
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\begin{itemize}" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\noindent\\parbox{\\textwidth}{%" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, ++oWriteInfo_i ) << "\\begin{itemize}" << std::endl;
       WriteHTMLIndents( oOutStrm_i, ++oWriteInfo_i ) << "\\item";
       break;
 
     case cont_chunk_type::END_UL:
       oOutStrm_i << std::endl;
       WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "\\end{itemize}" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "}" << std::endl;
       break;
 
     case cont_chunk_type::UL_ITEM:
@@ -2722,8 +2727,16 @@ std::string escrido::LaTeXEscape( const std::string& sText_i )
         sReturn += "\\#";
         break;
 
+      case '´':
+        sReturn += "'";
+        break;
+
+      case '°':
+        sReturn += "{\\textdegree}";
+        break;
+
       case '|':
-        sReturn += "\\textbar ";
+        sReturn += "{\\textbar}";
         break;
 
       default:
@@ -2787,6 +2800,8 @@ std::string escrido::ConvertHTMLToLaTeX( const std::string& sText_i )
     if( ReplaceIfMatch( sTextCpy, nPos, "]", "{]}" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "&", "\\&" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "#", "\\#" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "´", "'" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "°", "{\\textdegree}" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "|", "{\\textbar}" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "<", "{\\textless}" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, ">", "{\\textgreater}" ) ) continue;
