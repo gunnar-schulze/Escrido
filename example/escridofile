@@ -21,7 +21,7 @@ TEMPLATE_DIR       = "./template/"
 #
 # Equals the "-i" and "--include" command line options
 
-INCLUDE            = "./example/*0?.txt"
+INCLUDE            = "./example/*.txt"
 
 # This parameter defines a namespace the documentation shall be restricted to.
 # If empty, all available namespaces are included. Multiple values

@@ -56,7 +56,7 @@
 //                        |
 //                        |  *********************
 //                        |  *                   *
-//                        +--*     CPageFunc     *
+//                        +--*  CUserTypedPage   *
 //                           *                   *
 //                           *********************
 
@@ -72,9 +72,9 @@ namespace escrido
   class CGroup;
   class CParam;
   class CParamList;
-  class CDocPage;            // Parent class of the various documentation pages.
+  class CDocPage;            // Basic documentation page. Parent class of all pages.
   class CPageMainpage;       // Documentation main page class.
-  class CPageFunc;           // Documentation page class for functions.
+  class CUserTypedPage;      // Documentation page with user-defined page type (functions, data types etc.).
   class CDocumentation;      // A complete documentation.
 }
 
@@ -87,20 +87,15 @@ namespace escrido
 namespace escrido
 {
   // Parser state types:
-  enum class headline_parse_state : unsigned char
+  enum headline_parse_state : unsigned char
   {
     START,
+    PAGETYPE,
+    PAGETYPE_DQUOTED,
+    POST_PAGETYPE,
     IDENTIFIER,
     POST_IDENT,
     TITLE
-  };
-
-  // Page types:
-  enum class page_type : unsigned char
-  {
-    PAGE,
-    MAINPAGE,
-    FUNCTION
   };
 }
 
@@ -134,7 +129,8 @@ namespace escrido
                            void (CDocumentation::*WriteMethodHTML)( std::ostream&, const SWriteInfo& ) const,
                            const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
-  const std::string GetPageTypeStr( const page_type& fPageType_i );
+  std::string GetCapForm( const std::string& sName_i );
+  std::string GetCapPluralForm( const std::string& sName_i );
 }
 
 // -----------------------------------------------------------------------------
@@ -211,9 +207,13 @@ class escrido::CDocPage
 {
   protected:
 
-    // Headline related:
-    std::string sIdent;            ///< The page identifier. (Often given as first word after the page tag.)
-    std::string sTitle;            ///< The page title. (Often given as follow-up words after the page tag.)
+    // Page type, identifier and title:
+    std::string sPageTypeLit;      ///< Literary page type ("mainpage", "page", "data type" etc.)
+    std::string sPageTypeID;       ///< Page type identifier ("data_type" etc.)
+    std::string sIdent;            ///< The page identifier (as given in the headline).
+    std::string sTitle;            ///< The page title (as given in the headline).
+
+    // Head line parsing state:
     headline_parse_state fState;   ///< State for parsing headline.
 
     // Content related:
@@ -223,12 +223,18 @@ class escrido::CDocPage
 
     // Constructor:
     CDocPage();
+    CDocPage( const char* szPageTypeLit_i,
+              const char* szPageTypeID_i,
+              const char* szIdent_i,
+              headline_parse_state fState_i );
 
     // Appending of content (while parsing):
     void AppendContentUnit( const CContentUnit& oContUnit_i );
 
     // Methods for accessing selected content:
-    void AppendHeadlineChar( const char cIdentChar_i );
+    virtual void AppendHeadlineChar( const char cIdentChar_i );
+    const std::string GetPageTypeLit() const;
+    const std::string GetPageTypeID() const;
     const std::string& GetIdent() const;
     const std::string& GetTitle() const;
     CContentUnit&      GetContentUnit();
@@ -237,7 +243,6 @@ class escrido::CDocPage
     const std::string  GetGroupName() const;
 
     // Output method:
-    virtual const page_type   GetPageType() const;
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
     virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     virtual void WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
@@ -272,38 +277,43 @@ class escrido::CPageMainpage : public CDocPage
     // Methods for accessing selected content:
 
     // Output method:
-    virtual const page_type   GetPageType() const;
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
     virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 };
 
 // -----------------------------------------------------------------------------
 
-// CLASS CPageFunc
+// CLASS CUserTypedPage
 
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-/// \brief      Documentation page class for functions.
+/// \brief      Documentation page class for general programming constructs as
+///             functions, data types, classes etc.
 // *****************************************************************************
 
-class escrido::CPageFunc : public CDocPage
+class escrido::CUserTypedPage : public CDocPage
 {
   private:
 
-    CParamList oParamList;             ///< The parameter list.
+    // TODO: generalize this for functions, constructors etc:
+    CParamList oParamList;             ///< An eventual parameter list.
 
   public:
 
     // Constructor, destructor:
-    CPageFunc( const CParamList& oParamList_i );
+    CUserTypedPage();
 
     // Methods for accessing selected content:
+    virtual void AppendHeadlineChar( const char cIdentChar_i );
 
     // Output method:
-    virtual const page_type   GetPageType() const;
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
     virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
+  private:
+
+    void BuildPageTypeID();
 };
 
 // -----------------------------------------------------------------------------
@@ -351,7 +361,7 @@ class escrido::CDocumentation
     // Helper functions:
     void WriteTableOfContentHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteTOCPageType( const CGroup& oGroup_i,
-                           const page_type& fPageType_i,
+                           const std::string& sPageTypeID_i,
                            std::ostream& oOutStrm_i,
                            const SWriteInfo& oWriteInfo_i ) const;
 

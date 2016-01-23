@@ -1,5 +1,5 @@
 /*#
-@_dtype_        color
+@_type_ "data type" color color
 @constructor    rgb( int red, int green, int blue )
 @constructor    cmyk( float cyan, float magenta, float yellow, float key )
 

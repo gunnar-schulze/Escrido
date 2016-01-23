@@ -15,6 +15,7 @@
 #include <sstream>      // std::stringstream, std::stringbuf
 #include <fstream>      // std::ifstream, std::ofstream
 #include <iostream>     // std::cout, std::cin, std::cerr, std::endl
+#include <cctype>       // tolower, toupper
 
 // -----------------------------------------------------------------------------
 
@@ -63,7 +64,21 @@ void escrido::CParamList::AppendParam( const CParam& oParam_i )
 // -----------------------------------------------------------------------------
 
 escrido::CDocPage::CDocPage() :
-  fState    ( headline_parse_state::START )
+  sPageTypeLit ( "page" ),
+  sPageTypeID  ( "page" ),
+  fState       ( headline_parse_state::START )
+{}
+
+// .............................................................................
+
+escrido::CDocPage::CDocPage( const char* szPageTypeLit_i,
+                             const char* szPageTypeID_i,
+                             const char* szIdent_i,
+                             headline_parse_state fState_i ) :
+  sPageTypeLit ( szPageTypeLit_i ),
+  sPageTypeID  ( szPageTypeID_i ),
+  sIdent       ( szIdent_i ),
+  fState       ( fState_i )
 {}
 
 // .............................................................................
@@ -127,6 +142,20 @@ void escrido::CDocPage::AppendHeadlineChar( const char cIdentChar_i )
 
 // .............................................................................
 
+const std::string escrido::CDocPage::GetPageTypeLit() const
+{
+  return sPageTypeLit;
+}
+
+// .............................................................................
+
+const std::string escrido::CDocPage::GetPageTypeID() const
+{
+  return sPageTypeID;
+}
+
+// .............................................................................
+
 const std::string& escrido::CDocPage::GetIdent() const
 {
   return sIdent;
@@ -178,13 +207,6 @@ const std::string escrido::CDocPage::GetGroupName() const
 
 // .............................................................................
 
-const escrido::page_type escrido::CDocPage::GetPageType() const
-{
-  return page_type::PAGE;
-}
-
-// .............................................................................
-
 const std::string escrido::CDocPage::GetURL( const std::string& sOutputPostfix_i ) const
 {
   return std::string( "page_" + sIdent + sOutputPostfix_i );
@@ -211,9 +233,6 @@ void escrido::CDocPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& o
 
   // PARAGRAPH, SECTION and DETAILS paragraphs:
   oContUnit.WriteHTMLParSectDet( oOutStrm_i, oWriteInfo_i );
-
-
-  // TODO HIER WEITERMACHEN
 }
 
 // .............................................................................
@@ -262,7 +281,7 @@ void escrido::CDocPage::AddToRefTable( CRefTable& oRefTable_o, const std::string
 
 void escrido::CDocPage::DebugOutput() const
 {
-  std::cout << GetPageTypeStr( this->GetPageType() ) << ":" << std::endl;
+  std::cout << this->GetPageTypeID() << ":" << std::endl;
   oContUnit.DebugOutput();
 }
 
@@ -272,19 +291,9 @@ void escrido::CDocPage::DebugOutput() const
 
 // -----------------------------------------------------------------------------
 
-escrido::CPageMainpage::CPageMainpage()
-{
-  // Set documentation page identifier to "mainpage".
-  sIdent = "mainpage";
-  fState = headline_parse_state::POST_IDENT;
-}
-
-// .............................................................................
-
-const escrido::page_type escrido::CPageMainpage::GetPageType() const
-{
-  return page_type::MAINPAGE;
-}
+escrido::CPageMainpage::CPageMainpage():
+  CDocPage( "mainpage", "mainpage", "mainpage", headline_parse_state::POST_IDENT )
+{}
 
 // .............................................................................
 
@@ -355,38 +364,141 @@ void escrido::CPageMainpage::WriteHTML( std::ostream& oOutStrm_i, const SWriteIn
 
 // -----------------------------------------------------------------------------
 
-// CLASS CPageFunc
+// CLASS CUserTypedPage
 
 // -----------------------------------------------------------------------------
 
-escrido::CPageFunc::CPageFunc( const CParamList& oParamList_i ):
-  oParamList  ( oParamList_i )
+escrido::CUserTypedPage::CUserTypedPage():
+  CDocPage( "", "", "", headline_parse_state::START )
 {}
 
-
 // .............................................................................
 
-const escrido::page_type escrido::CPageFunc::GetPageType() const
+void escrido::CUserTypedPage::AppendHeadlineChar( const char cIdentChar_i )
 {
-  return page_type::FUNCTION;
+  // Parse the program construct headline. This is one program construct label
+  // (as "function", "data type" or "class", may be in quotation marks), an
+  // identifier word followed by the individual name of the construct.
+  switch( fState )
+  {
+    case headline_parse_state::START:
+      if( cIdentChar_i == ' ' || cIdentChar_i == '\t' )
+        return;
+      else
+      if( cIdentChar_i == '"' )
+      {
+        fState = headline_parse_state::PAGETYPE_DQUOTED;
+        return;
+      }
+      else
+      {
+        fState = headline_parse_state::PAGETYPE;
+        sPageTypeLit.push_back( cIdentChar_i );
+        return;
+      }
+
+    case headline_parse_state::PAGETYPE:
+      if( cIdentChar_i == ' ' || cIdentChar_i == '\t' )
+      {
+        fState = headline_parse_state::POST_PAGETYPE;
+        BuildPageTypeID();
+        return;
+      }
+      else
+      {
+        sPageTypeLit.push_back( cIdentChar_i );
+        return;
+      }
+
+    case headline_parse_state::PAGETYPE_DQUOTED:
+      if( cIdentChar_i == '"' )
+      {
+        fState = headline_parse_state::POST_PAGETYPE;
+        BuildPageTypeID();
+        return;
+      }
+      else
+      {
+        sPageTypeLit.push_back( cIdentChar_i );
+        return;
+      }
+
+    case headline_parse_state::POST_PAGETYPE:
+      if( cIdentChar_i == ' ' || cIdentChar_i == '\t' )
+        return;
+      else
+      {
+        fState = headline_parse_state::IDENTIFIER;
+        sIdent.push_back( cIdentChar_i );
+        return;
+      }
+
+    case headline_parse_state::IDENTIFIER:
+      if( cIdentChar_i == ' ' || cIdentChar_i == '\t' )
+      {
+        fState = headline_parse_state::POST_IDENT;
+        return;
+      }
+      else
+      {
+        sIdent.push_back( cIdentChar_i );
+        return;
+      }
+
+    case headline_parse_state::POST_IDENT:
+    {
+      if( cIdentChar_i == ' ' || cIdentChar_i == '\t' )
+        return;
+      else
+      {
+        fState = headline_parse_state::TITLE;
+        sTitle.push_back( cIdentChar_i );
+        return;
+      }
+    }
+
+    case headline_parse_state::TITLE:
+      sTitle.push_back( cIdentChar_i );
+      return;
+  }
 }
 
 // .............................................................................
 
-const std::string escrido::CPageFunc::GetURL( const std::string& sOutputPostfix_i ) const
+const std::string escrido::CUserTypedPage::GetURL( const std::string& sOutputPostfix_i ) const
 {
-  return std::string( "func_" + sIdent + sOutputPostfix_i );
+  return std::string( sPageTypeID + "_" + sIdent + sOutputPostfix_i );
 }
 
 // .............................................................................
 
-void escrido::CPageFunc::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+void escrido::CUserTypedPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
 //   oOutStrm_i << "<div id=\"documentation\">" << std::endl
 //              << "  <div id=\"type\">function</div>" << std::endl
 //              << "  <h1><i>" << this->GetSignatureHTML() << "</i></h1>" << std::endl;
 //   oContUnit.WriteHTML( oOutStrm_i, oWriteInfo_i );
 //   oOutStrm_i << "</div>" << std::endl;
+}
+
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Builds an identifier from the literal page type.
+/// \
+/// \note       This function is very basic and can be improved to cover more
+///             complex literary page types.
+// *****************************************************************************
+
+void escrido::CUserTypedPage::BuildPageTypeID()
+{
+  sPageTypeID = sPageTypeLit;
+  for( size_t c = 0; c < sPageTypeID.size(); c++ )
+    if( sPageTypeID[c] == ' ' || sPageTypeID[c] == '\t' )
+      sPageTypeID[c] = '_';
+    else
+      sPageTypeID[c] == tolower( sPageTypeID[c] );
 }
 
 // -----------------------------------------------------------------------------
@@ -442,6 +554,8 @@ void escrido::CDocumentation::NewDocPage( const char* szDocPageType_i )
     pNewPage = new CDocPage();
   if( sDocPageType == "_mainpage_" )
     pNewPage = new CPageMainpage();
+  if( sDocPageType == "_type_" )
+    pNewPage = new CUserTypedPage();
 
   // Otherwise give a warning and use a defaul documentation page.
   if( pNewPage == NULL )
@@ -552,10 +666,10 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
 
   // Create all other pages.
   for( size_t p = 0; p < this->paDocPageList.size(); p++ )
-    if( this->paDocPageList[p]->GetPageType() != page_type::MAINPAGE )
+    if( this->paDocPageList[p]->GetPageTypeID() != "mainpage" )
     {
       // Deduce template file name.
-      std::string sTemplateFileName = GetPageTypeStr( this->paDocPageList[p]->GetPageType() ) + ".html";
+      std::string sTemplateFileName = this->paDocPageList[p]->GetPageTypeID() + ".html";
 
       // Try to read template.
       std::string sTemplateData;
@@ -570,6 +684,7 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
         {
           ReplacePlaceholder( "*escrido-maintitle*", pMainpage->GetTitle(), sTemplateData );
         }
+        ReplacePlaceholder( "*escrido-type*", GetCapForm( paDocPageList[p]->GetPageTypeLit() ), sTemplateData );
         ReplacePlaceholder( "*escrido-groupname*", paDocPageList[p]->GetGroupName(), sTemplateData );
         ReplacePlaceholder( "*escrido-title*", paDocPageList[p]->GetTitle(), sTemplateData );
         ReplacePlaceholder( "*escrido-page*", *paDocPageList[p], &CDocPage::WriteHTML, oWriteInfo, sTemplateData );
@@ -736,10 +851,32 @@ void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i,
     if( this->oaGroupList.size() > 1 )
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>" << oaGroupList[g].sGroupName << "</h3>" << std::endl;
 
-    // Write different page types.
-    WriteTOCPageType( this->oaGroupList[g], page_type::MAINPAGE, oOutStrm_i, oWriteInfo_i );
-    WriteTOCPageType( this->oaGroupList[g], page_type::PAGE, oOutStrm_i, oWriteInfo_i );
+    // Write page types "mainpage" and "page".
+    WriteTOCPageType( this->oaGroupList[g], "mainpage", oOutStrm_i, oWriteInfo_i );
+    WriteTOCPageType( this->oaGroupList[g], "page", oOutStrm_i, oWriteInfo_i );
 
+    // Populate a list of all user-defined page types that appear in this group.
+    std::vector<std::string>saPageTypeList;
+    for( size_t p = 0; p < this->oaGroupList[g].naDocPageIdxList.size(); p++ )
+    {
+      std::string sPageTypeID = paDocPageList[this->oaGroupList[g].naDocPageIdxList[p]]->GetPageTypeID();
+
+      bool fExists = false;
+      for( size_t pt = 0; pt < saPageTypeList.size(); pt++ )
+        if( saPageTypeList[pt] == sPageTypeID )
+        {
+          fExists = true;
+          break;
+        }
+
+      if( !fExists )
+        saPageTypeList.push_back( sPageTypeID );
+    }
+
+    // Write all other page types.
+    for( size_t pt = 0; pt < saPageTypeList.size(); pt++ )
+      if( saPageTypeList[pt] != "mainpage" && saPageTypeList[pt] != "page" )
+        WriteTOCPageType( this->oaGroupList[g], saPageTypeList[pt], oOutStrm_i, oWriteInfo_i );
   }
 
   WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
@@ -748,23 +885,32 @@ void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i,
 // .............................................................................
 
 void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
-                                                const page_type& fPageType_i,
+                                                const std::string& sPageTypeID_i,
                                                 std::ostream& oOutStrm_i,
                                                 const SWriteInfo& oWriteInfo_i ) const
 {
-  // Count all pages of the group of the specific type.
-  size_t nPagesN = 0;
+  // Check whether any pages of this type exist and (if so) retrieve the
+  // lierary form of the page type name.
+  bool fPageExist = false;
+  std::string sPageTypeLit;
   for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); p++ )
-    if( paDocPageList[oGroup_i.naDocPageIdxList[p]]->GetPageType() == fPageType_i )
-      nPagesN++;
+    if( paDocPageList[oGroup_i.naDocPageIdxList[p]]->GetPageTypeID() == sPageTypeID_i )
+    {
+      // Get the literary form of the page type name.
+      sPageTypeLit = paDocPageList[oGroup_i.naDocPageIdxList[p]]->GetPageTypeLit();
 
-  // Show list of pages.
-  if( nPagesN > 0 )
+      // Note that at least one page exists.
+      fPageExist = true;
+      break;
+    }
+
+  // Show list of pages if at least one page of that type exists.
+  if( fPageExist )
   {
-    // For all but PAGE and MAINPAGE: write a headline.
-    if( fPageType_i != page_type::PAGE &&
-        fPageType_i != page_type::MAINPAGE )
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>" << GetPageTypeStr( fPageType_i ) << "</h2>" << std::endl;
+    // For all but "page" and "mainpage": write a headline.
+    if( sPageTypeID_i != "page" &&
+        sPageTypeID_i != "mainpage" )
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h4>" << GetCapPluralForm( sPageTypeLit ) << "</h4>" << std::endl;
 
     WriteHTMLTag( "<ul>", oOutStrm_i, oWriteInfo_i );
     ++oWriteInfo_i;
@@ -773,7 +919,7 @@ void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
     for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); p++ )
     {
       CDocPage* pPage = paDocPageList[oGroup_i.naDocPageIdxList[p]];
-      if( pPage->GetPageType() == fPageType_i )
+      if( pPage->GetPageTypeID() == sPageTypeID_i )
       {
         // Get brief description, if it exists.
         std::string sBrief = pPage->GetBrief();
@@ -1015,6 +1161,8 @@ bool escrido::ReadTemp( const std::string& sTemplateDir_i,
   std::ifstream oInFile( sTemplateDir_i + sFileName_i, std::ifstream::in | std::ifstream::binary );
   if( !oInFile.is_open() )
   {
+    std::cout << "cannot load template file '" << sTemplateDir_i + sFileName_i << "'" << std::endl;
+
     // Cannot open template file. Try default file instead.
     oInFile.open( sTemplateDir_i + sFallbackFileName_i, std::ifstream::in | std::ifstream::binary );
     if( !oInFile.is_open() )
@@ -1117,7 +1265,6 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
   }
 }
 
-
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
@@ -1161,17 +1308,68 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
 
 // -----------------------------------------------------------------------------
 
-const std::string escrido::GetPageTypeStr( const page_type& fPageType_i )
+// *****************************************************************************
+/// \brief      Returns the capitalized form of a given object's name.
+///
+/// \details    Each word of the result is capitalized, e.g. "Data Type" from
+///             "data type".
+// *****************************************************************************
+
+std::string escrido::GetCapForm( const std::string& sName_i )
 {
-  switch( fPageType_i )
+  std::string sResult = sName_i;
+
+  // Capitalize the string.
+  unsigned int fState = 0;
+  for( size_t i = 0; i< sResult.size(); i++ )
+    switch( fState )
+    {
+      // State "before a word":
+      case 0:
+        if( ( sResult[i] != ' ' ) && ( sResult[i] != '\t' ) )
+        {
+          sResult[i] = toupper( sResult[i] );
+          fState = 1;
+        }
+        continue;
+
+      // State "within a word":
+      case 1:
+        if( ( sResult[i] == ' ' ) || ( sResult[i] == '\t' ) )
+          fState = 0;
+        else
+          sResult[i] = tolower( sResult[i] );
+        continue;
+    }
+
+  return sResult;
+}
+
+
+// *****************************************************************************
+/// \brief      Returns the capitalized plural form of a given object's name.
+///
+/// \details    Each word of the result is capitalized. The function uses the
+///             english default mechanisms of building the plural form, e.g.
+///             "Data Types" from "data type", "Classes" from "class".
+// *****************************************************************************
+
+std::string escrido::GetCapPluralForm( const std::string& sName_i )
+{
+  std::string sResult = GetCapForm( sName_i );
+
+  // Create plural form of string.
+  size_t nLastChar = sResult.find_last_not_of( " \t" );
+  if( nLastChar != std::string::npos )
   {
-    case page_type::PAGE:
-      return std::string( "page" );
+    // Crop away end whitespaces.
+    sResult.resize( nLastChar + 1 );
 
-    case page_type::MAINPAGE:
-      return std::string( "mainpage" );
-
-    case page_type::FUNCTION:
-      return std::string( "function" );
+    if( sResult[nLastChar] == 's' )
+      sResult += "es";
+    else
+      sResult.push_back( 's' );
   }
+
+  return sResult;
 }
