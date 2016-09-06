@@ -1598,7 +1598,7 @@ void escrido::CTagBlock::WriteLaTeXAllButTitleLine( std::ostream& oOutStrm_i, co
 
 void escrido::CTagBlock::DebugOutput() const
 {
-  std::cout << "block " << (unsigned long) this << " tag type: ";
+  std::cout << "block " << (unsigned long long) this << " tag type: ";
   for( size_t btt = 0; btt < nBlockTagTypeN; btt++ )
     if( oaBlockTagTypeList[btt].fType == fType )
     {
