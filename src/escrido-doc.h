@@ -245,6 +245,7 @@ class escrido::CDocPage
     // Output method:
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
     virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    virtual void WriteHTMLParameters( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     virtual void WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Appending to reference table:
@@ -309,7 +310,6 @@ class escrido::CUserTypedPage : public CDocPage
 
     // Output method:
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
-    virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
   private:
 

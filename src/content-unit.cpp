@@ -1237,10 +1237,8 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
     {
       oOutStrm_i << "<h3>";
       WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "</h3>" << std::endl
-                 << "<p>" << std::endl;
+      oOutStrm_i << "</h3>" << std::endl;
       WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "</p>" << std::endl;
       break;
     }
 
@@ -1371,7 +1369,11 @@ void escrido::CTagBlock::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, con
   size_t c = 0;
   for( c = 0; c < oaChunkList.size(); c++ )
     if( oaChunkList[c].WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i ) )
+      // Break if the first time a chunk has a first word and did NOT write it.
       break;
+    else
+      // Write all chunks containing no first word but control commands instead.
+      oaChunkList[c].WriteHTML( oOutStrm_i, oWriteInfo_i );
 
   // Write full remaining chunks;
   for( c++; c < oaChunkList.size(); c++ )
@@ -2454,6 +2456,20 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
       fInDetails = false;
     }
   }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the PARAM tag blocks in a standardized way.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteHTMLParam( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Loop over all text blocks.
+  for( size_t t = 0; t < oaBlockList.size(); t++ )
+    if( oaBlockList[t].GetTagType() == tag_type::PARAM )
+      oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
 }
 
 // .............................................................................

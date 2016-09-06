@@ -238,6 +238,18 @@ void escrido::CDocPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& o
 // .............................................................................
 
 // *****************************************************************************
+/// \brief      Writes HTML output of the parameters set.
+// *****************************************************************************
+
+void escrido::CDocPage::WriteHTMLParameters( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Write parameter set:
+  oContUnit.WriteHTMLParam( oOutStrm_i, oWriteInfo_i );
+}
+
+// .............................................................................
+
+// *****************************************************************************
 /// \brief      Writes LaTeX output in the format that is default for pages.
 // *****************************************************************************
 
@@ -472,18 +484,6 @@ const std::string escrido::CUserTypedPage::GetURL( const std::string& sOutputPos
 
 // .............................................................................
 
-void escrido::CUserTypedPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
-{
-//   oOutStrm_i << "<div id=\"documentation\">" << std::endl
-//              << "  <div id=\"type\">function</div>" << std::endl
-//              << "  <h1><i>" << this->GetSignatureHTML() << "</i></h1>" << std::endl;
-//   oContUnit.WriteHTML( oOutStrm_i, oWriteInfo_i );
-//   oOutStrm_i << "</div>" << std::endl;
-}
-
-
-// .............................................................................
-
 // *****************************************************************************
 /// \brief      Builds an identifier from the literal page type.
 /// \
@@ -554,7 +554,7 @@ void escrido::CDocumentation::NewDocPage( const char* szDocPageType_i )
     pNewPage = new CDocPage();
   if( sDocPageType == "_mainpage_" )
     pNewPage = new CPageMainpage();
-  if( sDocPageType == "_type_" )
+  if( sDocPageType == "_utype_" )
     pNewPage = new CUserTypedPage();
 
   // Otherwise give a warning and use a defaul documentation page.
@@ -684,11 +684,13 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
         {
           ReplacePlaceholder( "*escrido-maintitle*", pMainpage->GetTitle(), sTemplateData );
         }
+
         ReplacePlaceholder( "*escrido-type*", GetCapForm( paDocPageList[p]->GetPageTypeLit() ), sTemplateData );
         ReplacePlaceholder( "*escrido-groupname*", paDocPageList[p]->GetGroupName(), sTemplateData );
         ReplacePlaceholder( "*escrido-title*", paDocPageList[p]->GetTitle(), sTemplateData );
         ReplacePlaceholder( "*escrido-page*", *paDocPageList[p], &CDocPage::WriteHTML, oWriteInfo, sTemplateData );
         ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteTableOfContentHTML, oWriteInfo, sTemplateData );
+        ReplacePlaceholder( "*escrido-params*", *paDocPageList[p], &CDocPage::WriteHTMLParameters, oWriteInfo, sTemplateData );
 
         // Save data.
         WriteOutput( sOutputDir_i + this->paDocPageList[p]->GetURL( sOutputPostfix_i ), sTemplateData );

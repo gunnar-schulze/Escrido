@@ -424,6 +424,7 @@ class escrido::CContentUnit
     // Output method:
 //     void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLParam( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
