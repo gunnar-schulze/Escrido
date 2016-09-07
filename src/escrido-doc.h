@@ -56,7 +56,7 @@
 //                        |
 //                        |  *********************
 //                        |  *                   *
-//                        +--*  CUserTypedPage   *
+//                        +--*     CRefPage      *
 //                           *                   *
 //                           *********************
 
@@ -74,7 +74,7 @@ namespace escrido
   class CParamList;
   class CDocPage;            // Basic documentation page. Parent class of all pages.
   class CPageMainpage;       // Documentation main page class.
-  class CUserTypedPage;      // Documentation page with user-defined page type (functions, data types etc.).
+  class CRefPage;            // Documentation page for the reference to an object (function, data type etc.).
   class CDocumentation;      // A complete documentation.
 }
 
@@ -86,6 +86,13 @@ namespace escrido
 
 namespace escrido
 {
+  /// Output document types.
+  enum output_doc : unsigned char
+  {
+    HTML,
+    LATEX
+  };
+
   // Parser state types:
   enum headline_parse_state : unsigned char
   {
@@ -121,6 +128,13 @@ namespace escrido
                            std::string& sTemplateData_io );
   void ReplacePlaceholder( const char* szPlaceholder_i,
                            const CDocPage& oPage_i,
+                           output_doc fOutputDoc_i,
+                           tag_type fTagType_i,
+                           const SWriteInfo& oWriteInfo_i,
+                           std::string& sTemplateData_io );
+
+  void ReplacePlaceholder( const char* szPlaceholder_i,
+                           const CDocPage& oPage_i,
                            void (CDocPage::*WriteMethodHTML)( std::ostream&, const SWriteInfo& ) const,
                            const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
@@ -129,9 +143,18 @@ namespace escrido
                            void (CDocumentation::*WriteMethodHTML)( std::ostream&, const SWriteInfo& ) const,
                            const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
+
+  void AdjustReplaceIndent( size_t nReplPos_i,
+                            std::string& sTemplateData_io,
+                            const SWriteInfo& oWriteInfo_io );
+
   std::string GetCapForm( const std::string& sName_i );
   std::string GetCapPluralForm( const std::string& sName_i );
 }
+
+
+
+
 
 // -----------------------------------------------------------------------------
 
@@ -244,8 +267,11 @@ class escrido::CDocPage
 
     // Output method:
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
-    virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
-    virtual void WriteHTMLParameters( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
+    void WriteHTMLMetaDataList( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTagBlocks( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
     virtual void WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Appending to reference table:
@@ -257,7 +283,7 @@ class escrido::CDocPage
 
 // -----------------------------------------------------------------------------
 
-// CLASS CPageFunc
+// CLASS CPageMainpage
 
 // -----------------------------------------------------------------------------
 
@@ -279,31 +305,25 @@ class escrido::CPageMainpage : public CDocPage
 
     // Output method:
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
-    virtual void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 };
 
 // -----------------------------------------------------------------------------
 
-// CLASS CUserTypedPage
+// CLASS CRefPage
 
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-/// \brief      Documentation page class for general programming constructs as
-///             functions, data types, classes etc.
+/// \brief      Documentation page class for reference pages of general
+///             programming constructs like functions, data types, classes etc.
 // *****************************************************************************
 
-class escrido::CUserTypedPage : public CDocPage
+class escrido::CRefPage : public CDocPage
 {
-  private:
-
-    // TODO: generalize this for functions, constructors etc:
-    CParamList oParamList;             ///< An eventual parameter list.
-
   public:
 
     // Constructor, destructor:
-    CUserTypedPage();
+    CRefPage();
 
     // Methods for accessing selected content:
     virtual void AppendHeadlineChar( const char cIdentChar_i );

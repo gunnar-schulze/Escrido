@@ -3,7 +3,8 @@ Escrido
 =======
 
 :Authors: Gunnar Schulze
-:Date: 2015-11-13
+:Date: 2016-09-06
+:Version: 0.2.2
 :Contact: <gunnar.schulze@trinckle.com>
 :Organization: trinckle 3D GmbH
 

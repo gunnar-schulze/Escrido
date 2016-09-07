@@ -31,10 +31,28 @@ const escrido::SWriteInfo& escrido::SWriteInfo::operator++() const
 
 // .............................................................................
 
+const escrido::SWriteInfo escrido::SWriteInfo::operator++( int ) const
+{
+  SWriteInfo oCpy = *this;
+  nIndent += 2;
+  return oCpy;
+}
+
+// .............................................................................
+
 const escrido::SWriteInfo& escrido::SWriteInfo::operator--() const
 {
   nIndent -= 2;
   return *this;
+}
+
+// .............................................................................
+
+const escrido::SWriteInfo escrido::SWriteInfo::operator--( int ) const
+{
+  SWriteInfo oCpy = *this;
+  nIndent -= 2;
+  return oCpy;
 }
 
 // -----------------------------------------------------------------------------
@@ -170,8 +188,7 @@ void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteIn
       break;
 
     case cont_chunk_type::START_PARAGRAPH:
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<p>";
-      ++oWriteInfo_i;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<p>";
       break;
 
     case cont_chunk_type::END_PARAGRAPH:
@@ -180,49 +197,41 @@ void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteIn
       break;
 
     case cont_chunk_type::START_TABLE:
-      WriteHTMLTag( "<table>", oOutStrm_i, oWriteInfo_i );
-      ++oWriteInfo_i;
-      WriteHTMLTag( "<tr>", oOutStrm_i, oWriteInfo_i );
-      ++oWriteInfo_i;
-      WriteHTMLTag( "<td>", oOutStrm_i, oWriteInfo_i );
-      ++oWriteInfo_i;
+      WriteHTMLTagLine( "<table>", oOutStrm_i, oWriteInfo_i++ );
+      WriteHTMLTagLine( "<tr>", oOutStrm_i, oWriteInfo_i++ );
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<td>";
       break;
 
     case cont_chunk_type::END_TABLE:
-      oOutStrm_i << std::endl;
-      WriteHTMLTag( "</td>", oOutStrm_i, --oWriteInfo_i );
-      WriteHTMLTag( "</tr>", oOutStrm_i, --oWriteInfo_i );
-      WriteHTMLTag( "</table>", oOutStrm_i, --oWriteInfo_i );
+      oOutStrm_i << "</td>" << std::endl;
+      --oWriteInfo_i;
+      WriteHTMLTagLine( "</tr>", oOutStrm_i, --oWriteInfo_i );
+      WriteHTMLTagLine( "</table>", oOutStrm_i, --oWriteInfo_i );
       break;
 
     case cont_chunk_type::NEW_TABLE_CELL:
-      oOutStrm_i << std::endl;
-      WriteHTMLTag( "</td>", oOutStrm_i, --oWriteInfo_i );
-      WriteHTMLTag( "<td>", oOutStrm_i, oWriteInfo_i );
-      ++oWriteInfo_i;
+      oOutStrm_i << "</td>" << std::endl;
+      --oWriteInfo_i;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<td>";
       break;
 
     case cont_chunk_type::NEW_TABLE_ROW:
-      oOutStrm_i << std::endl;
-      WriteHTMLTag( "</td>", oOutStrm_i, --oWriteInfo_i );
-      WriteHTMLTag( "</tr>", oOutStrm_i, --oWriteInfo_i );
-      WriteHTMLTag( "<tr>", oOutStrm_i, oWriteInfo_i );
-      ++oWriteInfo_i;
-      WriteHTMLTag( "<td>", oOutStrm_i, oWriteInfo_i );
-      ++oWriteInfo_i;
+      oOutStrm_i << "</td>" << std::endl;
+      --oWriteInfo_i;
+      WriteHTMLTagLine( "</tr>", oOutStrm_i, --oWriteInfo_i );
+      WriteHTMLTagLine( "<tr>", oOutStrm_i, oWriteInfo_i++ );
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<td>";
       break;
 
     case cont_chunk_type::START_UL:
-      WriteHTMLTag( "<ul>", oOutStrm_i, oWriteInfo_i );
-      ++oWriteInfo_i;
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<li>";
-      ++oWriteInfo_i;
+      WriteHTMLTagLine( "<ul>", oOutStrm_i, oWriteInfo_i++ );
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<li>";
       break;
 
     case cont_chunk_type::END_UL:
       oOutStrm_i << "</li>" << std::endl;
       --oWriteInfo_i;
-      WriteHTMLTag( "</ul>", oOutStrm_i, --oWriteInfo_i );
+      WriteHTMLTagLine( "</ul>", oOutStrm_i, --oWriteInfo_i );
       break;
 
     case cont_chunk_type::UL_ITEM:
@@ -396,8 +405,8 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
         }
       }
 
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\noindent\\parbox{\\textwidth}{%" << std::endl;
-      WriteHTMLIndents( oOutStrm_i, ++oWriteInfo_i ) << "\\tymin=" << 1.0 / ( nMaxColN + 1 ) << "\\textwidth%" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "\\noindent\\parbox{\\textwidth}{%" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\tymin=" << 1.0 / ( nMaxColN + 1 ) << "\\textwidth%" << std::endl;
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\centering%" << std::endl;
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\begin{tabulary}{\\textwidth}{";
       for( int i = 0; i < nMaxColN; i++ )
@@ -422,9 +431,9 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
       break;
 
     case cont_chunk_type::START_UL:
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\noindent\\parbox{\\textwidth}{%" << std::endl;
-      WriteHTMLIndents( oOutStrm_i, ++oWriteInfo_i ) << "\\begin{itemize}" << std::endl;
-      WriteHTMLIndents( oOutStrm_i, ++oWriteInfo_i ) << "\\item";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "\\noindent\\parbox{\\textwidth}{%" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "\\begin{itemize}" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\item";
       break;
 
     case cont_chunk_type::END_UL:
@@ -1233,9 +1242,19 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
 
   switch( this->fType )
   {
+
+    case tag_type::ATTRIBUTE:
+    {
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>";
+      WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "</h3>" << std::endl;
+      WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+      break;
+    }
+
     case tag_type::PARAM:
     {
-      oOutStrm_i << "<h3>";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>";
       WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
       oOutStrm_i << "</h3>" << std::endl;
       WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
@@ -1246,18 +1265,26 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
     {
       if( !this->oaChunkList.empty() )
       {
-        oOutStrm_i << "<li>";
+        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<li>";
         size_t nRefIdx;
         if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->oaChunkList[0].GetPlainFirstWord() ), nRefIdx ) )
         {
           oOutStrm_i << "<a href=\"" + oWriteInfo_i.oRefTable.GetLink( nRefIdx ) + "\">";
-          this->oaChunkList[0].WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
+          WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</a>";
         }
         else
-          this->oaChunkList[0].WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
-        oOutStrm_i << "</li>";
+          WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
+        oOutStrm_i << "</li>"<< std::endl;
       }
+      break;
+    }
+
+    case tag_type::SIGNATURE:
+    {
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>";
+      WriteHTMLTitleLine( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "</h3>" << std::endl;
       break;
     }
 
@@ -1309,6 +1336,11 @@ void escrido::CTagBlock::WriteHTMLTitleLine( std::ostream& oOutStrm_i, const SWr
     // Break off on new line or new paragraph.
     if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
       return;
+
+    // Skip writing start and end paragraphs.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
 
     oaChunkList[c].WriteHTML( oOutStrm_i, oWriteInfo_i );
   }
@@ -2338,8 +2370,7 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
         case tag_type::DETAILS:
           if( !fInDetails )
           {
-            WriteHTMLTag( "<div class=\"details\">", oOutStrm_i, oWriteInfo_i );
-            ++oWriteInfo_i;
+            WriteHTMLTagLine( "<div class=\"details\">", oOutStrm_i, oWriteInfo_i++ );
             WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Details</h2>" << std::endl;
             fInDetails = true;
           }
@@ -2351,15 +2382,14 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
           // Eventually leave "details" div box.
           if( fInDetails )
           {
-            WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
+            WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
             fInDetails = false;
           }
 
           // Surrounding "<div>".
-          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<div id=\""
-                                                       << oaBlockList[t].GetPlainFirstWord()
-                                                       << "\" class=\"section\">" << std::endl;
-          ++oWriteInfo_i;
+          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<div id=\""
+                                                         << oaBlockList[t].GetPlainFirstWord()
+                                                         << "\" class=\"section\">" << std::endl;
 
           // Title line.
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>";
@@ -2368,17 +2398,16 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 
           // Content and terminating "</div>".
           oaBlockList[t].WriteHTMLAllButTitleLine( oOutStrm_i, oWriteInfo_i );
-          WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
+          WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
           break;
         }
 
         case tag_type::SUBSECTION:
         {
           // Surrounding "<div>".
-          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<div id=\""
-                                                       << oaBlockList[t].GetPlainFirstWord()
-                                                       << "\" class=\"subsection\">" << std::endl;
-          ++oWriteInfo_i;
+          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<div id=\""
+                                                         << oaBlockList[t].GetPlainFirstWord()
+                                                         << "\" class=\"subsection\">" << std::endl;
 
           // Title line.
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>";
@@ -2387,63 +2416,58 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 
           // Content and terminating "</div>".
           oaBlockList[t].WriteHTMLAllButTitleLine( oOutStrm_i, oWriteInfo_i );
-          WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
+          WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
           break;
         }
 
         case tag_type::EXAMPLE:
         {
-          WriteHTMLTag( "<div class=\"examples\">", oOutStrm_i, oWriteInfo_i );
-          ++oWriteInfo_i;
-          WriteHTMLTag( "<h4>Example</h4>", oOutStrm_i, oWriteInfo_i );
+          WriteHTMLTagLine( "<div class=\"examples\">", oOutStrm_i, oWriteInfo_i++ );
+          WriteHTMLTagLine( "<h4>Example</h4>", oOutStrm_i, oWriteInfo_i );
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<pre class=\"example\">";
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</pre>" << std::endl;
-          WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
+          WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
           break;
         }
 
         case tag_type::IMAGE:
         {
-          WriteHTMLTag( "<figure class=\"image\">", oOutStrm_i, oWriteInfo_i );
-          ++oWriteInfo_i;
+          WriteHTMLTagLine( "<figure class=\"image\">", oOutStrm_i, oWriteInfo_i++ );
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<img src=\"" << oaBlockList[t].GetPlainFirstWord() << "\">" << std::endl;
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<figcaption>";
           oaBlockList[t].WriteHTMLTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</figcaption>" << std::endl;
-          WriteHTMLTag( "</figure>", oOutStrm_i, --oWriteInfo_i );
+          WriteHTMLTagLine( "</figure>", oOutStrm_i, --oWriteInfo_i );
           break;
         }
 
         case tag_type::NOTE:
         {
-          WriteHTMLTag( "<div class=\"note\">", oOutStrm_i, oWriteInfo_i );
-          ++oWriteInfo_i;
-          WriteHTMLTag( "<h4>Note</h4>", oOutStrm_i, oWriteInfo_i );
+          WriteHTMLTagLine( "<div class=\"note\">", oOutStrm_i, oWriteInfo_i++ );
+          WriteHTMLTagLine( "<h4>Note</h4>", oOutStrm_i, oWriteInfo_i );
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
-          WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
+          WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
           break;
         }
 
         case tag_type::OUTPUT:
         {
-          WriteHTMLTag( "<div class=\"output\">", oOutStrm_i, oWriteInfo_i );
-          ++oWriteInfo_i;
-          WriteHTMLTag( "<h4>Output</h4>", oOutStrm_i, oWriteInfo_i );
+          WriteHTMLTagLine( "<div class=\"output\">", oOutStrm_i, oWriteInfo_i++ );
+          WriteHTMLTagLine( "<h4>Output</h4>", oOutStrm_i, oWriteInfo_i );
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<pre class=\"output\">";
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</pre>" << std::endl;
-          WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
+          WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
           break;
         }
 
         case tag_type::REMARK:
         {
-          WriteHTMLTag( "<div class=\"remark\">", oOutStrm_i, oWriteInfo_i );
-          ++oWriteInfo_i;
-          WriteHTMLTag( "<h4>Remark</h4>", oOutStrm_i, oWriteInfo_i );
+          WriteHTMLTagLine( "<div class=\"remark\">", oOutStrm_i, oWriteInfo_i++ );
+          WriteHTMLTagLine( "<h4>Remark</h4>", oOutStrm_i, oWriteInfo_i );
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
-          WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
+          WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
           break;
         }
       }
@@ -2452,7 +2476,7 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
     // Eventually leave last "details" div box.
     if( fInDetails )
     {
-      WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
+      WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
       fInDetails = false;
     }
   }
@@ -2461,15 +2485,54 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 // .............................................................................
 
 // *****************************************************************************
-/// \brief      Writes the PARAM tag blocks in a standardized way.
+/// \brief      Writes all tag blocks of a certain type (or less, if this is
+///             the specification).
+///
+/// \param[in]  fTagType_i
+///             Type of which all tag blocks are written.
+/// \param[in]  oOutStrm_i
+///             Output stream into which the tag blocks are written.
+/// \param[in]  oWriteInfo_i
+///             Write-info structure with additional information.
 // *****************************************************************************
 
-void escrido::CContentUnit::WriteHTMLParam( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+void escrido::CContentUnit::WriteHTMLTagBlocks( tag_type fTagType_i,
+                                                std::ostream& oOutStrm_i,
+                                                const SWriteInfo& oWriteInfo_i ) const
 {
-  // Loop over all text blocks.
-  for( size_t t = 0; t < oaBlockList.size(); t++ )
-    if( oaBlockList[t].GetTagType() == tag_type::PARAM )
-      oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
+  switch( fTagType_i )
+  {
+    case tag_type::BRIEF:
+    {
+      WriteHTMLTagLine( "<div class=\"brief\">", oOutStrm_i, oWriteInfo_i++ );
+      this->GetFirstTagBlock( tag_type::BRIEF )->WriteHTML( oOutStrm_i, oWriteInfo_i );
+      WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
+      break;
+    }
+
+    case tag_type::SEE:
+    {
+      WriteHTMLTagLine( "<ul>", oOutStrm_i, oWriteInfo_i++ );
+
+      // Loop over all tag blocks.
+      for( size_t t = 0; t < oaBlockList.size(); t++ )
+        if( oaBlockList[t].GetTagType() == tag_type::SEE )
+          oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
+
+      WriteHTMLTagLine( "</ul>", oOutStrm_i, --oWriteInfo_i );
+      break;
+    }
+
+    default:
+    {
+      // Loop over all tag blocks.
+      for( size_t t = 0; t < oaBlockList.size(); t++ )
+        if( oaBlockList[t].GetTagType() == fTagType_i )
+          oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
+
+      break;
+    }
+  }
 }
 
 // .............................................................................
@@ -2647,7 +2710,12 @@ std::ostream& escrido::WriteHTMLIndents( std::ostream& oOutStrm_i, const SWriteI
 
 // -----------------------------------------------------------------------------
 
-void escrido::WriteHTMLTag( const char* szTagText_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i )
+// *****************************************************************************
+/// \brief      Writes an HTML line with the correct indentation and a following
+///             line break.
+// *****************************************************************************
+
+void escrido::WriteHTMLTagLine( const char* szTagText_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i )
 {
   for( unsigned int i = 0; i < oWriteInfo_i.nIndent; i++ )
     oOutStrm_i << " ";

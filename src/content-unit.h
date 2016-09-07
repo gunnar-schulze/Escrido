@@ -95,6 +95,7 @@ enum class cont_chunk_type
 // Tag types:
 enum class tag_type
 {
+  ATTRIBUTE,
   AUTHOR,
   BRIEF,
   COPYRIGHT,
@@ -120,6 +121,7 @@ enum class tag_type
   RETURN,
   SEE,
   SECTION,
+  SIGNATURE,
   SUBSECTION,
   TABLE,
   END_TABLE,
@@ -192,8 +194,9 @@ namespace escrido
   };
 
   // Block tag types:
-  const unsigned int nBlockTagTypeN = 21;
+  const unsigned int nBlockTagTypeN = 23;
   const escrido::STagType oaBlockTagTypeList[nBlockTagTypeN] = {
+    { tag_type::ATTRIBUTE,  "attribute" },
     { tag_type::AUTHOR,     "author" },
     { tag_type::BRIEF,      "brief" },
     { tag_type::COPYRIGHT,  "copyright" },
@@ -213,6 +216,7 @@ namespace escrido
     { tag_type::RETURN,     "return" },
     { tag_type::SEE,        "see" },
     { tag_type::SECTION,    "section" },
+    { tag_type::SIGNATURE,  "signature" },
     { tag_type::SUBSECTION, "subsection" },
     { tag_type::VERSION,    "version" } };
 
@@ -238,7 +242,7 @@ namespace escrido
 namespace escrido
 {
   std::ostream& WriteHTMLIndents( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i );
-  void          WriteHTMLTag( const char* szTagText_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i );
+  void          WriteHTMLTagLine( const char* szTagText_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i );
   std::string   HTMLEscape( const std::string& sText_i );
   std::string   LaTeXEscape( const std::string& sText_i );
   std::string   ConvertHTMLToLaTeX( const std::string& sText_i );
@@ -263,8 +267,10 @@ struct escrido::SWriteInfo
   mutable const CTagBlock*   pTagBlock;
   mutable signed int         nIndent;     // TODO Change to unsigned int
 
-  const SWriteInfo& operator++() const;   // Prefix: ++c
+  const SWriteInfo& operator++() const;   // Prefix:  ++c
+  const SWriteInfo operator++(int) const; // Postfix: c++
   const SWriteInfo& operator--() const;   // Prefix: --c
+  const SWriteInfo operator--(int) const; // Postfix: c--
 };
 
 // -----------------------------------------------------------------------------
@@ -390,7 +396,7 @@ class escrido::CContentUnit
 {
   private:
 
-    cont_unit_type fContUnitType;                 ///< Type of the content unit (single or mult line).
+    cont_unit_type fContUnitType;                 ///< Type of the content unit (single or multi line).
     parse_state fParseState[3];                   ///< Parsing state (three look back).
     std::vector <CTagBlock> oaBlockList;          ///< List of blocks of the unit.
 
@@ -424,7 +430,7 @@ class escrido::CContentUnit
     // Output method:
 //     void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
-    void WriteHTMLParam( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTagBlocks( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:

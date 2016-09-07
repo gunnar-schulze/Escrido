@@ -23,9 +23,9 @@
 /// \mainpage   Escrido: a multi-language documentation generator.
 ///
 /// \author     Gunnar Schulze
-/// \date       2015-10-13
-/// \version    0.0.0
-/// \copyright  2015 Gunnar Schulze
+/// \date       2016-09-06
+/// \version    0.2.2
+/// \copyright  2016 Gunnar Schulze
 // *****************************************************************************
 
 // -----------------------------------------------------------------------------

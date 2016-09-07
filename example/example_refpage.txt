@@ -1,0 +1,24 @@
+/*#
+@_refpage_      "user defined structure" mystruct MyStruct
+
+@brief          An example of a reference page.
+
+@signature      MyStruct( int arg1 )
+@signature      MyStruct( int arg1, int arg2 )
+
+@details        This page shows, how a reference page for a user-defined
+                structure "MyStruct" could look like.
+
+@param          arg1
+                This text explains the first argument of the structure.
+@param          arg2
+                This text explains the second argument of the structure.
+
+@return         This text explains the return value of the structure.
+
+@attribute      style
+                This text explains about an attribute of the structure.
+
+@see            reference_to_other_object1
+@see            reference_to_other_object2
+#*/

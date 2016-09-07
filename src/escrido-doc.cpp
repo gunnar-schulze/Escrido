@@ -215,22 +215,63 @@ const std::string escrido::CDocPage::GetURL( const std::string& sOutputPostfix_i
 // .............................................................................
 
 // *****************************************************************************
-/// \brief      Writes HTML output in the format that is default for pages.
+/// \brief      Writes HTML output of meta data such as AUTHOR, DATE etc.
 // *****************************************************************************
 
-void escrido::CDocPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+void escrido::CDocPage::WriteHTMLMetaDataList( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
-  // Brief (abstract):
-  if( oContUnit.HasTagBlock( tag_type::BRIEF ) )
+  // Start description list.
+  WriteHTMLTagLine( "<dl>", oOutStrm_i, oWriteInfo_i++ );
+
+  // Author:
+  if( oContUnit.HasTagBlock( tag_type::AUTHOR ) )
   {
-    oOutStrm_i << "<div class=\"brief\">" << std::endl;
-    oContUnit.GetFirstTagBlock( tag_type::BRIEF )->WriteHTML( oOutStrm_i, oWriteInfo_i );
-    oOutStrm_i << "</div>" << std::endl;
+    WriteHTMLTagLine( "<dt class=\"author\">Author</dt>", oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
+    oContUnit.GetFirstTagBlock( tag_type::AUTHOR )->WriteHTML( oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
   }
 
-  //TEST
-//    oContUnit.DebugOutput();
+  // Date:
+  if( oContUnit.HasTagBlock( tag_type::DATE ) )
+  {
+    WriteHTMLTagLine( "<dt class=\"date\">Date</dt>", oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
+    oContUnit.GetFirstTagBlock( tag_type::DATE )->WriteHTML( oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
+  }
 
+  // Version:
+  if( oContUnit.HasTagBlock( tag_type::VERSION ) )
+  {
+    WriteHTMLTagLine( "<dt class=\"version\">Version</dt>", oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
+    oContUnit.GetFirstTagBlock( tag_type::VERSION )->WriteHTML( oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
+  }
+
+  // Copyright:
+  if( oContUnit.HasTagBlock( tag_type::COPYRIGHT ) )
+  {
+    WriteHTMLTagLine( "<dt class=\"copyright\">Copyright</dt>", oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
+    oContUnit.GetFirstTagBlock( tag_type::COPYRIGHT )->WriteHTML( oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
+  }
+
+  // End description list.
+  WriteHTMLTagLine( "</dl>", oOutStrm_i, --oWriteInfo_i );
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes HTML output of PARAGRAPH, SECTION and DETAILS paragraphs
+///             in the order they appear.
+// *****************************************************************************
+
+void escrido::CDocPage::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
   // PARAGRAPH, SECTION and DETAILS paragraphs:
   oContUnit.WriteHTMLParSectDet( oOutStrm_i, oWriteInfo_i );
 }
@@ -238,13 +279,14 @@ void escrido::CDocPage::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& o
 // .............................................................................
 
 // *****************************************************************************
-/// \brief      Writes HTML output of the parameters set.
+/// \brief      Writes HTML output of all tag blocks of a given type of the page.
 // *****************************************************************************
 
-void escrido::CDocPage::WriteHTMLParameters( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+void escrido::CDocPage::WriteHTMLTagBlocks( tag_type fTagType_i,
+                                             std::ostream& oOutStrm_i,
+                                             const SWriteInfo& oWriteInfo_i ) const
 {
-  // Write parameter set:
-  oContUnit.WriteHTMLParam( oOutStrm_i, oWriteInfo_i );
+  oContUnit.WriteHTMLTagBlocks( fTagType_i, oOutStrm_i, oWriteInfo_i );
 }
 
 // .............................................................................
@@ -314,79 +356,19 @@ const std::string escrido::CPageMainpage::GetURL( const std::string& sOutputPost
   return std::string( "index" + sOutputPostfix_i );
 }
 
-// .............................................................................
+// -----------------------------------------------------------------------------
 
-void escrido::CPageMainpage::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
-{
-  // Start description list.
-  WriteHTMLTag( "<dl>", oOutStrm_i, oWriteInfo_i );
-  ++oWriteInfo_i;
-
-  //TEST
-//   oContUnit.DebugOutput();
-
-  // Author:
-  if( oContUnit.HasTagBlock( tag_type::AUTHOR ) )
-  {
-    WriteHTMLTag( "<dt class=\"author\">Author</dt>", oOutStrm_i, oWriteInfo_i );
-    WriteHTMLTag( "<dd>", oOutStrm_i, oWriteInfo_i );
-    ++oWriteInfo_i;
-    oContUnit.GetFirstTagBlock( tag_type::AUTHOR )->WriteHTML( oOutStrm_i, oWriteInfo_i );
-    WriteHTMLTag( "</dd>", oOutStrm_i, --oWriteInfo_i );
-  }
-
-  // Date:
-  if( oContUnit.HasTagBlock( tag_type::DATE ) )
-  {
-    WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<dt class=\"date\">Date</dt><dd>";
-    oContUnit.GetFirstTagBlock( tag_type::DATE )->WriteHTML( oOutStrm_i, oWriteInfo_i );
-    oOutStrm_i << "</dd>" << std::endl;
-  }
-
-  // Version:
-  if( oContUnit.HasTagBlock( tag_type::VERSION ) )
-  {
-    WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<dt class=\"version\">Version</dt><dd>";
-    oContUnit.GetFirstTagBlock( tag_type::VERSION )->WriteHTML( oOutStrm_i, oWriteInfo_i );
-    oOutStrm_i << "</dd>" << std::endl;
-  }
-
-  // Copyright:
-  if( oContUnit.HasTagBlock( tag_type::COPYRIGHT ) )
-  {
-    WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<dt class=\"copyright\">Copyright</dt><dd>";
-    oContUnit.GetFirstTagBlock( tag_type::COPYRIGHT )->WriteHTML( oOutStrm_i, oWriteInfo_i );
-    oOutStrm_i << "</dd>" << std::endl;
-  }
-
-  // End description list.
-  WriteHTMLTag( "</dl>", oOutStrm_i, --oWriteInfo_i );
-
-  // Brief (abstract):
-  if( oContUnit.HasTagBlock( tag_type::BRIEF ) )
-  {
-    oOutStrm_i << "<div class=\"brief\">" << std::endl;
-    oContUnit.GetFirstTagBlock( tag_type::BRIEF )->WriteHTML( oOutStrm_i, oWriteInfo_i );
-    oOutStrm_i << "</div>" << std::endl;
-  }
-
-  // PARAGRAPH, SECTION and DETAILS paragraphs:
-  oContUnit.WriteHTMLParSectDet( oOutStrm_i, oWriteInfo_i );
-}
+// CLASS CRefPage
 
 // -----------------------------------------------------------------------------
 
-// CLASS CUserTypedPage
-
-// -----------------------------------------------------------------------------
-
-escrido::CUserTypedPage::CUserTypedPage():
+escrido::CRefPage::CRefPage():
   CDocPage( "", "", "", headline_parse_state::START )
 {}
 
 // .............................................................................
 
-void escrido::CUserTypedPage::AppendHeadlineChar( const char cIdentChar_i )
+void escrido::CRefPage::AppendHeadlineChar( const char cIdentChar_i )
 {
   // Parse the program construct headline. This is one program construct label
   // (as "function", "data type" or "class", may be in quotation marks), an
@@ -477,7 +459,7 @@ void escrido::CUserTypedPage::AppendHeadlineChar( const char cIdentChar_i )
 
 // .............................................................................
 
-const std::string escrido::CUserTypedPage::GetURL( const std::string& sOutputPostfix_i ) const
+const std::string escrido::CRefPage::GetURL( const std::string& sOutputPostfix_i ) const
 {
   return std::string( sPageTypeID + "_" + sIdent + sOutputPostfix_i );
 }
@@ -491,7 +473,7 @@ const std::string escrido::CUserTypedPage::GetURL( const std::string& sOutputPos
 ///             complex literary page types.
 // *****************************************************************************
 
-void escrido::CUserTypedPage::BuildPageTypeID()
+void escrido::CRefPage::BuildPageTypeID()
 {
   sPageTypeID = sPageTypeLit;
   for( size_t c = 0; c < sPageTypeID.size(); c++ )
@@ -554,8 +536,8 @@ void escrido::CDocumentation::NewDocPage( const char* szDocPageType_i )
     pNewPage = new CDocPage();
   if( sDocPageType == "_mainpage_" )
     pNewPage = new CPageMainpage();
-  if( sDocPageType == "_utype_" )
-    pNewPage = new CUserTypedPage();
+  if( sDocPageType == "_refpage_" )
+    pNewPage = new CRefPage();
 
   // Otherwise give a warning and use a defaul documentation page.
   if( pNewPage == NULL )
@@ -638,64 +620,44 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
       }
   }
 
-  // Create index file.
+  // Create all other pages.
+  for( size_t p = 0; p < this->paDocPageList.size(); p++ )
   {
+    // Deduce template file name.
+    std::string sTemplateFileName;
+    if( this->paDocPageList[p]->GetPageTypeID() == "mainpage" )
+      sTemplateFileName = "index.html";
+    else
+      sTemplateFileName = this->paDocPageList[p]->GetPageTypeID() + ".html";
+
     // Try to read template.
     std::string sTemplateData;
-    if( ReadTemp( sTemplateDir_i, "index.html", "default.html", sTemplateData ) )
+    if( ReadTemp( sTemplateDir_i, sTemplateFileName, "default.html", sTemplateData ) )
     {
       // Replace placeholders.
       if( pMainpage == NULL )
-      {
         ReplacePlaceholder( "*escrido-maintitle*", "Document Title", sTemplateData );
-        ReplacePlaceholder( "*escrido-title*", "Document Title", sTemplateData );
-        ReplacePlaceholder( "*escrido-mainpage*", "", sTemplateData );
-      }
       else
-      {
         ReplacePlaceholder( "*escrido-maintitle*", pMainpage->GetTitle(), sTemplateData );
-        ReplacePlaceholder( "*escrido-title*", pMainpage->GetTitle(), sTemplateData );
-        ReplacePlaceholder( "*escrido-mainpage*", *pMainpage, &CDocPage::WriteHTML, oWriteInfo, sTemplateData );
-      }
+
+      ReplacePlaceholder( "*escrido-type*", GetCapForm( paDocPageList[p]->GetPageTypeLit() ), sTemplateData );
+      ReplacePlaceholder( "*escrido-groupname*", paDocPageList[p]->GetGroupName(), sTemplateData );
+      ReplacePlaceholder( "*escrido-title*", paDocPageList[p]->GetTitle(), sTemplateData );
       ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteTableOfContentHTML, oWriteInfo, sTemplateData );
+      ReplacePlaceholder( "*escrido-metadata*", *pMainpage, &CDocPage::WriteHTMLMetaDataList, oWriteInfo, sTemplateData );
+      ReplacePlaceholder( "*escrido-page*", *paDocPageList[p], &CDocPage::WriteHTMLParSectDet, oWriteInfo, sTemplateData );
+
+      ReplacePlaceholder( "*escrido-brief*", *paDocPageList[p], output_doc::HTML, tag_type::BRIEF, oWriteInfo, sTemplateData );
+      ReplacePlaceholder( "*escrido-params*", *paDocPageList[p], output_doc::HTML, tag_type::PARAM, oWriteInfo, sTemplateData );
+      ReplacePlaceholder( "*escrido-return*", *paDocPageList[p], output_doc::HTML, tag_type::RETURN, oWriteInfo, sTemplateData );
+      ReplacePlaceholder( "*escrido-see*", *paDocPageList[p], output_doc::HTML, tag_type::SEE, oWriteInfo, sTemplateData );
+      ReplacePlaceholder( "*escrido-signatures*", *paDocPageList[p], output_doc::HTML, tag_type::SIGNATURE, oWriteInfo, sTemplateData );
+      ReplacePlaceholder( "*escrido-attributes*", *paDocPageList[p], output_doc::HTML, tag_type::ATTRIBUTE, oWriteInfo, sTemplateData );
 
       // Save data.
-      WriteOutput( sOutputDir_i + "index" + sOutputPostfix_i, sTemplateData );
+      WriteOutput( sOutputDir_i + this->paDocPageList[p]->GetURL( sOutputPostfix_i ), sTemplateData );
     }
   }
-
-  // Create all other pages.
-  for( size_t p = 0; p < this->paDocPageList.size(); p++ )
-    if( this->paDocPageList[p]->GetPageTypeID() != "mainpage" )
-    {
-      // Deduce template file name.
-      std::string sTemplateFileName = this->paDocPageList[p]->GetPageTypeID() + ".html";
-
-      // Try to read template.
-      std::string sTemplateData;
-      if( ReadTemp( sTemplateDir_i, sTemplateFileName, "default.html", sTemplateData ) )
-      {
-        // Replace placeholders.
-        if( pMainpage == NULL )
-        {
-          ReplacePlaceholder( "*escrido-maintitle*", "Document Title", sTemplateData );
-        }
-        else
-        {
-          ReplacePlaceholder( "*escrido-maintitle*", pMainpage->GetTitle(), sTemplateData );
-        }
-
-        ReplacePlaceholder( "*escrido-type*", GetCapForm( paDocPageList[p]->GetPageTypeLit() ), sTemplateData );
-        ReplacePlaceholder( "*escrido-groupname*", paDocPageList[p]->GetGroupName(), sTemplateData );
-        ReplacePlaceholder( "*escrido-title*", paDocPageList[p]->GetTitle(), sTemplateData );
-        ReplacePlaceholder( "*escrido-page*", *paDocPageList[p], &CDocPage::WriteHTML, oWriteInfo, sTemplateData );
-        ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteTableOfContentHTML, oWriteInfo, sTemplateData );
-        ReplacePlaceholder( "*escrido-params*", *paDocPageList[p], &CDocPage::WriteHTMLParameters, oWriteInfo, sTemplateData );
-
-        // Save data.
-        WriteOutput( sOutputDir_i + this->paDocPageList[p]->GetURL( sOutputPostfix_i ), sTemplateData );
-      }
-    }
 }
 
 // .............................................................................
@@ -842,9 +804,9 @@ void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i,
   if( !fGroupOrdered )
     this->FillGroupListOrdered();
 
-  WriteHTMLTag( "<div id=\"toc\">", oOutStrm_i, oWriteInfo_i );
+  WriteHTMLTagLine( "<div id=\"toc\">", oOutStrm_i, oWriteInfo_i );
   ++oWriteInfo_i;
-  WriteHTMLTag( "<h2>Contents</h2>", oOutStrm_i, oWriteInfo_i );
+  WriteHTMLTagLine( "<h2>Contents</h2>", oOutStrm_i, oWriteInfo_i );
 
   // Loop over groups:
   for( size_t g = 0; g < this->oaGroupList.size(); g++ )
@@ -881,7 +843,7 @@ void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i,
         WriteTOCPageType( this->oaGroupList[g], saPageTypeList[pt], oOutStrm_i, oWriteInfo_i );
   }
 
-  WriteHTMLTag( "</div>", oOutStrm_i, --oWriteInfo_i );
+  WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
 }
 
 // .............................................................................
@@ -914,7 +876,7 @@ void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
         sPageTypeID_i != "mainpage" )
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h4>" << GetCapPluralForm( sPageTypeLit ) << "</h4>" << std::endl;
 
-    WriteHTMLTag( "<ul>", oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTagLine( "<ul>", oOutStrm_i, oWriteInfo_i );
     ++oWriteInfo_i;
 
     // Loop over all pages of the group:
@@ -953,7 +915,7 @@ void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
       }
     }
 
-    WriteHTMLTag( "</ul>", oOutStrm_i, --oWriteInfo_i );
+    WriteHTMLTagLine( "</ul>", oOutStrm_i, --oWriteInfo_i );
   }
 }
 
@@ -1209,7 +1171,7 @@ void escrido::WriteOutput( const std::string& sFileName_i,
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-/// \brief      Changes a given placeholder in the to-be-modified string by a
+/// \brief      Exchanges a placeholder inside a to-be-modified string by a
 ///             given string.
 // *****************************************************************************
 
@@ -1229,8 +1191,63 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-/// \brief      Changes a given placeholder in the to-be-modified string by the
-///             output of a given function.
+/// \brief      Exchanges a placeholder inside a to-be-modified string by a
+///             given block tag.
+///
+/// \param[in]  szPlaceholder_i
+///             Placeholder C string, e.g. "*escrido-toc*"
+/// \param[in]  oPage_i
+///             Reference to the \ref CDocPage documentation page class
+///             containing the generation method.
+/// \param[in]  fOutputDoc_i
+///             Type of the output document.
+/// \param[in]  fTagType_i
+///             Type of the tag whose code is inserted.
+/// \param[in]  oWriteInfo_i
+///             Argument to WriteMethodHTML().
+/// \param      sTemplateData_io
+///             String that may contain the placeholder string. The placeholder
+///             string will be replaced by the return value of
+///             WriteMethodHTML().
+// *****************************************************************************
+
+void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
+                                  const CDocPage& oPage_i,
+                                  output_doc fOutputDoc_i,
+                                  tag_type fTagType_i,
+                                  const SWriteInfo& oWriteInfo_i,
+                                  std::string& sTemplateData_io )
+{
+  // Only proceed if the placeholder can be found in the string.
+  size_t nReplPos = sTemplateData_io.find( szPlaceholder_i );
+  if( nReplPos != std::string::npos )
+  {
+    // Check for indentation counter adjustment.
+    AdjustReplaceIndent( nReplPos, sTemplateData_io, oWriteInfo_i );
+
+    // Create replacement string.
+    std::stringstream sReplacement;
+    switch( fOutputDoc_i )
+    {
+      case output_doc::HTML:
+        oPage_i.WriteHTMLTagBlocks( fTagType_i, sReplacement, oWriteInfo_i );
+        break;
+
+      case output_doc::LATEX:
+        // TODO
+        break;
+    }
+
+    // Replace all occurances of the placeholder by the replacement string.
+    ReplacePlaceholder( szPlaceholder_i, sReplacement.str(), sTemplateData_io );
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Exchanges a placeholder inside a to-be-modified string by a
+///             given function.
 ///
 /// \param[in]  szPlaceholder_i
 ///             Placeholder C string, e.g. "*escrido-toc*"
@@ -1256,8 +1273,12 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
                                   std::string& sTemplateData_io )
 {
   // Only proceed if the placeholder can be found in the string.
-  if( sTemplateData_io.find( szPlaceholder_i ) != std::string::npos )
+  size_t nReplPos = sTemplateData_io.find( szPlaceholder_i );
+  if( nReplPos != std::string::npos )
   {
+    // Check for indentation counter adjustment.
+    AdjustReplaceIndent( nReplPos, sTemplateData_io, oWriteInfo_i );
+
     // Create replacement string.
     std::stringstream sReplacement;
     ( oPage_i.*WriteMethodHTML )( sReplacement, oWriteInfo_i );
@@ -1270,8 +1291,8 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-/// \brief      Changes a given placeholder in the to-be-modified string by the
-///             output of a given function.
+/// \brief      Exchanges a placeholder inside a to-be-modified string by a
+///             given function.
 ///
 /// \param[in]  szPlaceholder_i
 ///             Placeholder C string, e.g. "*escrido-toc*"
@@ -1297,14 +1318,57 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
                                   std::string& sTemplateData_io )
 {
   // Only proceed if the placeholder can be found in the string.
-  if( sTemplateData_io.find( szPlaceholder_i ) != std::string::npos )
+  size_t nReplPos = sTemplateData_io.find( szPlaceholder_i );
+  if( nReplPos != std::string::npos )
   {
+    // Check for indentation counter adjustment.
+    AdjustReplaceIndent( nReplPos, sTemplateData_io, oWriteInfo_i );
+
     // Create replacement string.
     std::stringstream sReplacement;
     ( oDocumentation_i.*WriteMethodHTML )( sReplacement, oWriteInfo_i );
 
     // Replace all occurances of the placeholder by the replacement string.
     ReplacePlaceholder( szPlaceholder_i, sReplacement.str(), sTemplateData_io );
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Used inside string replacement to asjust the indentation of
+///             blocks accordingly to the replacement marker.
+// *****************************************************************************
+
+void escrido::AdjustReplaceIndent( size_t nReplPos_i,
+                                   std::string& sTemplateData_io,
+                                   const SWriteInfo& oWriteInfo_io )
+{
+  size_t nCountBlanks = 0;
+  size_t j = nReplPos_i;
+  while( true )
+  {
+    if( j == 0 )
+      break;
+    else
+      --j;
+
+    if( sTemplateData_io[j] == '\r' || sTemplateData_io[j] == '\n' )
+    {
+      // => An indentation before the replacement string has been found.
+
+      // Remove the indentation in sTemplateData_io.
+      sTemplateData_io.erase( j+1, nCountBlanks );
+
+      // Set indentation counter to this level.
+      oWriteInfo_io.nIndent = nCountBlanks;
+      break;
+    }
+
+    if( sTemplateData_io[j] == ' ' )
+      ++nCountBlanks;
+    else
+      break;
   }
 }
 
