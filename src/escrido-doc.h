@@ -86,13 +86,6 @@ namespace escrido
 
 namespace escrido
 {
-  /// Output document types.
-  enum output_doc : unsigned char
-  {
-    HTML,
-    LATEX
-  };
-
   // Parser state types:
   enum headline_parse_state : unsigned char
   {
@@ -117,6 +110,9 @@ namespace escrido
   // General reading and writing:
   bool ReadTemp( const std::string& sTemplateDir_i,
                  const std::string& sFileName_i,
+                 std::string& sTemplateData_o );
+  bool ReadTemp( const std::string& sTemplateDir_i,
+                 const std::string& sFileName_i,
                  const std::string& sFallbackFileName_i,
                  std::string& sTemplateData_o );
   void WriteOutput( const std::string& sFileName_i,
@@ -128,19 +124,18 @@ namespace escrido
                            std::string& sTemplateData_io );
   void ReplacePlaceholder( const char* szPlaceholder_i,
                            const CDocPage& oPage_i,
-                           output_doc fOutputDoc_i,
-                           tag_type fTagType_i,
+                           void (CDocPage::*WriteMethod_i)( std::ostream&, const SWriteInfo& ) const,
                            const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
-
   void ReplacePlaceholder( const char* szPlaceholder_i,
                            const CDocPage& oPage_i,
-                           void (CDocPage::*WriteMethodHTML)( std::ostream&, const SWriteInfo& ) const,
+                           void (CDocPage::*WriteMethod_i)( tag_type, std::ostream&, const SWriteInfo& ) const,
+                           tag_type fTagType_i,
                            const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
   void ReplacePlaceholder( const char* szPlaceholder_i,
                            const CDocumentation& oDocumentation_i,
-                           void (CDocumentation::*WriteMethodHTML)( std::ostream&, const SWriteInfo& ) const,
+                           void (CDocumentation::*WriteMethod_i)( std::ostream&, const SWriteInfo& ) const,
                            const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
 
@@ -269,10 +264,15 @@ class escrido::CDocPage
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
 
     void WriteHTMLMetaDataList( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLHeadline( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
-    void WriteHTMLTagBlocks( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
-    virtual void WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXHeadline( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Appending to reference table:
     void AddToRefTable( CRefTable& oRefTable_o, const std::string& sOutputPostfix_i ) const;

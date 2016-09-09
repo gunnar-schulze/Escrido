@@ -12,7 +12,7 @@
 #
 # Equals the "-t" and "--template" command line options
 
-TEMPLATE_DIR       = "./template/"
+TEMPLATE_DIR       = "./templates/minimal/"
 
 # This parameter defines the files to be included into the documentation.
 # The file names can be enclosed in quoation marks and may include wildcards,
@@ -21,7 +21,7 @@ TEMPLATE_DIR       = "./template/"
 #
 # Equals the "-i" and "--include" command line options
 
-INCLUDE            = "./example/*.txt"
+INCLUDE            = "./examples/minimal/*.txt"
 
 # This parameter defines a namespace the documentation shall be restricted to.
 # If empty, all available namespaces are included. Multiple values
@@ -47,7 +47,7 @@ GENERATE_WEBDOC    = YES
 #
 # Equals the "-wdo" and "--webdoc-output-dir" command line options
 
-WEBDOC_OUT_DIR     =
+WEBDOC_OUT_DIR     = "./examples/minimal/html/"
 
 # This parameter specifies an alternative file ending to the web document
 # output files, e.g. ".php". Default is ".html".
@@ -72,7 +72,7 @@ GENERATE_LATEX     = YES
 #
 # Equals the "-ldo" and "--latex-output-dir" command line options
 
-LATEX_OUT_DIR      =
+LATEX_OUT_DIR      = "./examples/minimal/latex/"
 
 
 

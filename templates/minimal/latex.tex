@@ -1,0 +1,72 @@
+% -----------------------------------------------------------------
+% Template file for a minimal example of a LaTeX document generated
+% by Escrido.
+% -----------------------------------------------------------------
+
+% -----------------------------------------------------------------
+
+% DOCUMENT CLASS
+
+% -----------------------------------------------------------------
+
+\documentclass[11pt]{report}
+
+% -----------------------------------------------------------------
+
+% PACKAGES
+
+% -----------------------------------------------------------------
+
+% Packages required by the system:
+*escrido_latex_packages*
+
+% -----------------------------------------------------------------
+
+% NEW COMMANDS AND ENVIRONMENTS
+
+% -----------------------------------------------------------------
+
+% Commands and environments required by the system.
+% These are copied here from template file "latex_commands.tex"
+*escrido_latex_commands*
+
+% -----------------------------------------------------------------
+
+% DOCUMENT BODY
+
+% -----------------------------------------------------------------
+
+\begin{document}
+
+% ----------------------
+% Title page
+% ----------------------
+
+\title{*escrido-maintitle*}
+\author{*escrido-mainauthor*}
+\date{*escrido-maindate*}
+\maketitle
+
+% ----------------------
+% Abstract
+% ----------------------
+
+\begin{abstract}
+*escrido-mainbrief*
+\end{abstract}
+
+% ----------------------
+% Table of contents
+% ----------------------
+
+\newpage
+\tableofcontents
+\newpage
+
+% ----------------------
+% Content
+% ----------------------
+
+*escrido-pages*
+
+\end{document}

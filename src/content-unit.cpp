@@ -7,7 +7,7 @@
 ///
 /// \author     Gunnar Schulze
 /// \date       2015-10-13
-/// \copyright  2015 trinckle 3D GmbH
+/// \copyright  2016 trinckle 3D GmbH
 // -----------------------------------------------------------------------------
 
 #include "content-unit.h"
@@ -449,7 +449,10 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
 
     case cont_chunk_type::REF:
     {
-      oOutStrm_i << "\\hyperref[" << MakeIdentifier( this->GetPlainFirstWord() ) << "]{";
+      size_t nRefIdx;
+      bool fHasRef = oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx );
+      if( fHasRef )
+        oOutStrm_i << "\\hyperref[" << MakeIdentifier( this->GetPlainFirstWord() ) << "]{";
 
       std::string sText = this->GetPlainAllButFirstWord();
       if( !sText.empty() )
@@ -457,7 +460,8 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
       else
         oOutStrm_i << ConvertHTMLToLaTeX( sContent );
 
-      oOutStrm_i << "}";
+      if( fHasRef )
+        oOutStrm_i << "}";
       break;
     }
 
@@ -559,7 +563,7 @@ bool escrido::CContentChunk::WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i
 
 void escrido::CContentChunk::DebugOutput() const
 {
-  std::cout << "chunk type: " << (int) fType << ", content: " << sContent;
+  std::cout << "chunk type: " << (int) fType << ", content: '" << sContent << "'";
 }
 
 // -----------------------------------------------------------------------------
@@ -1242,22 +1246,25 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
 
   switch( this->fType )
   {
-
     case tag_type::ATTRIBUTE:
     {
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<dt>";
       WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "</h3>" << std::endl;
+      oOutStrm_i << "</dt>" << std::endl;
+      WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
       WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+      WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
       break;
     }
 
     case tag_type::PARAM:
     {
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<dt>";
       WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "</h3>" << std::endl;
+      oOutStrm_i << "</dt>" << std::endl;
+      WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
       WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+      WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
       break;
     }
 
@@ -1267,7 +1274,7 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
       {
         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<li>";
         size_t nRefIdx;
-        if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->oaChunkList[0].GetPlainFirstWord() ), nRefIdx ) )
+        if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx ) )
         {
           oOutStrm_i << "<a href=\"" + oWriteInfo_i.oRefTable.GetLink( nRefIdx ) + "\">";
           WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
@@ -1282,9 +1289,9 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
 
     case tag_type::SIGNATURE:
     {
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<li>";
       WriteHTMLTitleLine( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "</h3>" << std::endl;
+      oOutStrm_i << "</li>" << std::endl;
       break;
     }
 
@@ -1448,39 +1455,47 @@ void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo&
 
   switch( this->fType )
   {
+    case tag_type::ATTRIBUTE:
+    {
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitemexprtext{";
+      WriteLaTeXFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "}{";
+      WriteLaTeXAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "}%" << std::endl;
+      break;
+    }
+
     case tag_type::PARAM:
     {
-      // TODO
-      /* HTML-Version
-      oOutStrm_i << "<h3>";
-      WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "</h3>" << std::endl
-                 << "<p>" << std::endl;
-      WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "</p>" << std::endl;
-      */
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitemexprtext{";
+      WriteLaTeXFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "}{";
+      WriteLaTeXAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "}%" << std::endl;
       break;
     }
 
     case tag_type::SEE:
     {
-      // TODO
-      /* HTML-Version
-      if( !this->oaChunkList.empty() )
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\item ";
+      size_t nRefIdx;
+      if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx ) )
       {
-        oOutStrm_i << "<li>";
-        size_t nRefIdx;
-        if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->oaChunkList[0].GetPlainFirstWord() ), nRefIdx ) )
-        {
-          oOutStrm_i << "<a href=\"" + oWriteInfo_i.oRefTable.GetLink( nRefIdx ) + "\">";
-          this->oaChunkList[0].WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
-          oOutStrm_i << "</a>";
-        }
-        else
-          this->oaChunkList[0].WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
-        oOutStrm_i << "</li>";
+        oOutStrm_i << "\\hyperref[" << MakeIdentifier( this->GetPlainFirstWord() ) << "]{";
+        WriteLaTeXFirstWord( oOutStrm_i, oWriteInfo_i );
+        oOutStrm_i << "}%";
       }
-      */
+      else
+        WriteLaTeXFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << std::endl;
+      break;
+    }
+
+    case tag_type::SIGNATURE:
+    {
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitemline{";
+      WriteLaTeXTitleLine( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "}%" << std::endl;
       break;
     }
 
@@ -1527,11 +1542,16 @@ void escrido::CTagBlock::WriteLaTeXTitleLine( std::ostream& oOutStrm_i, const SW
   oWriteInfo_i.pTagBlock = this;
 
   // Write all chunks up to the title line delimitor.
-  for( size_t c = 0; c < oaChunkList.size(); c++ )
+  for( size_t c = 0; c < oaChunkList.size(); ++c )
   {
-    // Break off on new line or new paragraph.
+    // Break off if the title line delimitor is reached.
     if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
       return;
+
+    // Do not display certain types of chunks.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
 
     oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
   }
@@ -1557,9 +1577,14 @@ void escrido::CTagBlock::WriteLaTeXTitleLineButFirstWord( std::ostream& oOutStrm
   size_t c = 0;
   for( c = 0; c < oaChunkList.size(); c++ )
   {
-    // Break off in the title line delimitor is reached.
+    // Break off if the title line delimitor is reached.
     if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
       return;
+
+    // Do not display certain types of chunks.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
 
     if( oaChunkList[c].WriteLaTeXAllButFirstWord( oOutStrm_i, oWriteInfo_i ) )
       break;
@@ -1568,9 +1593,14 @@ void escrido::CTagBlock::WriteLaTeXTitleLineButFirstWord( std::ostream& oOutStrm
   // Write remaining chunks up to the title line delimitor.
   for( c++; c < oaChunkList.size(); c++ )
   {
-    // Break off in the title line delimitor is reached.
+    // Break off if the title line delimitor is reached.
     if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
       return;
+
+    // Do not display certain types of chunks.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
 
     oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
   }
@@ -1596,7 +1626,15 @@ void escrido::CTagBlock::WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i, co
 
   // Write full remaining chunks;
   for( c++; c < oaChunkList.size(); c++ )
+  {
+    // Avoid writing the last END_PARAGRAPH chunk.
+    // This is for avoiding unnecessary section break.
+    if( c + 1 == oaChunkList.size() )
+      if( oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+        break;
+
     oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+  }
 }
 
 // .............................................................................
@@ -1623,7 +1661,15 @@ void escrido::CTagBlock::WriteLaTeXAllButTitleLine( std::ostream& oOutStrm_i, co
 
   // Write full remaining chunks;
   for( c++; c < oaChunkList.size(); c++ )
+  {
+    // Avoid writing the last END_PARAGRAPH chunk.
+    // This is for avoiding unnecessary section break.
+    if( c + 1 == oaChunkList.size() )
+      if( oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+        break;
+
     oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+  }
 }
 
 // .............................................................................
@@ -2199,155 +2245,13 @@ const escrido::CTagBlock* escrido::CContentUnit::GetNextTagBlock( const CTagBloc
 }
 
 // .............................................................................
-/*
-void escrido::CContentUnit::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
-{
-  // Write brief block(s), if existing.
-  if( HasTagBlock( tag_type::BRIEF ) )
-  {
-    oOutStrm_i << "<div class=\"brief\">" << std::endl
-               << "  <p>" << std::endl;
-    GetFirstTagBlock( tag_type::BRIEF )->WriteHTML( oOutStrm_i, oWriteInfo_i );
-    oOutStrm_i << "  </p>" << std::endl
-               << "</div>" << std::endl;
-  }
-
-  // Write paragraph block(s), if existing.
-  if( HasTagBlock( tag_type::PARAGRAPH ) )
-  {
-    oOutStrm_i << "<div class=\"default\">" << std::endl;
-    for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
-      if( this->oaBlockList[b].GetTagType() == tag_type::PARAGRAPH )
-      {
-        oOutStrm_i << "  <p>" << std::endl;
-        this->oaBlockList[b].WriteHTML( oOutStrm_i, oWriteInfo_i );
-        oOutStrm_i << "  <\p>" << std::endl;
-      }
-    oOutStrm_i << "</div>" << std::endl;
-  }
-
-  // Write details block(s), if existing.
-  if( HasTagBlock( tag_type::DETAILS ) )
-  {
-    oOutStrm_i << "<div class=\"details\">" << std::endl
-               << "  <h2>Description</h2>" << std::endl;
-    for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
-      if( this->oaBlockList[b].GetTagType() == tag_type::DETAILS )
-      {
-        oOutStrm_i << "  <p>" << std::endl;
-        this->oaBlockList[b].WriteHTML( oOutStrm_i, oWriteInfo_i );
-        oOutStrm_i << "  <\p>" << std::endl;
-      }
-    oOutStrm_i << "</div>" << std::endl;
-  }
-
-  // Write internal, if existing and requested.
-  if( oWriteInfo_i.fShowInternal && HasTagBlock( tag_type::INTERNAL ) )
-  {
-    oOutStrm_i << "<div class=\"internal\">" << std::endl
-               << "  <h2>Internal Documentation</h2>" << std::endl;
-    for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
-      if( this->oaBlockList[b].GetTagType() == tag_type::INTERNAL )
-      {
-        oOutStrm_i << "  <p>" << std::endl;
-        this->oaBlockList[b].WriteHTML( oOutStrm_i, oWriteInfo_i );
-        oOutStrm_i << "  <\p>" << std::endl;
-      }
-    oOutStrm_i << "</div>" << std::endl;
-  }
-
-  // Write remark block(s), if existing.
-  if( HasTagBlock( tag_type::REMARK ) )
-  {
-    oOutStrm_i << "<div class=\"remark\">" << std::endl
-               << "  <h2>Remark</h2>" << std::endl;
-    for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
-      if( this->oaBlockList[b].GetTagType() == tag_type::REMARK )
-      {
-        oOutStrm_i << "  <p>" << std::endl;
-        this->oaBlockList[b].WriteHTML( oOutStrm_i, oWriteInfo_i );
-        oOutStrm_i << "  <\p>" << std::endl;
-      }
-    oOutStrm_i << "</div>" << std::endl;
-  }
-
-  // Write note block(s), if existing.
-  if( HasTagBlock( tag_type::NOTE ) )
-  {
-    for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
-      if( this->oaBlockList[b].GetTagType() == tag_type::NOTE )
-      {
-        oOutStrm_i << "<div class=\"note\">" << std::endl
-                   << "  <h2>Please Note</h2>" << std::endl
-                   << "  <p>" << std::endl;
-        this->oaBlockList[b].WriteHTML( oOutStrm_i, oWriteInfo_i );
-        oOutStrm_i << "  </p>" << std::endl
-                   << "</div>" << std::endl;
-      }
-  }
-
-  // Write parameters,
-  if( HasTagBlock( tag_type::PARAM ) )
-  {
-    oOutStrm_i << "<div class=\"parameters\">" << std::endl
-               << "  <h2>Parameters</h2>" << std::endl;
-    for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
-      if( this->oaBlockList[b].GetTagType() == tag_type::PARAM )
-        this->oaBlockList[b].WriteHTML( oOutStrm_i, oWriteInfo_i );
-    oOutStrm_i << "</div>" << std::endl;
-  }
-
-  // Write return, if existing. (Only first appearance.)
-  if( HasTagBlock( tag_type::RETURN ) )
-  {
-    oOutStrm_i << "<div class=\"return\">" << std::endl
-               << "  <h2>Return Value</h2>" << std::endl
-               << "  <p>" << std::endl;
-    for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
-      if( this->oaBlockList[b].GetTagType() == tag_type::RETURN )
-      {
-        this->oaBlockList[b].WriteHTML( oOutStrm_i, oWriteInfo_i );
-        break;
-      }
-    oOutStrm_i << "  </p>" << std::endl
-               << "</div>" << std::endl;
-  }
-
-  // Write examples, if existing.
-  if( HasTagBlock( tag_type::EXAMPLE ) )
-  {
-    oOutStrm_i << "<div class=\"examples\">" << std::endl
-               << "  <h2>Example</h2>" << std::endl;
-    for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
-      if( this->oaBlockList[b].GetTagType() == tag_type::EXAMPLE )
-      {
-        oOutStrm_i << "  <pre class=\"example\">";
-        this->oaBlockList[b].WriteHTML( oOutStrm_i, oWriteInfo_i );
-        oOutStrm_i << "  </pre>" << std::endl;
-      }
-    oOutStrm_i << "</div>" << std::endl;
-  }
-
-  // Write references ("see"), if existing.
-  if( HasTagBlock( tag_type::SEE ) )
-  {
-    oOutStrm_i << "<div class=\"see\">" << std::endl
-               << "  <h2>See also</h2>" << std::endl
-               << "  <ul>" << std::endl;
-    for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
-      if( this->oaBlockList[b].GetTagType() == tag_type::SEE )
-        this->oaBlockList[b].WriteHTML( oOutStrm_i, oWriteInfo_i );
-    oOutStrm_i << "  </ul>" << std::endl
-               << "</div>" << std::endl;
-  }
-}*/
-
-// .............................................................................
 
 // *****************************************************************************
 /// \brief      Writes the PARAGRAPH, the SECTION, the DETAILS and embedded
 ///             EXAMPLE, IMAGE, NOTES, OUTPUT and REMARK tag blocks in a
 ///             standardized way.
+///
+/// \todo       TODO: Implement correct nesting of sections and subsections.
 // *****************************************************************************
 
 void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
@@ -2370,7 +2274,7 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
         case tag_type::DETAILS:
           if( !fInDetails )
           {
-            WriteHTMLTagLine( "<div class=\"details\">", oOutStrm_i, oWriteInfo_i++ );
+            WriteHTMLTagLine( "<section class=\"tagblock details\">", oOutStrm_i, oWriteInfo_i++ );
             WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Details</h2>" << std::endl;
             fInDetails = true;
           }
@@ -2379,50 +2283,50 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 
         case tag_type::SECTION:
         {
-          // Eventually leave "details" div box.
+          // Eventually leave "details" section.
           if( fInDetails )
           {
-            WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
+            WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
             fInDetails = false;
           }
 
-          // Surrounding "<div>".
-          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<div id=\""
+          // Surrounding "<section>".
+          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<section id=\""
                                                          << oaBlockList[t].GetPlainFirstWord()
-                                                         << "\" class=\"section\">" << std::endl;
+                                                         << "\" class=\"tagblock section\">" << std::endl;
 
           // Title line.
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>";
           oaBlockList[t].WriteHTMLTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</h2>" << std::endl;
 
-          // Content and terminating "</div>".
+          // Content and terminating "</section>".
           oaBlockList[t].WriteHTMLAllButTitleLine( oOutStrm_i, oWriteInfo_i );
-          WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
+          WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
           break;
         }
 
         case tag_type::SUBSECTION:
         {
-          // Surrounding "<div>".
-          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<div id=\""
+          // Surrounding "<section>".
+          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<section id=\""
                                                          << oaBlockList[t].GetPlainFirstWord()
-                                                         << "\" class=\"subsection\">" << std::endl;
+                                                         << "\" class=\"tagblock subsection\">" << std::endl;
 
           // Title line.
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>";
           oaBlockList[t].WriteHTMLTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</h3>" << std::endl;
 
-          // Content and terminating "</div>".
+          // Content and terminating "</section>".
           oaBlockList[t].WriteHTMLAllButTitleLine( oOutStrm_i, oWriteInfo_i );
-          WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
+          WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
           break;
         }
 
         case tag_type::EXAMPLE:
         {
-          WriteHTMLTagLine( "<div class=\"examples\">", oOutStrm_i, oWriteInfo_i++ );
+          WriteHTMLTagLine( "<div class=\"tagblock examples\">", oOutStrm_i, oWriteInfo_i++ );
           WriteHTMLTagLine( "<h4>Example</h4>", oOutStrm_i, oWriteInfo_i );
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<pre class=\"example\">";
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
@@ -2473,10 +2377,10 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
       }
     }
 
-    // Eventually leave last "details" div box.
+    // Eventually leave last "details" section.
     if( fInDetails )
     {
-      WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
+      WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
       fInDetails = false;
     }
   }
@@ -2485,8 +2389,55 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 // .............................................................................
 
 // *****************************************************************************
-/// \brief      Writes all tag blocks of a certain type (or less, if this is
-///             the specification).
+/// \brief      Writes a tag blocks of a certain type (available for special
+///             tag types only).
+///
+/// \details    This is for tag blocks of the following types only:
+///             - \ref tag_type::BRIEF
+///             - \ref tag_type::RETURN
+///
+/// \param[in]  fTagType_i
+///             Type of tag blocks that is written.
+/// \param[in]  oOutStrm_i
+///             Output stream into which the tag block is written.
+/// \param[in]  oWriteInfo_i
+///             Write-info structure with additional information.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteHTMLTagBlock( tag_type fTagType_i,
+                                               std::ostream& oOutStrm_i,
+                                               const SWriteInfo& oWriteInfo_i ) const
+{
+  if( this->HasTagBlock( fTagType_i ) )
+  {
+    // Write tag block.
+    switch( fTagType_i )
+    {
+      case tag_type::BRIEF:
+        this->GetFirstTagBlock( tag_type::BRIEF )->WriteHTML( oOutStrm_i, oWriteInfo_i );
+        break;
+
+      case tag_type::RETURN:
+        WriteHTMLTagLine( "<section class=\"tagblock return\">", oOutStrm_i, oWriteInfo_i++ );
+        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Return value</h2>" << std::endl;
+        this->GetFirstTagBlock( tag_type::RETURN )->WriteHTML( oOutStrm_i, oWriteInfo_i );
+        WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
+        break;
+    }
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes a list of tag blocks of one type (available for special
+///             tag types only).
+///
+/// \details    This is for tag blocks of the following types only:
+///             - \ref tag_type::ATTRIBUTE
+///             - \ref tag_type::PARAM
+///             - \ref tag_type::SEE
+///             - \ref tag_type::SIGNATURE
 ///
 /// \param[in]  fTagType_i
 ///             Type of which all tag blocks are written.
@@ -2496,42 +2447,70 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 ///             Write-info structure with additional information.
 // *****************************************************************************
 
-void escrido::CContentUnit::WriteHTMLTagBlocks( tag_type fTagType_i,
-                                                std::ostream& oOutStrm_i,
-                                                const SWriteInfo& oWriteInfo_i ) const
+void escrido::CContentUnit::WriteHTMLTagBlockList( tag_type fTagType_i,
+                                                   std::ostream& oOutStrm_i,
+                                                   const SWriteInfo& oWriteInfo_i ) const
 {
-  switch( fTagType_i )
+  if( this->HasTagBlock( fTagType_i ) )
   {
-    case tag_type::BRIEF:
+    // Write tag block opening and title line for some tag types.
+    switch( fTagType_i )
     {
-      WriteHTMLTagLine( "<div class=\"brief\">", oOutStrm_i, oWriteInfo_i++ );
-      this->GetFirstTagBlock( tag_type::BRIEF )->WriteHTML( oOutStrm_i, oWriteInfo_i );
-      WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
-      break;
+       case tag_type::ATTRIBUTE:
+         WriteHTMLTagLine( "<section class=\"tagblock attribute\">", oOutStrm_i, oWriteInfo_i++ );
+         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Attributes</h2>" << std::endl;
+         break;
+
+       case tag_type::PARAM:
+         WriteHTMLTagLine( "<section class=\"tagblock parameters\">", oOutStrm_i, oWriteInfo_i++ );
+         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Parameters</h2>" << std::endl;
+         break;
+
+       case tag_type::SEE:
+         WriteHTMLTagLine( "<section class=\"tagblock see\">", oOutStrm_i, oWriteInfo_i++ );
+         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>See also</h2>" << std::endl;
+         break;
+
+       case tag_type::SIGNATURE:
+         WriteHTMLTagLine( "<section class=\"tagblock signatures\">", oOutStrm_i, oWriteInfo_i++ );
+         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Signatures</h2>" << std::endl;
+         break;
     }
 
-    case tag_type::SEE:
+    // Write tag block list.
+    switch( fTagType_i )
     {
-      WriteHTMLTagLine( "<ul>", oOutStrm_i, oWriteInfo_i++ );
+      case tag_type::SEE:
+      case tag_type::SIGNATURE:
+      {
+        WriteHTMLTagLine( "<ul>", oOutStrm_i, oWriteInfo_i++ );
 
-      // Loop over all tag blocks.
-      for( size_t t = 0; t < oaBlockList.size(); t++ )
-        if( oaBlockList[t].GetTagType() == tag_type::SEE )
-          oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
+        // Loop over all tag blocks.
+        for( size_t t = 0; t < oaBlockList.size(); t++ )
+          if( oaBlockList[t].GetTagType() == fTagType_i )
+            oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
 
-      WriteHTMLTagLine( "</ul>", oOutStrm_i, --oWriteInfo_i );
-      break;
+        WriteHTMLTagLine( "</ul>", oOutStrm_i, --oWriteInfo_i );
+        break;
+      }
+
+      default:
+      {
+        WriteHTMLTagLine( "<dl>", oOutStrm_i, oWriteInfo_i++ );
+
+        // Loop over all tag blocks.
+        for( size_t t = 0; t < oaBlockList.size(); t++ )
+          if( oaBlockList[t].GetTagType() == fTagType_i )
+            oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
+
+        WriteHTMLTagLine( "</dl>", oOutStrm_i, --oWriteInfo_i );
+
+        break;
+      }
     }
 
-    default:
-    {
-      // Loop over all tag blocks.
-      for( size_t t = 0; t < oaBlockList.size(); t++ )
-        if( oaBlockList[t].GetTagType() == fTagType_i )
-          oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
-
-      break;
-    }
+    // Write tag block closing line.
+    WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
   }
 }
 
@@ -2564,7 +2543,7 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
         {
           if( !fInDetails )
           {
-            oOutStrm_i << "\\subsection{Details}%" << std::endl << std::endl;
+            oOutStrm_i << "\\tagblocksection{Details}%" << std::endl << std::endl;
             fInDetails = true;
           }
 
@@ -2580,7 +2559,7 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
             fInDetails = false;
 
           // Title line.
-          oOutStrm_i << "\\subsection{";
+          oOutStrm_i << "\\tagblocksection{";
           oaBlockList[t].WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "}%" << std::endl
                      << "\\label{" << oaBlockList[t].GetPlainFirstWord() << "}%" << std::endl << std::endl;
@@ -2595,7 +2574,7 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
         case tag_type::SUBSECTION:
         {
           // Title line.
-          oOutStrm_i << "\\subsubsection{";
+          oOutStrm_i << "\\tagblocksubsection{";
           oaBlockList[t].WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "}%" << std::endl
                      << "\\label{" << oaBlockList[t].GetPlainFirstWord() << "}%" << std::endl << std::endl;
@@ -2657,6 +2636,129 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
 
     if( fInDetails )
       fInDetails = false;
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes a tag blocks of a certain type (available for special
+///             tag types only).
+///
+/// \details    This is for tag blocks of the following types only:
+///             - \ref tag_type::BRIEF
+///             - \ref tag_type::RETURN
+///
+/// \param[in]  fTagType_i
+///             Type of tag blocks that is written.
+/// \param[in]  oOutStrm_i
+///             Output stream into which the tag block is written.
+/// \param[in]  oWriteInfo_i
+///             Write-info structure with additional information.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteLaTeXTagBlock( tag_type fTagType_i,
+                                                std::ostream& oOutStrm_i,
+                                                 const SWriteInfo& oWriteInfo_i ) const
+{
+  if( this->HasTagBlock( fTagType_i ) )
+  {
+    // Write tag block.
+    switch( fTagType_i )
+    {
+      case tag_type::BRIEF:
+        this->GetFirstTagBlock( tag_type::BRIEF )->WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+        break;
+
+      case tag_type::RETURN:
+        oOutStrm_i << "\\tagblocksection{Return value}" << std::endl;
+        this->GetFirstTagBlock( tag_type::RETURN )->WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+        break;
+    }
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes a list of tag blocks of one type (available for special
+///             tag types only).
+///
+/// \details    This is for tag blocks of the following types only:
+///             - \ref tag_type::ATTRIBUTE
+///             - \ref tag_type::PARAM
+///             - \ref tag_type::SEE
+///             - \ref tag_type::SIGNATURE
+///
+/// \param[in]  fTagType_i
+///             Type of which all tag blocks are written.
+/// \param[in]  oOutStrm_i
+///             Output stream into which the tag blocks are written.
+/// \param[in]  oWriteInfo_i
+///             Write-info structure with additional information.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteLaTeXTagBlockList( tag_type fTagType_i,
+                                                    std::ostream& oOutStrm_i,
+                                                    const SWriteInfo& oWriteInfo_i ) const
+{
+  if( this->HasTagBlock( fTagType_i ) )
+  {
+    // Write tag block title line for some tag types.
+    switch( fTagType_i )
+    {
+       case tag_type::ATTRIBUTE:
+         oOutStrm_i << "\\tagblocksection{Attributes}" << std::endl;
+         break;
+
+       case tag_type::PARAM:
+         oOutStrm_i << "\\tagblocksection{Parameters}" << std::endl;
+         break;
+
+       case tag_type::SEE:
+         oOutStrm_i << "\\tagblocksection{See also}" << std::endl;
+         break;
+
+       case tag_type::SIGNATURE:
+         oOutStrm_i << "\\tagblocksection{Signatures}" << std::endl;
+         break;
+    }
+
+    // Write tag block list.
+    switch( fTagType_i )
+    {
+      case tag_type::SEE:
+      {
+        oOutStrm_i << "\\begin{itemize}" << std::endl;
+        ++oWriteInfo_i;
+
+        // Write all tag blocks of the specified type.
+        for( size_t t = 0; t < oaBlockList.size(); t++ )
+          if( oaBlockList[t].GetTagType() == tag_type::SEE )
+            oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+
+        --oWriteInfo_i;
+        oOutStrm_i << "\\end{itemize}" << std::endl;
+
+        break;
+      }
+
+      default:
+      {
+        oOutStrm_i << "\\begin{taglist}" << std::endl;
+        ++oWriteInfo_i;
+
+        // Write all tag blocks of the specified type.
+        for( size_t t = 0; t < oaBlockList.size(); t++ )
+          if( oaBlockList[t].GetTagType() == fTagType_i )
+            oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+
+        --oWriteInfo_i;
+        oOutStrm_i << "\\end{taglist}" << std::endl;
+
+        break;
+      }
+    }
   }
 }
 

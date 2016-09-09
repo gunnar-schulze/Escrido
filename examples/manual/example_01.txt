@@ -10,7 +10,9 @@ Everything outside the Escrido markup deliminators is ignored.
  *  @version    0.0.0
  *  @copyright  2015 Gunnar Schulze
  *  @brief      Manual to the Escrido multi-language documentation generator.
- *  @details    "Escrido" is a tool that generates LaTeX and web documents of
+ *
+ *  @image      fig/escrido.png
+ *  @par        "Escrido" is a tool that generates LaTeX and web documents of
  *              references and manuals for code and/or programming languages.
  *              It is strongly influenced by Doxygen and has a similar syntax.
  *              Nevertheless it differs from Doxygen in several points:
@@ -28,11 +30,12 @@ Everything outside the Escrido markup deliminators is ignored.
  *                the @ref tag_table "&#64;table" command.
  *              - Some Doxygen functions are not supported.
  *
- *  @details    See the example files for a quick start into Escrido.
+ *  @par        See the example files for a quick start into Escrido.
  *
  *  @order      commands
  *              tags_reference
  *              tags_formatting
+ *              mystruct
  *
 #*/
 

@@ -1,0 +1,52 @@
+% This file contains a set of commands and environments that are necessarily
+% required by LaTeX files that were generated with Escrido. Since these commands
+% and environments include a certain amount of styling properties that influence
+% the appearance of the final document, it may be left to the user to modify
+% these.
+
+% Headline of page groups
+\newcommand{\pagegroupheadline}[1]{\chapter{#1}}
+
+% Headline of page tag blocks (@_page_, @_refpage_)
+\newcommand{\pageheadline}[1]{\section{#1}}
+
+% Headline of section tag blocks (@details, @section etc.)
+\newcommand{\tagblocksection}[1]{\subsection{#1}}
+
+% Headline of subsection tag blocks (@subsection)
+\newcommand{\tagblocksubsection}[1]{\subsubsection{#1}}
+
+% Verbatim blocks (@example, @output etc.):
+\newcommand{\verbatimtitle}[1]{\noindent\textbf{\footnotesize #1}}
+\newcommand{\code}[1]{\lstinline[breaklines=false,columns=fixed,basewidth=0.50em]^#1^}
+
+% @note blocks:
+\definecolor{notecolorhead}{HTML}{BCE77C}
+\definecolor{notecolorbody}{HTML}{EFF9E1}
+\newenvironment{note}
+{ \colorlet{shadecolor}{notecolorbody}
+  \begin{shaded*}
+  \noindent\colorbox{notecolorhead}{\begin{minipage}{\textwidth}\textbf{Note:}\end{minipage}} }
+{ \end{shaded*} }
+
+% @remark blocks:
+\definecolor{remarkcolorhead}{HTML}{FFFFCC}
+\definecolor{remarkcolorbody}{HTML}{FFFFF5}
+\newenvironment{remark}
+{ \colorlet{shadecolor}{remarkcolorbody}
+  \begin{shaded*}
+  \noindent\colorbox{remarkcolorhead}{\begin{minipage}{\textwidth}\textbf{Remark:}\end{minipage}} }
+{ \end{shaded*} }
+
+% Lists of certain tag types (@attribute, @param, @signature etc.)
+\newenvironment{taglist}
+{ \tabulary{\textwidth}{LL} }
+{ \endtabulary }
+% Single item of tag type list (@attribute, @param, @signature etc.):
+\newcommand{\taglistitemline}[1]{ \textbf{#1} \\ }           % Items consisting of single line (@signature etc.)
+\newcommand{\taglistitemexprtext}[2]{ \textbf{#1} & #2 \\ }  % Items consisting of an inital expression followed by some text (@param etc.)
+
+% Maxwidth definition for images:
+\makeatletter
+\def\maxwidth#1{\ifdim\Gin@nat@width>#1 #1\else\Gin@nat@width\fi}
+\makeatother

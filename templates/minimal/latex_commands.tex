@@ -1,0 +1,31 @@
+% This file contains a set of commands and environments that are necessarily
+% required by LaTeX files that were generated with Escrido. Since these commands
+% and environments include a certain amount of styling properties that influence
+% the appearance of the final document, it may be left to the user to modify
+% these.
+
+% Maxwidth definition for images:
+\makeatletter
+\def\maxwidth#1{\ifdim\Gin@nat@width>#1 #1\else\Gin@nat@width\fi}
+\makeatother
+
+% Verbatim blocks (@example, @output etc.):
+\newcommand{\verbatimtitle}[1]{\textbf{#1}}
+\newcommand{\code}[1]{\lstinline[breaklines=false,columns=fixed,basewidth=0.50em]^#1^}
+
+% @note type blocks:
+\newenvironment{note}
+{ \textbf{Note:} }
+{}
+
+% @remark type blocks:
+\newenvironment{remark}
+{ \begin{minipage}{\textwidth}\textbf{Remark:}\end{minipage} }
+{}
+
+% Tables for features of reference pages (@attribute, @param, @signature etc.)
+\newenvironment{refpagetaggroup}
+{ \tabulary{\textwidth}{lL} }
+{ \endtabulary }
+\newcommand{\refpagetagline}[2]{ \textbf{#1} & #2 \\ }       % Single line features (@signature etc.)
+\newcommand{\refpagetagwordline}[2]{ \textbf{#1} & #2 \\ }  % One-word-and-one-line features (@param etc.)

@@ -1,0 +1,80 @@
+# Example configuration file of the general-purpose documentation generator
+# Espreescrido.
+# Author: Gunnar Schulze
+# (C) 2015 trinckle 3D GmbH
+
+# -----------------------------------------------------------------------------
+# General options
+# -----------------------------------------------------------------------------
+
+# This parameter should point to a template directory where LaTeX document and
+# HTML web document template files are stored.
+#
+# Equals the "-t" and "--template" command line options
+
+TEMPLATE_DIR       = "./templates/manual/"
+
+# This parameter defines the files to be included into the documentation.
+# The file names can be enclosed in quoation marks and may include wildcards,
+# e.g. "/usr/src/file*". Multiple values can be given seperated by blank
+# spaces.
+#
+# Equals the "-i" and "--include" command line options
+
+INCLUDE            = "./examples/manual/*.txt"
+
+# This parameter defines a namespace the documentation shall be restricted to.
+# If empty, all available namespaces are included. Multiple values
+# can be given seperated by blank spaces.
+#
+# Equals the "-ns" and "--namespace" command line options
+
+NAMESPACE          =
+
+# -----------------------------------------------------------------------------
+# Web document output options
+# -----------------------------------------------------------------------------
+
+# Flag defining whether a web document shall be created. If this flag is set to
+# YES, Escrido will generate HTML output.
+#
+# Equals the "-wd" and "--webdoc" command line options
+
+GENERATE_WEBDOC    = YES
+
+# This parameter should point to a directory that will be filled with the web
+# document output files. Default is "./html/".
+#
+# Equals the "-wdo" and "--webdoc-output-dir" command line options
+
+WEBDOC_OUT_DIR     = "./manual/html/"
+
+# This parameter specifies an alternative file ending to the web document
+# output files, e.g. ".php". Default is ".html".
+#
+# Equals the "-wdfe" and "--webdoc-file-ending" command line options
+
+WEBDOC_FILE_ENDING =
+
+# -----------------------------------------------------------------------------
+# LaTeX document output options
+# -----------------------------------------------------------------------------
+
+# Flag defining whether a LaTeX document shall be created. If this flag is set
+# to YES, Escrido will generate LaTeX output.
+#
+# Equals the "-ld" and "--latex" command line options
+
+GENERATE_LATEX     = YES
+
+# This parameter should point to a directory that will be filled with the LaTeX
+# output files. Default is "./latex/".
+#
+# Equals the "-ldo" and "--latex-output-dir" command line options
+
+LATEX_OUT_DIR      = "./manual/latex/"
+
+
+
+
+

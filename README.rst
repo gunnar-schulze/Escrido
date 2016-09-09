@@ -3,8 +3,8 @@ Escrido
 =======
 
 :Authors: Gunnar Schulze
-:Date: 2016-09-06
-:Version: 0.2.2
+:Date: 2016-09-09
+:Version: 0.3.0
 :Contact: <gunnar.schulze@trinckle.com>
 :Organization: trinckle 3D GmbH
 
@@ -42,7 +42,7 @@ Is there a manual?
 
 Yes, but the manual is also the example. This means you have to create first. After compiling Escrido you can generate the manual with the following command:
 
-  ./bin/escrido -f example/escridofile
+  ./bin/escrido -f examples/manual/escridofile
 
 Have fun!
 

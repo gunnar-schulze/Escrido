@@ -10,7 +10,7 @@
 ///
 /// \author     Gunnar Schulze
 /// \date       2015-10-13
-/// \copyright  2015 trinckle 3D GmbH
+/// \copyright  2016 trinckle 3D GmbH
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -430,8 +430,12 @@ class escrido::CContentUnit
     // Output method:
 //     void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
-    void WriteHTMLTagBlocks( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
     void WriteLaTeXParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
     void DebugOutput() const;
