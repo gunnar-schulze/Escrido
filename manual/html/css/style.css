@@ -1,36 +1,39 @@
 
 body {
-	font: 82.5%/1.6em "Lucida Grande", "Lucida Sans Unicode", verdana, geneva, sans-serif;
-	color:#666;
-	margin:0;
+  font: 82.5%/1.6em "Lucida Grande", "Lucida Sans Unicode", verdana, geneva, sans-serif;
+  color:#666;
+  margin:0;
 }
 
 * {
-	margin:0;
-	padding:0;
+  margin:0;
+  padding:0;
 }
 
 header{
-	border-top:20px solid #BCE77C;
-	margin:0 auto;
-	padding:25px;
+  border-top:20px solid #BCE77C;
+  margin:0 auto;
+  padding:25px;
 }
 
 header a{
-	text-decoration:none;
-	color:#333;
+  text-decoration:none;
+  color:#333;
 }
 
 header h1{
-	font-family:"Times New Roman", Times, serif;
-	font-size:2em;
-  line-height: 1.0em;
-	font-weight:normal;
+  font-family:"Times New Roman", Times, serif;
+  font-size:2em;
+  line-height:32px;
+  font-weight:normal;
+  background:url(../fig/Escrido_logo_32x32.png) left no-repeat;
+  height:32px;
+  padding-left:40px;
 }
 
 main {
-	margin:0 auto;
-	padding:25px;
+  margin:0 auto;
+  padding:25px;
 }
 
 nav {
@@ -45,124 +48,131 @@ nav {
 nav h1,
 nav h2,
 nav h3{
-	color:#333;
-	border-bottom:1px solid #f6f6f6;
-	padding:5px 0;
+  color:#333;
+  border-bottom:1px solid #f6f6f6;
+  padding:5px 0;
 }
 
 nav h1{
-	font-family:"Times New Roman", Times, serif;
-	letter-spacing:1px;
-	font-size:1.8em;
-	font-weight:normal;
+  font-family:"Times New Roman", Times, serif;
+  letter-spacing:1px;
+  font-size:1.8em;
+  font-weight:normal;
 }
 
 nav h2,
 nav h3{
   font-family:"Lucida Sans Unicode", verdana, geneva, sans-serif;
-	letter-spacing:1px;
-	font-weight:normal;
+  letter-spacing:1px;
+  font-weight:normal;
 }
 
 nav h2{
-	font-size:1.2em;
+  font-size:1.2em;
 }
 
 nav h3{
-	font-size:1.0em;
+  font-size:1.0em;
 }
 
 nav ul {
-	list-style:none;
-	margin:5px 0;
+  list-style:none;
+  margin:5px 0;
 }
 
 nav li {
 }
 
 nav li a {
-	color:#797;
-	text-decoration:none;
-	display:block;
+  color:#797;
+  text-decoration:none;
+  display:block;
 }
 
 nav li a:visited {
-	color:#9B9;
+  color:#9B9;
 }
 
 nav li a:hover {
-	background-color:#eee;
-	color:#353;
+  background-color:#eee;
+  color:#353;
 }
 
 nav li a:active {
-	color:#000;
+  color:#000;
 }
 
 article {
-	border-left:1px solid #eee;
-	padding:10px 25px 30px 25px;
+  border-left:1px solid #eee;
+  padding:10px 25px 30px 25px;
 }
 
 article h1,
 article h2,
 article h3,
 article h4{
-	font-family:"Lucida Sans Unicode", verdana, geneva, sans-serif;
-	line-height: 1.0em;
-	font-weight:normal;
+  font-family:"Lucida Sans Unicode", verdana, geneva, sans-serif;
+  line-height: 1.0em;
+  font-weight:normal;
 }
 
 article h1{
-	font-size:2.4em;
-	color:#444;
-	padding:20px 0;
+  font-size:2.4em;
+  color:#444;
+  padding:20px 0;
 }
 
 article h2,
 article h3,
 article h4{
-	padding:5px 0;
+  padding:5px 0;
 }
 
 article h2 {
-	font-size:1.6em;
+  font-size:1.6em;
 }
 
 article h3 {
-	font-size:1.4em;
+  font-size:1.4em;
 }
 
 article h4 {
-	font-size:1.2em;
+  font-size:1.2em;
 }
 
 article p{
-	padding:5px 0;
-	word-spacing:2px;
+  padding:5px 0;
+  word-spacing:2px;
 }
 
 article a{
-	color:#797;
-	text-decoration:none;
-	border-bottom:1px solid #ddd;
+  color:#797;
+  text-decoration:none;
+  border-bottom:1px solid #ddd;
 }
 
 article a:visited {
-	color:#9B9;
+  color:#9B9;
 }
 
 article a:hover {
-	color:#353;
+  color:#353;
 }
 
 article a:active {
-	color:#000;
+  color:#000;
+}
+
+article ul {
+ padding-left:0;
+}
+article ul li{
+ list-style-position:inside
 }
 
 article section{
-	border-top:1px solid #EEE;
-	padding:5px 0;
+  border-top:1px solid #EEE;
+  padding:5px 0;
 }
 
 article .subsection{
@@ -170,7 +180,7 @@ article .subsection{
 }
 
 article figure{
-	padding:5px 0;
+  padding:5px 0;
 }
 
 article img{
@@ -185,9 +195,9 @@ article table{
 }
 
 article td{
-    border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee;
-    padding: 3px;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  padding: 3px;
 }
 
 .example,
@@ -197,32 +207,28 @@ article td{
   border-bottom:1px solid #eee;
 }
 
-.tagblock ul{
-	list-style:none;
-}
-
 .tagblock dd p{
   margin: 0;
 }
 
 .tagblock dt{
-	font-weight: bold;
+  font-weight: bold;
 }
 
 .note{
- background-color: #EFF9E1;
+  background-color: #EFF9E1;
 }
 
 .note h4{
- background-color: #bce77c;
+  background-color: #bce77c;
 }
 
 .remark{
- background-color: #fffff5;
+  background-color: #fffff5;
 }
 
 .remark h4{
- background-color: #ffffcc;
+  background-color: #ffffcc;
 }
 
 span.code {
@@ -233,13 +239,13 @@ span.code {
 
 footer {
   clear: both;
-	padding:20px;
-	text-align:center;
-	border-top:1px solid #eee;
-	margin:0;
-	color:#999;
+  padding:20px;
+  text-align:center;
+  border-top:1px solid #eee;
+  margin:0;
+  color:#999;
 }
 
 .description {
-	color:#222;
+  color:#222;
 }

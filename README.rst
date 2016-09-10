@@ -17,7 +17,7 @@ Escrido is a multi-language documentation generator. It is a tool that generates
 - Its output can be controlled easily by the use of template files.
 - It uses markup deliminators /\*#, \*#/ and //# that can neutrally coexist with Doxygen markup.
 - Syntax is keept as similar to Doxygen as possible. Nevertheless there are certain deviations from the Doxygen syntax.
-- Certain commands extend the functionality of Doxygen, like the @table command.
+- Certain commands extend the functionality of Doxygen, like the \@table command.
 - Some Doxygen functions are not supported.
 
 How to compile?
@@ -46,4 +46,4 @@ Yes, but the manual is also the example. This means you have to create first. Af
 
 Have fun!
 
-  Gunnar Schulze <gunnar.schulze@trinckle.com>
+  Gunnar Schulze <gunnar.schulze@gmx.de>

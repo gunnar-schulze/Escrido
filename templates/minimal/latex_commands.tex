@@ -4,10 +4,17 @@
 % the appearance of the final document, it may be left to the user to modify
 % these.
 
-% Maxwidth definition for images:
-\makeatletter
-\def\maxwidth#1{\ifdim\Gin@nat@width>#1 #1\else\Gin@nat@width\fi}
-\makeatother
+% Headline of page groups
+\newcommand{\pagegroupheadline}[1]{\chapter{#1}}
+
+% Headline of page tag blocks (@_page_, @_refpage_)
+\newcommand{\pageheadline}[1]{\section{#1}}
+
+% Headline of section tag blocks (@details, @section etc.)
+\newcommand{\tagblocksection}[1]{\subsection{#1}}
+
+% Headline of subsection tag blocks (@subsection)
+\newcommand{\tagblocksubsection}[1]{\subsubsection{#1}}
 
 % Verbatim blocks (@example, @output etc.):
 \newcommand{\verbatimtitle}[1]{\textbf{#1}}
@@ -20,12 +27,18 @@
 
 % @remark type blocks:
 \newenvironment{remark}
-{ \begin{minipage}{\textwidth}\textbf{Remark:}\end{minipage} }
+{ \textbf{Remark:} }
 {}
 
-% Tables for features of reference pages (@attribute, @param, @signature etc.)
-\newenvironment{refpagetaggroup}
+% Lists of certain tag types (@attribute, @param, @signature etc.)
+\newenvironment{taglist}
 { \tabulary{\textwidth}{lL} }
 { \endtabulary }
-\newcommand{\refpagetagline}[2]{ \textbf{#1} & #2 \\ }       % Single line features (@signature etc.)
-\newcommand{\refpagetagwordline}[2]{ \textbf{#1} & #2 \\ }  % One-word-and-one-line features (@param etc.)
+% Single item of tag type list (@attribute, @param, @signature etc.):
+\newcommand{\taglistitemline}[1]{ #1 \\ }           % Items consisting of single line (@signature etc.)
+\newcommand{\taglistitemexprtext}[2]{ #1 & #2 \\ }  % Items consisting of an inital expression followed by some text (@param etc.)
+
+% Maxwidth definition for images:
+\makeatletter
+\def\maxwidth#1{\ifdim\Gin@nat@width>#1 #1\else\Gin@nat@width\fi}
+\makeatother
