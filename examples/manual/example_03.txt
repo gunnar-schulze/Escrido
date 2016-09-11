@@ -5,39 +5,39 @@ currently available:
 
 @table
 
+ @ref tag_attribute "&#64;attribute" |
  @ref tag_author "&#64;author" |
- @ref tag_brief "&#64;brief" |
- @ref_tag_code "&#64;code" @lb
+ @ref tag_brief "&#64;brief" @lb
 
+ @ref_tag_code "&#64;code" |
  @ref tag_copyright "&#64;copyright" |
- @ref tag_date "&#64;date" |
- @ref tag_details "&#64;details" @lb
+ @ref tag_date "&#64;date" @lb
 
- @ref tag_dtype "&#64;_dtype_" |
+ @ref tag_details "&#64;details" |
  @ref_tag_endcode "&#64;endcode" |
  @ref tag_endlink "&#64;endlink" @lb
 
  @ref tag_endtable "&#64;endtable" |
  @ref tag_example "&#64;example" |
- @ref tag_function "&#64;_function_" @lb
+ @ref tag_image "&#64;image" @lb
 
- @ref tag_image "&#64;image" |
  @ref tag_ingroup "&#64;ingroup" |
- @ref tag_internal "&#64;internal" @lb
+ @ref tag_internal "&#64;internal" |
+ @ref tag_lb "&#64;lb" @lb
 
- @ref tag_lb "&#64;lb" |
  @ref tag_link "&#64;link" |
- @ref tag_mainpage "&#64;_mainpage_" @lb
+ @ref tag_mainpage "&#64;_mainpage_" |
+ @ref tag_namespace "&#64;namespace" @lb
 
- @ref tag_namespace "&#64;namespace" |
  @ref tag_note "&#64;note" |
- @ref tag_order "&#64;order" @lb
+ @ref tag_order "&#64;order" |
+ @ref tag_output "&#64;output" @lb
 
- @ref tag_output "&#64;output" |
  @ref tag_page "&#64;_page_" |
- @ref tag_par "&#64;par" @lb
+ @ref tag_par "&#64;par" |
+ @ref tag_param "&#64;param" @lb
 
- @ref tag_param "&#64;param" |
+ @ref tag_refpage "&#64;_refpage_" |
  @ref tag_ref "&#64;ref" |
  @ref tag_remark "&#64;remark" @lb
 
@@ -45,20 +45,29 @@ currently available:
  @ref tag_see "&#64;see" |
  @ref tag_section "&#64;section" @lb
 
+ @ref tag_signature "&#64;signature" |
  @ref tag_subsection "&#64;subsection" |
- @ref tag_table "&#64;table" |
+ @ref tag_table "&#64;table" @lb
+
  @ref tag_version "&#64;version"
 
 @endtable
 
 Argument values formatting:
 - () : content in paranthese must be in the same line as the tag
-- <> : text in angle bracket are single words (e.g names or identifiers)
+- &lt;&gt; : text in angle bracket are single words (e.g names or identifiers)
 - [] : content in squared brackets is optional
 - {} : content in curly bracket is the tag main content (e.g. text)
 
 <HR>
-@section tag_author &#64;author {author name}
+@section tag_attribute &#64;attribute &lt;attribute-name&gt; { attribute description }
+
+Adds an <em>attribute</em> section to the current reference page. An attribute
+section is meant for documenting certain attribute of a code structure (like
+e.g. member elements of a class).
+
+<HR>
+@section tag_author &#64;author { author name }
 
 The <em>author</em> data block stores information about authorship
 of an document.
@@ -97,12 +106,6 @@ details section may appear multiple times and multiple details sections will
 be put together in the output document.
 
 <HR>
-@section tag_dtype &#64;_dtype_ &lt;identifier&gt; (name)
-
-Pages of this type are intended for giving detailed information about a
-specific data type.
-
-<HR>
 @section tag_endcode &#64;endcode
 
 Text between the @ref tag_code "&#64;code" and the &#64;endcode tags
@@ -132,11 +135,6 @@ or an @ref tag_output "&#64;output" tag.
 
 If an example block starts with a direct line break, this is not considered in the
 output.
-
-<HR>
-@section tag_function &#64;_function_ &lt;identifier&gt; (name)
-
-Pages of this type are intended for information about a specific function.
 
 <HR>
 @section tag_image &#64;image &lt;file&gt; [(caption)]
@@ -215,10 +213,11 @@ output.
 <HR>
 @section tag_page &#64;_page_ &lt;name&gt; (title)
 
-Creates a new pure page with the given title. The name is used as identifier of the
-page and can be used for referencing the page (see @ref tag_ref "&#64;ref" tag).
-A page represents a single unit of content inside the whole document like
-one subpage in a web document or one chapter in a LaTeX document.
+Creates a new pure page with the given title. The <em>name</em> is used as
+identifier of the page and can be used for referencing the page (see
+@ref tag_ref "&#64;ref" tag). A page represents a single unit of content inside
+the whole document like one subpage in a web document or one chapter in a LaTeX
+document.
 
 <HR>
 @section tag_par &#64;par
@@ -230,8 +229,17 @@ tag is useful is e.g. after an @ref tag_example "&#64;example" block.
 <HR>
 @section tag_param &#64;param &lt;parameter-name&gt; { parameter description }
 
-Adds a new <em>parameter</em> section plus description to a function,
-constructor or operator page.
+Adds a new <em>parameter</em> section plus description to a code
+structure on an reference page (see @ref tag_refpage "&#64;refpage").
+
+<HR>
+@section tag_refpage &#64;_refpage_ "code structure type" &lt;name&gt; (title)
+
+Creates a new <em>reference page</em> for a certain type of code structure
+like e.g. a function, an operator, a data types etc. The type of structure can
+be defined freely  and is given as <em>code structure type</em> in the tag call.
+The <em>name</em> is used for external references to the page (see
+@ref tag_ref "&#64;ref").
 
 <HR>
 @section tag_ref &#64;ref &lt;name&gt; ["(text)"]
@@ -250,13 +258,13 @@ useful or interesting information.
 <HR>
 @section tag_return &#64;return { description of the return value }
 
-Adds a <em>return</em> section to the current documentation page. A <em>return</em>
-section describes the return value of a function or operator.
+Adds a <em>return</em> section to the current reference page. A <em>return</em>
+section describes the return value of a code structure.
 
 <HR>
 @section tag_see &#64;see { references }
 
-Adds a <em>see</em> section to the current documentation page. A <em>see</em> section
+Adds a <em>see</em> section to the current page. A <em>see</em> section
 contains references (given as identifier names) to other pages that are connected
 to this page in some way.
 
@@ -266,6 +274,14 @@ to this page in some way.
 Adds a <em>section</em> to the current document page.
 The section name is a unique identifier used for referencing to the section (see
 @ref tag_ref "&#64;ref" tag). The section title is displayed as title of the section.
+
+<HR>
+@section tag_signature &#64;signature ( signature text )
+
+Adds a <em>signature</em> section to the current reference page. A
+<em>signature</em> section will be specially emphasized in the output. A
+<em>signature</em> defines the exact syntactical form a code structure (as a
+function, a class method etc.) is used in the code.
 
 <HR>
 @section tag_subsection &#64;subsection &lt;subsection-name&gt; (subsection title)

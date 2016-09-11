@@ -22,7 +22,7 @@ Everything outside the Escrido markup deliminators is ignored.
  *                actual source code can be documented by Escrido.
  *              - Its output can be controlled easily by the use of template
  *                files.
- *              - It uses markup deliminators &#47;*#, *#&#47; and &#47;&#47;#
+ *              - It uses markup deliminators &#47;*#, #*&#47; and &#47;&#47;#
  *                that can neutrally coexist with Doxygen markup.
  *              - Syntax is keept as similar to Doxygen as possible. Nevertheless
  *                there are certain deviations from the Doxygen syntax.

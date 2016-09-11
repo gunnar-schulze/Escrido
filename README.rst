@@ -8,6 +8,8 @@ Escrido
 :Contact: <gunnar.schulze@trinckle.com>
 :Organization: trinckle 3D GmbH
 
+.. image:: logo/Escrido_logo_362x117.png
+
 What is this?
 -------------
 

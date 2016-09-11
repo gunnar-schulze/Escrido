@@ -1,5 +1,5 @@
 /*#
-@_refpage_      "user defined structure" mystruct MyStruct
+@_refpage_      "reference page example" mystruct MyStruct
 
 @brief          An example of a reference page.
 
