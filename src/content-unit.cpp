@@ -589,8 +589,7 @@ escrido::CTagBlock::CTagBlock( tag_type fType_i ):
 {
   // Switch on "delimitate title line" mode for specific tag block types:
   if( fType == tag_type::SECTION ||
-      fType == tag_type::SUBSECTION ||
-      fType == tag_type::IMAGE )
+      fType == tag_type::SUBSECTION )
     faWriteMode.emplace_back( tag_block_write_mode::TITLE_LINE );
 
   // Switch on "verbatim start" mode for specific tag block types:
@@ -2340,7 +2339,7 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
           WriteHTMLTagLine( "<figure class=\"image\">", oOutStrm_i, oWriteInfo_i++ );
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<img src=\"" << oaBlockList[t].GetPlainFirstWord() << "\">" << std::endl;
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<figcaption>";
-          oaBlockList[t].WriteHTMLTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oaBlockList[t].WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</figcaption>" << std::endl;
           WriteHTMLTagLine( "</figure>", oOutStrm_i, --oWriteInfo_i );
           break;
@@ -2600,7 +2599,7 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
                      << "  \\begin{center}" << std::endl
                      << "    \\includegraphics[width=\\maxwidth{\\textwidth}]{" << oaBlockList[t].GetPlainFirstWord() << "}\\\\" << std::endl
                      << "    {";
-          oaBlockList[t].WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oaBlockList[t].WriteLaTeXAllButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "}" << std::endl
                      << "  \\end{center}" << std::endl
                      << "\\end{minipage}" << std::endl << std::endl;

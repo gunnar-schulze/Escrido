@@ -137,11 +137,11 @@ If an example block starts with a direct line break, this is not considered in t
 output.
 
 <HR>
-@section tag_image &#64;image &lt;file&gt; [(caption)]
+@section tag_image &#64;image &lt;file&gt; [caption]
 
 The <em>&#64;image</em> command appends an image to the document. The file name
 must be given as &lt;file&gt; argument. This can be followed by an optional text
-<em>in the same line as the tag</em> that is used as image caption.
+that is then used as image caption.
 
 <HR>
 @section tag_ingroup &#64;ingroup &lt;groupname&gt;
