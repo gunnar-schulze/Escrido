@@ -104,5 +104,5 @@ page_head_open:
 /* ----------------------------------------------------------------- */
 
 void yyerror(const char *s) {
-  printf( "parser error in line %u: %s\n", nLexLine, s );
+   std::cerr << "error in line " << nLexLine << ": " << s << std::endl;
 }

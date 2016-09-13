@@ -166,6 +166,11 @@ int main( int argc, char* argv[] )
   // Read files and parse them.
   for( size_t i = 0; i < saIncludePaths.size(); i++ )
   {
+    // Output
+    std::cout << "Scanning file(s) '" << saIncludePaths[i] << "':" << std::endl
+              << std::endl;
+
+
     // Get list of files defined by the include paths list.
     std::vector<filesys::SFileInfo> oaFileInfo;
     {
@@ -192,7 +197,7 @@ int main( int argc, char* argv[] )
           std::ifstream oInFile( oaFileInfo[f].sPath.c_str(), std::ifstream::in | std::ifstream::binary );
           if( !oInFile.is_open() )
           {
-            std::cerr << "Error: file \"" << oaFileInfo[f].sPath << "\" cannot be opened" << std::endl;
+            std::cerr << "error: file \"" << oaFileInfo[f].sPath << "\" cannot be opened" << std::endl;
             continue;
           }
 
@@ -210,6 +215,9 @@ int main( int argc, char* argv[] )
 
         // Perform parsing.
         yyparse();
+
+        // Output
+        std::cout << std::endl;
       }
   }
 
@@ -227,15 +235,19 @@ int main( int argc, char* argv[] )
   // Output web document.
   if( fWDOutput )
   {
-    std::cout << "Writing web document into \"" << sWDOutputDir << "\"..." << std::endl;
-    escrido::oDocumentation.WriteWebDoc( sTemplateDir, sWDOutputDir, sWDOutputPostfix, fShowInternal );
+    std::cout << "Writing HTML document into '" << sWDOutputDir << "':" << std::endl
+              << std::endl;
+    escrido::oDocumentation.WriteHTMLDoc( sTemplateDir, sWDOutputDir, sWDOutputPostfix, fShowInternal );
+    std::cout << std::endl;
   }
 
   // Output LaTeX document.
   if( fLOutput )
   {
-    std::cout << "Writing LaTeX document into \"" << sLOutputDir << "\"..." << std::endl;
+    std::cout << "Writing LaTeX document into '" << sLOutputDir << "':" << std::endl
+              << std::endl;
     escrido::oDocumentation.WriteLaTeXDoc( sTemplateDir, sLOutputDir, fShowInternal );
+    std::cout << std::endl;
   }
 
   return 0;
@@ -275,4 +287,3 @@ void escrido::UnderlinedOut( const std::string& sOutput_i )
     std::cout << "-";
   std::cout << std::endl;
 }
-

@@ -609,6 +609,8 @@ void escrido::CDocumentation::NewDocPage( const char* szDocPageType_i )
     std::cerr << "unrecognized page type '@" << szDocPageType_i << "' treated as '@_page_'" << std::endl;
     pNewPage = new CDocPage();
   }
+  else
+    std::cout << "new " << sDocPageType << std::endl;
 
   // Append to list.
   paDocPageList.push_back( pNewPage );
@@ -659,10 +661,10 @@ void escrido::CDocumentation::RemoveNamespaces( const std::vector<std::string>& 
 
 // .............................................................................
 
-void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
-                                           const std::string& sOutputDir_i,
-                                           const std::string& sOutputPostfix_i,
-                                           bool fShowInternal_i ) const
+void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
+                                            const std::string& sOutputDir_i,
+                                            const std::string& sOutputPostfix_i,
+                                            bool fShowInternal_i ) const
 {
   // Create a write information container.
   SWriteInfo oWriteInfo;
@@ -691,6 +693,9 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
   {
     // Get a pointer to this page.
     CDocPage* pPage = paDocPageList[p];
+
+    // Output
+    std::cout << "writing page '" << pPage->GetIdent() << "' ";
 
     // Deduce template file name.
     std::string sTemplateFileName;
@@ -727,6 +732,9 @@ void escrido::CDocumentation::WriteWebDoc( const std::string& sTemplateDir_i,
       // Save data.
       WriteOutput( sOutputDir_i + pPage->GetURL( sOutputPostfix_i ), sTemplatePage );
     }
+
+    // Output
+    std::cout << std::endl;
   }
 }
 
@@ -815,6 +823,9 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
           // Get a pointer to this page.
           CDocPage* pPage = paDocPageList[oaGroupList[g].naDocPageIdxList[p]];
 
+          // Output
+          std::cout << "writing page '" << pPage->GetIdent() << "' ";
+
           // Deduce template file name.
           std::string sTemplateFileName;
           if( pPage->GetPageTypeID() == "mainpage" )
@@ -862,6 +873,9 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
             // Enter page into base document.
             ReplacePlaceholder( "*escrido-page*", sTemplatePage, sTemplateDoc );
           }
+
+          // Output
+          std::cout << std::endl;
         }
       }
 
@@ -872,7 +886,7 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
       WriteOutput( sOutputDir_i + "latex.tex", sTemplateDoc );
     }
     else
-      std::cerr << "Unable to read LaTeX template file 'latex.tex'." << std::endl;
+      std::cerr << "unable to read LaTeX template file 'latex.tex'." << std::endl;
   }
 }
 
@@ -1223,7 +1237,7 @@ bool escrido::ReadTemp( const std::string& sTemplateDir_i,
   std::ifstream oInFile( sTemplateDir_i + sFileName_i, std::ifstream::in | std::ifstream::binary );
   if( !oInFile.is_open() )
   {
-    std::cout << "cannot load template file '" << sTemplateDir_i + sFileName_i << "'" << std::endl;
+    std::cerr << "cannot load template file '" << sTemplateDir_i + sFileName_i << "' - skipping page" << std::endl;
     return false;
   }
 
@@ -1273,8 +1287,6 @@ bool escrido::ReadTemp( const std::string& sTemplateDir_i,
   std::ifstream oInFile( sTemplateDir_i + sFileName_i, std::ifstream::in | std::ifstream::binary );
   if( !oInFile.is_open() )
   {
-    std::cout << "cannot load template file '" << sTemplateDir_i + sFileName_i << "'" << std::endl;
-
     // Cannot open template file. Try default file instead.
     oInFile.open( sTemplateDir_i + sFallbackFileName_i, std::ifstream::in | std::ifstream::binary );
     if( !oInFile.is_open() )
@@ -1283,7 +1295,7 @@ bool escrido::ReadTemp( const std::string& sTemplateDir_i,
       return false;
     }
     else
-      std::cout << "using template file '" << sTemplateDir_i + sFallbackFileName_i << "'" << std::endl;
+      std::cout << "(template file '" << sTemplateDir_i + sFallbackFileName_i << "')";
   }
 
   // Use iterator-template way of read the file completely (good 'best practice" method);

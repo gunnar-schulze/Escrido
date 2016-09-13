@@ -370,7 +370,7 @@ class escrido::CDocumentation
     void RemoveNamespaces( const std::vector<std::string>& saNSWhiteList_i );
 
     // Output methods:
-    void WriteWebDoc( const std::string& sTemplateDir_i, const std::string& sOutputDir_i, const std::string& sOutputPostfix_i, bool fShowInternal_i ) const;
+    void WriteHTMLDoc( const std::string& sTemplateDir_i, const std::string& sOutputDir_i, const std::string& sOutputPostfix_i, bool fShowInternal_i ) const;
     void WriteLaTeXDoc( const std::string& sTemplateDir_i, const std::string& sOutputDir_i, bool fShowInternal_i ) const;
 
     // Debug output:
