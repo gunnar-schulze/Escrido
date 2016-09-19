@@ -142,9 +142,6 @@ namespace escrido
   void AdjustReplaceIndent( size_t nReplPos_i,
                             std::string& sTemplateData_io,
                             const SWriteInfo& oWriteInfo_io );
-
-  std::string GetCapForm( const std::string& sName_i );
-  std::string GetCapPluralForm( const std::string& sName_i );
 }
 
 

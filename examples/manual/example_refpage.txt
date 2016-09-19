@@ -1,5 +1,6 @@
 /*#
 @_refpage_      "reference page example" mystruct MyStruct
+                Text in the next line
 
 @brief          An example of a reference page.
 
@@ -8,6 +9,11 @@
 
 @details        This page shows, how a reference page for a user-defined
                 structure "MyStruct" could look like.
+
+@feature myfeature Feature 1
+                This text explains the first feature of type "myfeature".
+@feature myfeature Feature 2
+                This text explains the second feature of type "myfeature".
 
 @param          arg1
                 This text explains the first argument of the structure.

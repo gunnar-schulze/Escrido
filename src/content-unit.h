@@ -104,6 +104,7 @@ enum class tag_type
   DATE,
   DETAILS,
   EXAMPLE,
+  FEATURE,
   IMAGE,
   INGROUP,
   INTERNAL,
@@ -194,7 +195,7 @@ namespace escrido
   };
 
   // Block tag types:
-  const unsigned int nBlockTagTypeN = 23;
+  const unsigned int nBlockTagTypeN = 24;
   const escrido::STagType oaBlockTagTypeList[nBlockTagTypeN] = {
     { tag_type::ATTRIBUTE,  "attribute" },
     { tag_type::AUTHOR,     "author" },
@@ -203,6 +204,7 @@ namespace escrido
     { tag_type::DATE,       "date" },
     { tag_type::DETAILS,    "details"},
     { tag_type::EXAMPLE,    "example" },
+    { tag_type::FEATURE,    "feature" },
     { tag_type::IMAGE,      "image" },
     { tag_type::INGROUP,    "ingroup" },
     { tag_type::INTERNAL,   "internal" },
@@ -252,6 +254,8 @@ namespace escrido
   std::string   MakeIdentifier( const std::string& sWord_i );
   bool          GetBlockTagType( const char* szTagName_i, tag_type& fTagType_o );
   bool          GetInlineTagType( const char* szTagName_i, tag_type& fTagType_o );
+  std::string   GetCapForm( const std::string& sName_i );
+  std::string   GetCapPluralForm( const std::string& sName_i );
 }
 
 // -----------------------------------------------------------------------------

@@ -12,6 +12,7 @@
 
 #include "content-unit.h"
 
+#include <list>             // std::list
 #include <string.h>
 #include <iostream>         // cin, cout, cerr, endl
 #include <fstream>          // std::ofstream
@@ -589,7 +590,8 @@ escrido::CTagBlock::CTagBlock( tag_type fType_i ):
 {
   // Switch on "delimitate title line" mode for specific tag block types:
   if( fType == tag_type::SECTION ||
-      fType == tag_type::SUBSECTION )
+      fType == tag_type::SUBSECTION ||
+      fType == tag_type::FEATURE )
     faWriteMode.emplace_back( tag_block_write_mode::TITLE_LINE );
 
   // Switch on "verbatim start" mode for specific tag block types:
@@ -1256,6 +1258,17 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
       break;
     }
 
+    case tag_type::FEATURE:
+    {
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<dt>";
+      WriteHTMLTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "</dt>" << std::endl;
+      WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
+      WriteHTMLAllButTitleLine( oOutStrm_i, oWriteInfo_i );
+      WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
+      break;
+    }
+
     case tag_type::PARAM:
     {
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<dt>";
@@ -1376,6 +1389,11 @@ void escrido::CTagBlock::WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_
     if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
       return;
 
+    // Skip writing start and end paragraphs.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
     if( oaChunkList[c].WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i ) )
       break;
   }
@@ -1386,6 +1404,11 @@ void escrido::CTagBlock::WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_
     // Break off in the title line delimitor is reached.
     if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
       return;
+
+    // Skip writing start and end paragraphs.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
 
     oaChunkList[c].WriteHTML( oOutStrm_i, oWriteInfo_i );
   }
@@ -1403,7 +1426,7 @@ void escrido::CTagBlock::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, con
   // Set pointer to this tag block.
   oWriteInfo_i.pTagBlock = this;
 
-  // Loop through all text chunks until the something but the first word was written.
+  // Loop through all text chunks until something but the first word was written.
   size_t c = 0;
   for( c = 0; c < oaChunkList.size(); c++ )
     if( oaChunkList[c].WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i ) )
@@ -1460,6 +1483,16 @@ void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo&
       WriteLaTeXFirstWord( oOutStrm_i, oWriteInfo_i );
       oOutStrm_i << "}{";
       WriteLaTeXAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "}%" << std::endl;
+      break;
+    }
+
+    case tag_type::FEATURE:
+    {
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitemexprtext{";
+      WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << "}{";
+      WriteLaTeXAllButTitleLine( oOutStrm_i, oWriteInfo_i );
       oOutStrm_i << "}%" << std::endl;
       break;
     }
@@ -2452,11 +2485,51 @@ void escrido::CContentUnit::WriteHTMLTagBlockList( tag_type fTagType_i,
 {
   if( this->HasTagBlock( fTagType_i ) )
   {
+    // Tag type FEATURE:
+    if( fTagType_i == tag_type::FEATURE )
+    {
+      // Create a list of all feature types that were found.
+      std::list <std::string> saFeatureTypeList;
+      for( size_t t = 0; t < oaBlockList.size(); t++ )
+        if( oaBlockList[t].GetTagType() == tag_type::FEATURE )
+          saFeatureTypeList.emplace_back( oaBlockList[t].GetPlainFirstWord() );
+
+      // Sort the feature types alphanumerically.
+      saFeatureTypeList.sort();
+
+      // Loop over feature types.
+      std::list <std::string>::iterator iFeatType = saFeatureTypeList.begin();
+      while( iFeatType != saFeatureTypeList.end() )
+      {
+        // Write HTML elements.
+        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<section class=\"tagblock features " << *iFeatType << "\">" << std::endl;
+        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>" << GetCapPluralForm( *iFeatType ) << "</h2>" << std::endl;
+        WriteHTMLTagLine( "<dl>", oOutStrm_i, oWriteInfo_i++ );
+
+        // Loop over all tag blocks.
+        for( size_t t = 0; t < oaBlockList.size(); t++ )
+          if( oaBlockList[t].GetTagType() == fTagType_i )
+            if( oaBlockList[t].GetPlainFirstWord() == *iFeatType )
+              oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
+
+        WriteHTMLTagLine( "</dl>", oOutStrm_i, --oWriteInfo_i );
+        WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
+
+        // Cycle to next feature type.
+        std::list <std::string>::iterator iFeat = iFeatType;
+        while( *iFeat == *iFeatType )
+          ++iFeat;
+        iFeatType = iFeat;
+      }
+
+      return;
+    }
+
     // Write tag block opening and title line for some tag types.
     switch( fTagType_i )
     {
        case tag_type::ATTRIBUTE:
-         WriteHTMLTagLine( "<section class=\"tagblock attribute\">", oOutStrm_i, oWriteInfo_i++ );
+         WriteHTMLTagLine( "<section class=\"tagblock attributes\">", oOutStrm_i, oWriteInfo_i++ );
          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Attributes</h2>" << std::endl;
          break;
 
@@ -2703,6 +2776,46 @@ void escrido::CContentUnit::WriteLaTeXTagBlockList( tag_type fTagType_i,
 {
   if( this->HasTagBlock( fTagType_i ) )
   {
+    // Tag type FEATURE:
+    if( fTagType_i == tag_type::FEATURE )
+    {
+      // Create a list of all feature types that were found.
+      std::list <std::string> saFeatureTypeList;
+      for( size_t t = 0; t < oaBlockList.size(); t++ )
+        if( oaBlockList[t].GetTagType() == tag_type::FEATURE )
+          saFeatureTypeList.emplace_back( oaBlockList[t].GetPlainFirstWord() );
+
+      // Sort the feature types alphanumerically.
+      saFeatureTypeList.sort();
+
+      // Loop over feature types.
+      std::list <std::string>::iterator iFeatType = saFeatureTypeList.begin();
+      while( iFeatType != saFeatureTypeList.end() )
+      {
+        // Write tag block title line.
+        oOutStrm_i << "\\tagblocksection{" << GetCapPluralForm( *iFeatType ) << "}" << std::endl;
+        oOutStrm_i << "\\begin{taglist}" << std::endl;
+        ++oWriteInfo_i;
+
+        // Loop over all tag blocks.
+        for( size_t t = 0; t < oaBlockList.size(); t++ )
+          if( oaBlockList[t].GetTagType() == fTagType_i )
+            if( oaBlockList[t].GetPlainFirstWord() == *iFeatType )
+              oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+
+        --oWriteInfo_i;
+        oOutStrm_i << "\\end{taglist}" << std::endl;
+
+        // Cycle to next feature type.
+        std::list <std::string>::iterator iFeat = iFeatType;
+        while( *iFeat == *iFeatType )
+          ++iFeat;
+        iFeatType = iFeat;
+      }
+
+      return;
+    }
+
     // Write tag block title line for some tag types.
     switch( fTagType_i )
     {
@@ -3211,4 +3324,73 @@ bool escrido::GetInlineTagType( const char* szTagName_i, tag_type& fTagType_o )
     }
 
   return false;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the capitalized form of a given object's name.
+///
+/// \details    Each word of the result is capitalized, e.g. "Data Type" from
+///             "data type".
+// *****************************************************************************
+
+std::string escrido::GetCapForm( const std::string& sName_i )
+{
+  std::string sResult = sName_i;
+
+  // Capitalize the string.
+  unsigned int fState = 0;
+  for( size_t i = 0; i< sResult.size(); i++ )
+    switch( fState )
+    {
+      // State "before a word":
+      case 0:
+        if( ( sResult[i] != ' ' ) && ( sResult[i] != '\t' ) )
+        {
+          sResult[i] = toupper( sResult[i] );
+          fState = 1;
+        }
+        continue;
+
+      // State "within a word":
+      case 1:
+        if( ( sResult[i] == ' ' ) || ( sResult[i] == '\t' ) )
+          fState = 0;
+        else
+          sResult[i] = tolower( sResult[i] );
+        continue;
+    }
+
+  return sResult;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the capitalized plural form of a given object's name.
+///
+/// \details    Each word of the result is capitalized. The function uses the
+///             english default mechanisms of building the plural form, e.g.
+///             "Data Types" from "data type", "Classes" from "class".
+// *****************************************************************************
+
+std::string escrido::GetCapPluralForm( const std::string& sName_i )
+{
+  std::string sResult = GetCapForm( sName_i );
+
+  // Create plural form of string.
+  size_t nLastChar = sResult.find_last_not_of( " \t" );
+  if( nLastChar != std::string::npos )
+  {
+    // Crop away end whitespaces.
+    sResult.resize( nLastChar + 1 );
+
+    if( sResult[nLastChar] == 's' )
+      sResult += "es";
+    else
+      sResult.push_back( 's' );
+  }
+
+  return sResult;
 }

@@ -728,6 +728,7 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
       ReplacePlaceholder( "*escrido-params*", *pPage, &CDocPage::WriteHTMLTagBlockList, tag_type::PARAM, oWriteInfo, sTemplatePage );
       ReplacePlaceholder( "*escrido-see*", *pPage, &CDocPage::WriteHTMLTagBlockList, tag_type::SEE, oWriteInfo, sTemplatePage );
       ReplacePlaceholder( "*escrido-signatures*", *pPage, &CDocPage::WriteHTMLTagBlockList, tag_type::SIGNATURE, oWriteInfo, sTemplatePage );
+      ReplacePlaceholder( "*escrido-features*", *pPage, &CDocPage::WriteHTMLTagBlockList, tag_type::FEATURE, oWriteInfo, sTemplatePage );
 
       // Save data.
       WriteOutput( sOutputDir_i + pPage->GetURL( sOutputPostfix_i ), sTemplatePage );
@@ -869,6 +870,7 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
             ReplacePlaceholder( "*escrido-params*", *pPage, &CDocPage::WriteLaTeXTagBlockList, tag_type::PARAM, oWriteInfo, sTemplatePage );
             ReplacePlaceholder( "*escrido-see*", *pPage, &CDocPage::WriteLaTeXTagBlockList, tag_type::SEE, oWriteInfo, sTemplatePage );
             ReplacePlaceholder( "*escrido-signatures*", *pPage, &CDocPage::WriteLaTeXTagBlockList, tag_type::SIGNATURE, oWriteInfo, sTemplatePage );
+            ReplacePlaceholder( "*escrido-features*", *pPage, &CDocPage::WriteLaTeXTagBlockList, tag_type::FEATURE, oWriteInfo, sTemplatePage );
 
             // Enter page into base document.
             ReplacePlaceholder( "*escrido-page*", sTemplatePage, sTemplateDoc );
@@ -1525,70 +1527,3 @@ void escrido::AdjustReplaceIndent( size_t nReplPos_i,
   }
 }
 
-// -----------------------------------------------------------------------------
-
-// *****************************************************************************
-/// \brief      Returns the capitalized form of a given object's name.
-///
-/// \details    Each word of the result is capitalized, e.g. "Data Type" from
-///             "data type".
-// *****************************************************************************
-
-std::string escrido::GetCapForm( const std::string& sName_i )
-{
-  std::string sResult = sName_i;
-
-  // Capitalize the string.
-  unsigned int fState = 0;
-  for( size_t i = 0; i< sResult.size(); i++ )
-    switch( fState )
-    {
-      // State "before a word":
-      case 0:
-        if( ( sResult[i] != ' ' ) && ( sResult[i] != '\t' ) )
-        {
-          sResult[i] = toupper( sResult[i] );
-          fState = 1;
-        }
-        continue;
-
-      // State "within a word":
-      case 1:
-        if( ( sResult[i] == ' ' ) || ( sResult[i] == '\t' ) )
-          fState = 0;
-        else
-          sResult[i] = tolower( sResult[i] );
-        continue;
-    }
-
-  return sResult;
-}
-
-
-// *****************************************************************************
-/// \brief      Returns the capitalized plural form of a given object's name.
-///
-/// \details    Each word of the result is capitalized. The function uses the
-///             english default mechanisms of building the plural form, e.g.
-///             "Data Types" from "data type", "Classes" from "class".
-// *****************************************************************************
-
-std::string escrido::GetCapPluralForm( const std::string& sName_i )
-{
-  std::string sResult = GetCapForm( sName_i );
-
-  // Create plural form of string.
-  size_t nLastChar = sResult.find_last_not_of( " \t" );
-  if( nLastChar != std::string::npos )
-  {
-    // Crop away end whitespaces.
-    sResult.resize( nLastChar + 1 );
-
-    if( sResult[nLastChar] == 's' )
-      sResult += "es";
-    else
-      sResult.push_back( 's' );
-  }
-
-  return sResult;
-}
