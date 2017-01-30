@@ -43,7 +43,7 @@
 { \tabulary{\textwidth}{lL} }
 { \endtabulary }
 % Single item of tag type list (@attribute, @param, @signature etc.):
-\newcommand{\taglistitemline}[1]{ \textbf{#1} \\ }           % Items consisting of single line (@signature etc.)
+\newcommand{\taglistitemline}[1]{ \parbox{\textwidth}{\textbf{#1}} \\ }           % Items consisting of single line (@signature etc.)
 \newcommand{\taglistitemexprtext}[2]{ \textbf{#1} & #2 \\ }  % Items consisting of an inital expression followed by some text (@param etc.)
 
 % Maxwidth definition for images:
