@@ -3,7 +3,7 @@ Escrido
 =======
 
 :Authors: Gunnar Schulze
-:Date: 2016-09-19
+:Date: 2017-01-29
 :Version: 0.3.1
 :Contact: <gunnar.schulze@trinckle.com>
 :Organization: trinckle 3D GmbH
@@ -25,19 +25,19 @@ Escrido is a multi-language documentation generator. It is a tool that generates
 How to compile?
 ---------------
 
-The following accounts for a Linux enviroment with the GNU C++ compiler (g++) installed.
+This compiling was tested on a Linux system. The following software must be installed:
 
-Prior to compilation you need to install the Blue Footed Booby (bb) command line interpreter. You can find it here:
+- GNU C++ compiler (g++) (version 4.8 or higher)
+- Make build automation tool (make)
+- flex and bison lexical analyzer and parser generator (lex and yacc)
 
-  https://bitbucket.org/ubolosy/blue-footed-booby
+Under Debian Linux these three can be installed via the command
 
-To compile, run the "compile.sh" script:
+ sudo apt-get install build-essential flex bison
 
- ./compile.sh
+To compile start the makefile from within the Escrido directory:
 
-You can get a list of available options by the 'help' argument:
-
-  ./compile.sh -help
+ make
 
 Is there a manual?
 ------------------

@@ -34,7 +34,7 @@
   unsigned long nLexLine;         // Line number position of the scanner.
 
   // Replacement of function YY_INPUT(buf,result,max_size);
-  int ReadLexInput( char* paBuf_o, unsigned long int* pBytesRead_o, size_t nMaxBytesToRead_i );
+  int ReadLexInput( char* paBuf_o, int* pBytesRead_o, size_t nMaxBytesToRead_i );
 
   // Redefine the Lex data input function YY_INPUT() and use ReadLexInput() instead.
   #undef YY_INPUT
@@ -65,26 +65,6 @@ identifier [a-zA-Z]([a-zA-Z0-9_])+
   /* RULES                                                                    */
 
   /* ------------------------------------------------------------------------ */
-
-  /* Single quoted strings. */
-"'"                        { BEGIN SQMSTRING; }                      /* Start of string. */
-<SQMSTRING>{lb}            { nLexLine++; }                           /* Count line number. */
-<SQMSTRING>"\\".           {}                                        /* Masked characters (including "\'"). */
-<SQMSTRING>"'"             { BEGIN 0; }                              /* End of string. */
-<SQMSTRING>.               {}                                        /* Anything else. */
-<SQMSTRING><<EOF>>         { yyerror( "runaway string at eof" );     /* End of file. */
-                             BEGIN 0;
-                             return END_OF_FILE; }
-
-  /* Double quoted strings. */
-"\""                       { BEGIN DQMSTRING; }
-<DQMSTRING>{lb}            { nLexLine++; }
-<DQMSTRING>"\\".           {}
-<DQMSTRING>"\""            { BEGIN 0; }
-<DQMSTRING>.               {}
-<DQMSTRING><<EOF>>         { yyerror( "runaway string at eof" );
-                             BEGIN 0;
-                             return END_OF_FILE; }
 
   /* Multi line content units. */
 "/*#"                      { BEGIN MLDOC;                            /* Start multiline documentation unit. */
@@ -189,7 +169,7 @@ void InitScanner( const std::string* pSrc_i )
 /// \return     0 on success.
 // *****************************************************************************
 
-int ReadLexInput( char* paBuf_o, unsigned long int* pBytesRead_o, size_t nMaxBytesToRead_i )
+int ReadLexInput( char* paBuf_o, int* pBytesRead_o, size_t nMaxBytesToRead_i )
 {
   // Use the very handy function std::string::copy() to perform the copying
   // into the cache. Use the string pointed to by pLexSrc as input
