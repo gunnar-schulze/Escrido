@@ -13,6 +13,13 @@ $(info )
 CPP := g++
 LINK := g++
 
+# =====================================
+# Lexical scanner and parser executable
+# =====================================
+
+LEX := lex
+YACC := yacc
+
 # =========================
 # Compiler and linker flags
 # =========================
@@ -128,14 +135,14 @@ $(GENDIR)/interpargs.h: tools/bb/bb grammar/escrido.bb
 $(GENDIR)/yescrido.h \
 $(GENDIR)/yescrido.c: grammar/escrido.y
 	@echo "Building yacc parser ..."
-	yacc -d -o $(GENDIR)/yescrido.c grammar/escrido.y
+	$(YACC) -d -o $(GENDIR)/yescrido.c grammar/escrido.y
 	@echo
 
 # Rule for building the lexer output files lescrido.c from input files
 # files yescrido.h and escrido.l:
 $(GENDIR)/lescrido.c: $(GENDIR)/yescrido.h grammar/escrido.l
 	@echo "Building lexical analyzer ..."
-	lex -o $(GENDIR)/lescrido.c grammar/escrido.l
+	$(LEX) -o $(GENDIR)/lescrido.c grammar/escrido.l
 	@echo
 
 # ==============
