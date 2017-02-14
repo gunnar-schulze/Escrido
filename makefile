@@ -65,7 +65,7 @@ OBJFILES := $(OBJFILES) $(LIBDIR)/lescrido.o $(LIBDIR)/yescrido.o
 # Main target created by linking.
 $(BINDIR)/escrido: $(OBJFILES)
 	@echo "Linking all modules ..."
-	$(CPP) $(LINKFLAGS) -o bin/escrido $(OBJFILES)
+	$(LINK) $(LINKFLAGS) -o $(BINDIR)/escrido $(OBJFILES)
 	@echo
 
 # Modelling dependency of module 'main' from the generic header files
