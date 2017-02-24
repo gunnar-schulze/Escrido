@@ -153,5 +153,5 @@ $(GENDIR)/lescrido.c: $(GENDIR)/yescrido.h grammar/escrido.l
 clean:
 	rm -f $(BINDIR)/escrido
 	rm -f $(LIBDIR)/*.o
-	rm -f generic/*
+	rm -f $(GENDIR)/*
 	rm -f tools/bb/bb

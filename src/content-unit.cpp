@@ -3025,11 +3025,15 @@ std::string escrido::LaTeXEscape( const std::string& sText_i )
         sReturn += "\\#";
         break;
 
-      case '´':
+      // Symbol '´':
+      // (use numeric form to be cross-architecture compatible)
+      case '\xB4':
         sReturn += "'";
         break;
 
-      case '°':
+      // Symbol '°':
+      // (use numeric form to be cross-architecture compatible)
+      case '\xBA':
         sReturn += "{\\textdegree}";
         break;
 
