@@ -711,7 +711,20 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
       // Replace mainpage placeholders in this page.
       ReplacePlaceholder( "*escrido-maintitle*", sMainTitle, sTemplatePage );
       if( pMainpage != NULL )
+      {
         ReplacePlaceholder( "*escrido-metadata*", *pMainpage, &CDocPage::WriteHTMLMetaDataList, oWriteInfo, sTemplatePage );
+
+        CContentUnit* pMainContentUnit = &( pMainpage->GetContentUnit() );
+
+        if( pMainContentUnit->HasTagBlock( tag_type::AUTHOR ) )
+          ReplacePlaceholder( "*escrido-mainauthor*", pMainContentUnit->GetFirstTagBlock( tag_type::AUTHOR )->GetPlainText(), sTemplatePage );
+
+        if( pMainContentUnit->HasTagBlock( tag_type::DATE ) )
+          ReplacePlaceholder( "*escrido-maindate*", pMainContentUnit->GetFirstTagBlock( tag_type::DATE )->GetPlainText(), sTemplatePage );
+
+        if( pMainContentUnit->HasTagBlock( tag_type::BRIEF ) )
+          ReplacePlaceholder( "*escrido-mainbrief*", pMainContentUnit->GetFirstTagBlock( tag_type::BRIEF )->GetPlainText(), sTemplatePage );
+      }
 
       // Replace other placeholders in this page.
       ReplacePlaceholder( "*escrido-headline*", *pPage, &CDocPage::WriteHTMLHeadline, oWriteInfo, sTemplatePage );
