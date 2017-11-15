@@ -38,11 +38,12 @@ main {
 
 nav {
   float:right;
+  width: 250px;
+  overflow: hidden;
   border-bottom:1px solid #eee;
   border-top:1px solid #eee;
-  padding: 5px 10px;
-  margin-left: 30px;
-  margin-bottom: 20px;
+  padding:10px;
+  margin: 0 0 10px 10px;
 }
 
 nav h1,
@@ -103,9 +104,12 @@ nav li a:active {
 }
 
 article {
+  float: left;
+  width: calc( 100% - 280px - 22px );  /* 270px = nav.width + nav.padding + nav.margin */
+  overflow: hidden;
   border-left:1px solid #eee;
-  padding:10px 25px 30px 25px;
-  margin-right: 210px;
+/*   border-right:1px solid #eee; */
+  padding:10px;
 }
 
 article h1,
@@ -166,8 +170,6 @@ article a:active {
 
 article ul {
  padding-left:0;
-}
-article ul li{
  list-style-position:inside
 }
 
@@ -199,6 +201,12 @@ article td{
   border-top: 1px solid #eee;
   border-bottom: 1px solid #eee;
   padding: 3px;
+}
+
+.signatures ul
+{
+  list-style-type:decimal;
+  font-family: monospace;
 }
 
 .example,
