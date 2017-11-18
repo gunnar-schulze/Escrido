@@ -250,7 +250,9 @@ namespace escrido
   std::string   ConvertHTMLToLaTeX( const std::string& sText_i );
   bool          ReplaceIfMatch( std::string& sText_i, size_t& nPos_i, const char* szPattern_i, const char* szReplacement_i );
   bool          FirstWord( const std::string& sText_i, std::string& sFirstWord_o );
+  bool          FirstQuote( const std::string& sText_i, std::string& sFirstQuote_o );
   bool          AllButFirstWord( const std::string& sText_i, std::string& sAllButFirstWord_o );
+  bool          AllButFirstQuote( const std::string& sText_i, std::string& sAllButFirstQuote_o );
   std::string   MakeIdentifier( const std::string& sWord_i );
   bool          GetBlockTagType( const char* szTagName_i, tag_type& fTagType_o );
   bool          GetInlineTagType( const char* szTagName_i, tag_type& fTagType_o );
@@ -303,6 +305,7 @@ class escrido::CContentChunk
     std::string& GetContent();
     std::string GetPlainText() const;
     std::string GetPlainFirstWord() const;
+    std::string GetPlainFirstWordOrQuote() const;
     std::string GetPlainAllButFirstWord() const;
     void SetSkipFirstWhiteMode( skip_first_white fSkipFirstWhite_i );
 
@@ -313,10 +316,12 @@ class escrido::CContentChunk
     void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     bool WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     bool WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    bool WriteHTMLAllButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     void WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     bool WriteLaTeXFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     bool WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    bool WriteLaTeXAllButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
     void DebugOutput() const;
@@ -354,6 +359,7 @@ class escrido::CTagBlock
     tag_type GetTagType() const;
     std::string GetPlainText() const;
     std::string GetPlainFirstWord() const;
+    std::string GetPlainFirstWordOrQuote() const;
     void CloseWrite();
 
     // Content chunk navigation:
@@ -370,6 +376,7 @@ class escrido::CTagBlock
     void WriteHTMLFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTitleLineButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLAllButTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
@@ -377,6 +384,7 @@ class escrido::CTagBlock
     void WriteLaTeXFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXTitleLineButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXAllButTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 

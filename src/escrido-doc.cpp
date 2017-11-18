@@ -435,7 +435,7 @@ escrido::CRefPage::CRefPage():
 void escrido::CRefPage::AppendHeadlineChar( const char cIdentChar_i )
 {
   // Parse the program construct headline. This is one program construct label
-  // (as "function", "data type" or "class", may be in quotation marks), an
+  // (as "function", "data type" or "class", possibly in quotation marks), an
   // identifier word followed by the individual name of the construct.
   switch( fState )
   {

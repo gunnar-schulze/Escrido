@@ -57,6 +57,8 @@ currently available:
 Argument values formatting:
 - () : content in paranthese must be in the same line as the tag
 - &lt;&gt; : text in angle bracket are single words (e.g names or identifiers)
+- "" : text in double quotation marks in the same line
+- &lt;""&gt; : either a single word or a string in double quotation marks
 - [] : content in squared brackets is optional
 - {} : content in curly bracket is the tag main content (e.g. text)
 
@@ -138,12 +140,13 @@ If an example block starts with a direct line break, this is not considered in t
 output.
 
 <HR>
-@section tag_feature &#64;feature &lt;feature-name&gt; (feature title) { feature description }
+@section tag_feature &#64;feature &lt;"feature-name"&gt; (feature title) { feature description }
 
 Add information about a specific <em>feature</em> to a reference page. This is
 similar to the @ref tag_attribute "&#64;attribute" or the
-@ref tag_param "&#64;param" tags but a feature is more generalized. The type
-of the feature can be defined by the user as <em>feature name</em>. Features
+@ref tag_param "&#64;param" tags but a feature can be used more generally. The type
+of the feature is defined by the user as <em>feature name</em>. It can be either a
+single word or a string extression in double quotes. Features
 with equal name will appear grouped together in the documentation with the
 feature name as common title.
 

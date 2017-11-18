@@ -121,6 +121,29 @@ std::string escrido::CContentChunk::GetPlainFirstWord() const
 // .............................................................................
 
 // *****************************************************************************
+/// \brief      Returns the first word (i.e. the first group of non-blank space
+///             characters) or the first quote (i.e. all characters within
+///             double quotation marks) of the chunk.
+///
+/// \see        escrido::FirstWord()
+/// \see        escrido::MakeIdentifier()
+///
+/// \return     The first word (w/o any blank space) or quote (w/o start and end
+///             quotation marks) or an empty string, if no first word or quote
+///             exists.
+// *****************************************************************************
+
+std::string escrido::CContentChunk::GetPlainFirstWordOrQuote() const
+{
+  std::string sReturn;
+  if( !FirstQuote( sContent, sReturn ) )
+    FirstWord( sContent, sReturn );
+  return sReturn;
+}
+
+// .............................................................................
+
+// *****************************************************************************
 /// \brief      Returns the group of characters that form the text after the
 ///             first word of the chunk.
 ///
@@ -355,6 +378,42 @@ bool escrido::CContentChunk::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i,
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Writes the group of characters that form the text after the
+///             first word or quote of the chunk as HTML into the stream.
+///
+/// \see        escrido::AllButFirstWord()
+///
+/// \return     True if one or more characters were written, false otherwise.
+// *****************************************************************************
+
+bool escrido::CContentChunk::WriteHTMLAllButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Get all-but-first-word-or-quote.
+  std::string sAllButFirstWordOrQuote;
+  if( !AllButFirstQuote( sContent, sAllButFirstWordOrQuote ) )
+    if( !AllButFirstWord( sContent, sAllButFirstWordOrQuote ) )
+      return false;
+
+  // Chunk dependend writing of the word.
+  switch( fType )
+  {
+    case cont_chunk_type::HTML_TEXT:
+      oOutStrm_i << sAllButFirstWordOrQuote;
+      return true;
+
+    case cont_chunk_type::PLAIN_TEXT:
+      // Do HTML escaping.
+      oOutStrm_i << HTMLEscape( sAllButFirstWordOrQuote );
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+// .............................................................................
+
 void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   switch( fType )
@@ -562,6 +621,42 @@ bool escrido::CContentChunk::WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Writes the group of characters that form the text after the
+///             first word or quote of the chunk as LaTeX into the stream.
+///
+/// \see        escrido::AllButFirstWord()
+///
+/// \return     True if one or more characters were written, false otherwise.
+// *****************************************************************************
+
+bool escrido::CContentChunk::WriteLaTeXAllButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Get all-but-first-word-or-quote.
+  std::string sAllButFirstWordOrQuote;
+  if( !AllButFirstQuote( sContent, sAllButFirstWordOrQuote ) )
+    if( !AllButFirstWord( sContent, sAllButFirstWordOrQuote ) )
+      return false;
+
+  // Chunk dependend writing of the word.
+  switch( fType )
+  {
+    case cont_chunk_type::HTML_TEXT:
+      oOutStrm_i << ConvertHTMLToLaTeX( sAllButFirstWordOrQuote );
+      return true;
+
+    case cont_chunk_type::PLAIN_TEXT:
+      // Do LaTeX escaping.
+      oOutStrm_i << LaTeXEscape( sAllButFirstWordOrQuote );
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+// .............................................................................
+
 void escrido::CContentChunk::DebugOutput() const
 {
   std::cout << "chunk type: " << (int) fType << ", content: '" << sContent << "'";
@@ -660,6 +755,31 @@ std::string escrido::CTagBlock::GetPlainFirstWord() const
   for( size_t c = 0; c < oaChunkList.size(); c++ )
   {
     sReturn = oaChunkList[c].GetPlainFirstWord();
+    if( !sReturn.empty() )
+      break;
+  }
+
+  return sReturn;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Returns the first word (i.e. the first group of non-blank space
+///             characters) or the first quote (i.e. all characters within
+///             double quotation marks) of the tag block.
+///
+/// \return     The first word (w/o any blank space) or quote (w/o start and end
+///             quotation marks) or an empty string, if no first word or quote
+///             exists.
+// *****************************************************************************
+
+std::string escrido::CTagBlock::GetPlainFirstWordOrQuote() const
+{
+  std::string sReturn;
+  for( size_t c = 0; c < oaChunkList.size(); c++ )
+  {
+    sReturn = oaChunkList[c].GetPlainFirstWordOrQuote();
     if( !sReturn.empty() )
       break;
   }
@@ -1261,7 +1381,7 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
     case tag_type::FEATURE:
     {
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<dt>";
-      WriteHTMLTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+      WriteHTMLTitleLineButFirstWordOrQuote( oOutStrm_i, oWriteInfo_i );
       oOutStrm_i << "</dt>" << std::endl;
       WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
       WriteHTMLAllButTitleLine( oOutStrm_i, oWriteInfo_i );
@@ -1395,6 +1515,55 @@ void escrido::CTagBlock::WriteHTMLTitleLineButFirstWord( std::ostream& oOutStrm_
       continue;
 
     if( oaChunkList[c].WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i ) )
+      break;
+  }
+
+  // Write remaining chunks up to the title line delimitor.
+  for( c++; c < oaChunkList.size(); c++ )
+  {
+    // Break off in the title line delimitor is reached.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    // Skip writing start and end paragraphs.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    oaChunkList[c].WriteHTML( oOutStrm_i, oWriteInfo_i );
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the title line (i.e. the first line up to the title
+///             delimitor chunk) without the first word or quote of the
+///             tag block as HTML into the stream.
+///
+/// \remark     This works only for tag block types that include a title line
+///             delimitor (e.g. section).
+// *****************************************************************************
+
+void escrido::CTagBlock::WriteHTMLTitleLineButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Loop through all text chunks until the something after the first word was written.
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+  {
+    // Break off in the title line delimitor is reached.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    // Skip writing start and end paragraphs.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    if( oaChunkList[c].WriteHTMLAllButFirstWordOrQuote( oOutStrm_i, oWriteInfo_i ) )
       break;
   }
 
@@ -1630,6 +1799,55 @@ void escrido::CTagBlock::WriteLaTeXTitleLineButFirstWord( std::ostream& oOutStrm
       return;
 
     // Do not display certain types of chunks.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    oaChunkList[c].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the title line (i.e. the first line up to the title
+///             delimitor chunk) without the first word or quote of the
+///             tag block as LaTeX into the stream.
+///
+/// \remark     This works only for tag block types that include a title line
+///             delimitor (e.g. section).
+// *****************************************************************************
+
+void escrido::CTagBlock::WriteLaTeXTitleLineButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Loop through all text chunks until the something after the first word was written.
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+  {
+    // Break off in the title line delimitor is reached.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    // Skip writing start and end paragraphs.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    if( oaChunkList[c].WriteLaTeXAllButFirstWordOrQuote( oOutStrm_i, oWriteInfo_i ) )
+      break;
+  }
+
+  // Write remaining chunks up to the title line delimitor.
+  for( c++; c < oaChunkList.size(); c++ )
+  {
+    // Break off in the title line delimitor is reached.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    // Skip writing start and end paragraphs.
     if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
         oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
       continue;
@@ -2492,7 +2710,7 @@ void escrido::CContentUnit::WriteHTMLTagBlockList( tag_type fTagType_i,
       std::list <std::string> saFeatureTypeList;
       for( size_t t = 0; t < oaBlockList.size(); t++ )
         if( oaBlockList[t].GetTagType() == tag_type::FEATURE )
-          saFeatureTypeList.emplace_back( oaBlockList[t].GetPlainFirstWord() );
+          saFeatureTypeList.emplace_back( oaBlockList[t].GetPlainFirstWordOrQuote() );
 
       // Sort the feature types alphanumerically.
       saFeatureTypeList.sort();
@@ -2503,13 +2721,13 @@ void escrido::CContentUnit::WriteHTMLTagBlockList( tag_type fTagType_i,
       {
         // Write HTML elements.
         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<section class=\"tagblock features " << *iFeatType << "\">" << std::endl;
-        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>" << GetCapPluralForm( *iFeatType ) << "</h2>" << std::endl;
+        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>" << GetCapForm( *iFeatType ) << "</h2>" << std::endl;
         WriteHTMLTagLine( "<dl>", oOutStrm_i, oWriteInfo_i++ );
 
         // Loop over all tag blocks.
         for( size_t t = 0; t < oaBlockList.size(); t++ )
           if( oaBlockList[t].GetTagType() == fTagType_i )
-            if( oaBlockList[t].GetPlainFirstWord() == *iFeatType )
+            if( oaBlockList[t].GetPlainFirstWordOrQuote() == *iFeatType )
               oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
 
         WriteHTMLTagLine( "</dl>", oOutStrm_i, --oWriteInfo_i );
@@ -2783,7 +3001,7 @@ void escrido::CContentUnit::WriteLaTeXTagBlockList( tag_type fTagType_i,
       std::list <std::string> saFeatureTypeList;
       for( size_t t = 0; t < oaBlockList.size(); t++ )
         if( oaBlockList[t].GetTagType() == tag_type::FEATURE )
-          saFeatureTypeList.emplace_back( oaBlockList[t].GetPlainFirstWord() );
+          saFeatureTypeList.emplace_back( oaBlockList[t].GetPlainFirstWordOrQuote() );
 
       // Sort the feature types alphanumerically.
       saFeatureTypeList.sort();
@@ -2793,14 +3011,14 @@ void escrido::CContentUnit::WriteLaTeXTagBlockList( tag_type fTagType_i,
       while( iFeatType != saFeatureTypeList.end() )
       {
         // Write tag block title line.
-        oOutStrm_i << "\\tagblocksection{" << GetCapPluralForm( *iFeatType ) << "}" << std::endl;
+        oOutStrm_i << "\\tagblocksection{" << GetCapForm( *iFeatType ) << "}" << std::endl;
         oOutStrm_i << "\\begin{taglist}" << std::endl;
         ++oWriteInfo_i;
 
         // Loop over all tag blocks.
         for( size_t t = 0; t < oaBlockList.size(); t++ )
           if( oaBlockList[t].GetTagType() == fTagType_i )
-            if( oaBlockList[t].GetPlainFirstWord() == *iFeatType )
+            if( oaBlockList[t].GetPlainFirstWordOrQuote() == *iFeatType )
               oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
 
         --oWriteInfo_i;
@@ -3169,6 +3387,47 @@ bool escrido::FirstWord( const std::string& sText_i, std::string& sFirstWord_o )
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
+/// \brief      Returns the first quote (i.e. the first group characters in
+///             double quotation marks) of a string.
+///
+/// \param[in]  sText_i
+///             The input text.
+/// \param[out] sFirstQuote_o
+///             The first quote (w/o quotation marks) or an empty string, if no
+///             first quote exists.
+///
+/// \return     true, if a first quote exists, false otherwise.
+// *****************************************************************************
+
+bool escrido::FirstQuote( const std::string& sText_i, std::string& sFirstQuote_o )
+{
+  sFirstQuote_o.clear();
+
+  // Search for the first non-whitespace character.
+  size_t nBegin = sText_i.find_first_not_of( ' ' );
+  if( nBegin != std::string::npos )
+  {
+    if( sText_i[nBegin] == '"' )
+    {
+      ++nBegin;
+
+      size_t nLen = sText_i.find_first_of( '"', nBegin );
+      if( nLen != std::string::npos )
+      {
+        nLen -= nBegin;
+
+        sFirstQuote_o = sText_i.substr( nBegin, nLen );
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
 /// \brief      Returns the group of characters that forms the text after the
 ///             first word and the following blank spaces of a string.
 ///
@@ -3202,58 +3461,46 @@ bool escrido::AllButFirstWord( const std::string& sText_i, std::string& sAllButF
     return false;
 }
 
-// // -----------------------------------------------------------------------------
-//
-// // *****************************************************************************
-// /// \brief      Returns the first word (i.e. the first group of non-blank space
-// ///             characters) of a string.
-// ///
-// /// \return     The first word (w/o any blank spaces) or an empty string, if no
-// ///             first word exists.
-// // *****************************************************************************
-//
-// std::string escrido::FirstWord( const std::string& sText_i )
-// {
-//   // Search the first white space after the first word.
-//   size_t nBegin = sText_i.find_first_not_of( ' ' );
-//   if( nBegin != std::string::npos )
-//   {
-//     // Detect length of the first word.
-//     size_t nLen = sText_i.find_first_of( ' ', nBegin );
-//     if( nLen != std::string::npos )
-//       nLen -= nBegin;
-//
-//     return sText_i.substr( nBegin, nLen );
-//   }
-//   else
-//     return std::string();
-// }
-//
-// // -----------------------------------------------------------------------------
-//
-// // *****************************************************************************
-// /// \brief      Returns the group of characters that form the text after the
-// ///             first word of a string
-// ///
-// /// \return     The string after the first word and proceeding blank spaces or
-// ///             an empty string if no such string exists.
-// // *****************************************************************************
-//
-// std::string escrido::AllButFirstWord( const std::string& sText_i )
-// {
-//   size_t nBegin = sText_i.find_first_not_of( ' ' );
-//   if( nBegin != std::string::npos )
-//   {
-//     nBegin = sText_i.find_first_of( ' ', nBegin );
-//     if( nBegin != std::string::npos )
-//     {
-//       nBegin = sText_i.find_first_not_of( ' ', nBegin );
-//       if( nBegin != std::string::npos )
-//         return sText_i.substr( nBegin );
-//     }
-//   }
-//   return std::string();
-// }
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the group of characters that forms the text after the
+///             first quote and the following blank spaces of a string.
+///
+/// \param[in]  sText_i
+///             The input text.
+/// \param[out] sAllButFirstQuote_o
+///             The text after the first quote (w/o quotation marks) or an
+///             empty string, if no first quote exists.
+///
+/// \return     true, if a first quote exists, false otherwise.
+// *****************************************************************************
+
+bool escrido::AllButFirstQuote( const std::string& sText_i, std::string& sAllButFirstQuote_o )
+{
+  sAllButFirstQuote_o.clear();
+
+  size_t nBegin = sText_i.find_first_not_of( ' ' );
+  if( nBegin != std::string::npos )
+  {
+    if( sText_i[nBegin] == '"' )
+    {
+      nBegin = sText_i.find_first_of( '"', nBegin + 1 );
+      if( nBegin != std::string::npos )
+      {
+        nBegin = sText_i.find_first_not_of( ' ', nBegin + 1 );
+        if( nBegin != std::string::npos )
+          sAllButFirstQuote_o = sText_i.substr( nBegin );
+
+        return true;
+      }
+    }
+    else
+      sAllButFirstQuote_o = sText_i.substr( nBegin );
+  }
+
+  return false;
+}
 
 // -----------------------------------------------------------------------------
 

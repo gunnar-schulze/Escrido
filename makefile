@@ -50,7 +50,6 @@ GENDIR := generic
 # List of directories of all source files:
 SRCDIRS := src \
            src/independent \
-           grammar \
            $(GENDIR)
 
 # Generate a list of include directories for the compiler call:

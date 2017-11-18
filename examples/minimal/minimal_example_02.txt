@@ -1,14 +1,32 @@
 /*# @_page_ page_01 Page 1
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+@brief Usage examples
+
+@details This page shows some of escrido's elements.
 
 @note
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+This is a note
 
 @example
-1 + 2 + 3 = 6
+this->is({ example: code })
 
 @attribute attribute1
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+Description of first attribute.
+
+@attribute attribute2
+Description of second attribute.
+
+@feature token token 1
+Description of the first of feature "token".
+
+@feature token token 2
+Description of the second of feature "token".
+
+@feature "Feature Class A" feature A1
+Description of the first element of feature class A.
+
+@feature "Feature Class A" feature A2
+Description of the second element of feature class A.
+
 
 #*/
