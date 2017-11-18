@@ -4,6 +4,10 @@
 
 @details This page shows some of escrido's elements.
 
+This is a link to an external page using the URL as specification: @link https://en.wikipedia.org/wiki/Aurelia_aurita .
+
+This is a link to an external page with alternative specification: @link https://en.wikipedia.org/wiki/Colorado_potato_beetle "a bug"
+
 @note
 This is a note
 

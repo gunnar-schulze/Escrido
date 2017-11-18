@@ -292,17 +292,21 @@ void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteIn
 
     case cont_chunk_type::LINK:
     {
-      const CContentChunk* pNextContentChunk = oWriteInfo_i.pTagBlock->GetNextContentChunk( this );
-      if( pNextContentChunk == NULL )
-        oOutStrm_i << "<a>";
-      else
-        oOutStrm_i << "<a href=\"" << pNextContentChunk->GetPlainText() << "\" target=\"_blank\">";
+      std::string sHREF = this->GetPlainFirstWord();
+      if( !sHREF.empty() )
+      {
+        oOutStrm_i << "<a href=\"" << sHREF << "\" target=\"_blank\">";
+
+        std::string sText = this->GetPlainAllButFirstWord();
+        if( sText.empty() )
+          oOutStrm_i << sHREF;
+        else
+          oOutStrm_i << sText;
+
+        oOutStrm_i << "</a>";
+      }
       break;
     }
-
-    case cont_chunk_type::END_LINK:
-      oOutStrm_i << "</a>";
-      break;
   }
 }
 
@@ -535,17 +539,17 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
 
     case cont_chunk_type::LINK:
     {
-      const CContentChunk* pNextContentChunk = oWriteInfo_i.pTagBlock->GetNextContentChunk( this );
-      if( pNextContentChunk != NULL )
-        oOutStrm_i << "\\url{";
-      else
-        oOutStrm_i << "\\url{" << pNextContentChunk->GetPlainText();
+      std::string sHREF = this->GetPlainFirstWord();
+      if( !sHREF.empty() )
+      {
+        oOutStrm_i << "\\url{" << sHREF << "}";
+
+        std::string sText = this->GetPlainAllButFirstWord();
+        if( !sText.empty() )
+          oOutStrm_i << "{"<< sText << "}";
+      }
       break;
     }
-
-    case cont_chunk_type::END_LINK:
-      oOutStrm_i << "}";
-      break;
   }
 }
 
@@ -1236,26 +1240,8 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
         oaChunkList.emplace_back( cont_chunk_type::START_PARAGRAPH );
       }
 
-      // Add LINK chunk and PLAIN TEXT chunk.
       this->oaChunkList.emplace_back( cont_chunk_type::LINK );
-      this->oaChunkList.emplace_back( cont_chunk_type::PLAIN_TEXT );
-      this->oaChunkList.back().SetSkipFirstWhiteMode( skip_first_white::INIT );
-      break;
-    }
-
-    // Tag '@endlink':
-    // -----------
-    case tag_type::END_LINK:
-    {
-      // Eventually delete one last whitespace before end link.
-      if( this->oaChunkList.back().GetType() ==  cont_chunk_type::PLAIN_TEXT )
-      {
-        std::string& sCodeText = this->oaChunkList.back().GetContent();
-        if( sCodeText.back() == ' ' || sCodeText.back() == '\t' )
-          sCodeText.pop_back();
-      }
-
-      this->oaChunkList.emplace_back( cont_chunk_type::END_LINK );
+      this->fAppNameTextMode = append_name_text_mode::INIT;
       break;
     }
   }

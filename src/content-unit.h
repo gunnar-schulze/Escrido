@@ -88,8 +88,7 @@ enum class cont_chunk_type
   REF,
   CODE,
   END_CODE,
-  LINK,
-  END_LINK,
+  LINK
 };
 
 // Tag types:
@@ -117,7 +116,6 @@ enum class tag_type
   PARAM,
   REF,
   LINK,
-  END_LINK,
   REMARK,
   RETURN,
   SEE,
@@ -231,8 +229,7 @@ namespace escrido
     { tag_type::END_TABLE,  "endtable" },
     { tag_type::CODE,       "code" },
     { tag_type::END_CODE,   "endcode" },
-    { tag_type::LINK,       "link" },
-    { tag_type::END_LINK,   "endlink" } };
+    { tag_type::LINK,       "link" } };
 }
 
 // -----------------------------------------------------------------------------
