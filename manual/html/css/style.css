@@ -214,6 +214,7 @@ article td{
 {
   border-top:1px solid #eee;
   border-bottom:1px solid #eee;
+  overflow-x: auto;
 }
 
 .tagblock dd p{
