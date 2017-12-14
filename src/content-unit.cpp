@@ -13,10 +13,10 @@
 #include "content-unit.h"
 
 #include <list>             // std::list
-#include <string.h>
+#include <string.h>         // strlen()
 #include <iostream>         // cin, cout, cerr, endl
 #include <fstream>          // std::ofstream
-
+#include <cstdarg>          // va_list,  va_start(),  va_arg(),  va_end()
 
 // -----------------------------------------------------------------------------
 
@@ -282,7 +282,7 @@ void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteIn
       break;
     }
 
-    case cont_chunk_type::CODE:
+    case cont_chunk_type::START_CODE:
       oOutStrm_i << "<span class=\"code\">";
       break;
 
@@ -307,6 +307,15 @@ void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteIn
       }
       break;
     }
+
+    case cont_chunk_type::START_VERBATIM:
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<pre>";
+      break;
+
+    case cont_chunk_type::END_VERBATIM:
+      oOutStrm_i << "</pre>" << std::endl;
+      --oWriteInfo_i;
+      break;
   }
 }
 
@@ -529,7 +538,7 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
       break;
     }
 
-    case cont_chunk_type::CODE:
+    case cont_chunk_type::START_CODE:
       oOutStrm_i << "\\code{";
       break;
 
@@ -550,6 +559,15 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
       }
       break;
     }
+
+    case cont_chunk_type::START_VERBATIM:
+      oOutStrm_i << "\\begin{verbatim}" << std::endl;
+      break;
+
+    case cont_chunk_type::END_VERBATIM:
+      oOutStrm_i << std::endl;
+      oOutStrm_i << "\\end{verbatim}" << std::endl;
+      break;
   }
 }
 
@@ -734,6 +752,16 @@ tag_type escrido::CTagBlock::GetTagType() const
 
 // .............................................................................
 
+tag_block_write_mode escrido::CTagBlock::GetWriteMode() const
+{
+  if( faWriteMode.empty() )
+    return tag_block_write_mode::PLAIN_TEXT;
+  else
+    return faWriteMode.back();
+}
+
+// .............................................................................
+
 std::string escrido::CTagBlock::GetPlainText() const
 {
   std::string sReturn;
@@ -813,6 +841,10 @@ void escrido::CTagBlock::CloseWrite()
 
       case tag_block_write_mode::UL:
         this->oaChunkList.emplace_back( cont_chunk_type::END_UL );
+        break;
+
+      case tag_block_write_mode::VERBATIM:
+        this->oaChunkList.emplace_back( cont_chunk_type::END_VERBATIM );
         break;
     }
     faWriteMode.pop_back();
@@ -932,7 +964,9 @@ void escrido::CTagBlock::AppendChar( const char cChar_i )
     {
       // Treat as normal character in verbatim tag block types:
       if( fType ==  tag_type::EXAMPLE ||
-          fType ==  tag_type::OUTPUT )
+          fType ==  tag_type::OUTPUT ||
+          ( !faWriteMode.empty() &&
+            faWriteMode.back() == tag_block_write_mode::VERBATIM ) )
         break;
 
       // Special pattern: character '-' in a new line:
@@ -1047,6 +1081,56 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
   // Tag specific behavior:
   switch( fTagType_i )
   {
+    // Tag '@code':
+    // -----------
+    case tag_type::CODE:
+    {
+      // Write mode dependend behavior:
+      if( faWriteMode.empty() )
+      {
+        faWriteMode.emplace_back( tag_block_write_mode::PARAGRAPH );
+        oaChunkList.emplace_back( cont_chunk_type::START_PARAGRAPH );
+      }
+
+      // Add CODE chunk and PLAIN TEXT chunk.
+      this->oaChunkList.emplace_back( cont_chunk_type::START_CODE );
+      this->oaChunkList.emplace_back( cont_chunk_type::PLAIN_TEXT );
+      this->oaChunkList.back().SetSkipFirstWhiteMode( skip_first_white::INIT );
+      break;
+    }
+
+    // Tag '@endcode':
+    // -----------
+    case tag_type::END_CODE:
+    {
+      // Eventually delete one last whitespace before end code.
+      if( this->oaChunkList.back().GetType() ==  cont_chunk_type::PLAIN_TEXT )
+      {
+        std::string& sCodeText = this->oaChunkList.back().GetContent();
+        if( sCodeText.back() == ' ' || sCodeText.back() == '\t' )
+          sCodeText.pop_back();
+      }
+
+      this->oaChunkList.emplace_back( cont_chunk_type::END_CODE );
+      break;
+    }
+
+    // Tag '@link':
+    // -----------
+    case tag_type::LINK:
+    {
+      // Write mode dependend behavior:
+      if( faWriteMode.empty() )
+      {
+        faWriteMode.emplace_back( tag_block_write_mode::PARAGRAPH );
+        oaChunkList.emplace_back( cont_chunk_type::START_PARAGRAPH );
+      }
+
+      this->oaChunkList.emplace_back( cont_chunk_type::LINK );
+      this->fAppNameTextMode = append_name_text_mode::INIT;
+      break;
+    }
+
     // Tag '@lb':
     // ----------
     case tag_type::LINE_BREAK:
@@ -1094,51 +1178,35 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
       break;
     }
 
-    // Tag '@table':
-    // -------------
-    case tag_type::TABLE:
+    // Tag '@ref':
+    // -----------
+    case tag_type::REF:
     {
       // Write mode dependend behavior:
       if( faWriteMode.empty() )
       {
-        this->faWriteMode.emplace_back( tag_block_write_mode::TABLE );
-        this->oaChunkList.emplace_back( cont_chunk_type::START_TABLE );
+        faWriteMode.emplace_back( tag_block_write_mode::PARAGRAPH );
+        oaChunkList.emplace_back( cont_chunk_type::START_PARAGRAPH );
       }
-      else
-        switch( this->faWriteMode.back() )
-        {
-          case tag_block_write_mode::PLAIN_TEXT:
-          {
-            // Close text mode before adding a table:
-            this->faWriteMode.pop_back();
 
-            this->faWriteMode.emplace_back( tag_block_write_mode::TABLE );
-            this->oaChunkList.emplace_back( cont_chunk_type::START_TABLE );
-            break;
-          }
+      this->oaChunkList.emplace_back( cont_chunk_type::REF );
+      this->fAppNameTextMode = append_name_text_mode::INIT;
+      break;
+    }
 
-          case tag_block_write_mode::PARAGRAPH:
-          {
-            // Close paragraph mode before adding a table:
-            this->faWriteMode.pop_back();
-            this->oaChunkList.emplace_back( cont_chunk_type::END_PARAGRAPH );
+    // Tag '@table':
+    // -------------
+    case tag_type::TABLE:
+    {
+      // Escape from write modes the TABLE mode cannot be nested inside.
+      // This is partially due to HTML not allowing some kinds of element nestings.
+      EscapeFromWriteModes( 3,
+                            tag_block_write_mode::PLAIN_TEXT,
+                            tag_block_write_mode::PARAGRAPH,
+                            tag_block_write_mode::VERBATIM );
 
-            this->faWriteMode.emplace_back( tag_block_write_mode::TABLE );
-            this->oaChunkList.emplace_back( cont_chunk_type::START_TABLE );
-            break;
-          }
-
-          // tag_block_write_mode::TITLE_LINE,
-          // tag_block_write_mode::TABLE,
-          // tag_block_write_mode::UL,
-          default:
-          {
-            this->faWriteMode.emplace_back( tag_block_write_mode::TABLE );
-            this->oaChunkList.emplace_back( cont_chunk_type::START_TABLE );
-            break;
-          }
-        }
-
+      this->faWriteMode.emplace_back( tag_block_write_mode::TABLE );
+      this->oaChunkList.emplace_back( cont_chunk_type::START_TABLE );
       break;
     }
 
@@ -1179,69 +1247,39 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
       break;
     }
 
-    // Tag '@ref':
-    // -----------
-    case tag_type::REF:
+    // Tag '@verbatim':
+    // -------------
+    case tag_type::VERBATIM:
     {
-      // Write mode dependend behavior:
-      if( faWriteMode.empty() )
-      {
-        faWriteMode.emplace_back( tag_block_write_mode::PARAGRAPH );
-        oaChunkList.emplace_back( cont_chunk_type::START_PARAGRAPH );
-      }
+      // Escape from write modes the VERBATIM mode cannot be nested inside.
+      // This is partially due to HTML not allowing some kinds of element nestings.
+      EscapeFromWriteModes( 3,
+                            tag_block_write_mode::PLAIN_TEXT,
+                            tag_block_write_mode::PARAGRAPH,
+                            tag_block_write_mode::VERBATIM );
 
-      this->oaChunkList.emplace_back( cont_chunk_type::REF );
-      this->fAppNameTextMode = append_name_text_mode::INIT;
+      this->faWriteMode.emplace_back( tag_block_write_mode::VERBATIM );
+      this->oaChunkList.emplace_back( cont_chunk_type::START_VERBATIM );
+      fVerbatimStartMode = verbatim_start_mode::INIT;
       break;
     }
 
-    // Tag '@code':
-    // -----------
-    case tag_type::CODE:
+    // Tag '@endverbatim':
+    // ----------------
+    case tag_type::END_VERBATIM:
     {
       // Write mode dependend behavior:
-      if( faWriteMode.empty() )
-      {
-        faWriteMode.emplace_back( tag_block_write_mode::PARAGRAPH );
-        oaChunkList.emplace_back( cont_chunk_type::START_PARAGRAPH );
-      }
+      if( !faWriteMode.empty() )
+        switch( this->faWriteMode.back() )
+        {
+          case tag_block_write_mode::VERBATIM:
+          {
+            this->faWriteMode.pop_back();
+            this->oaChunkList.emplace_back( cont_chunk_type::END_VERBATIM );
+            break;
+          }
+        }
 
-      // Add CODE chunk and PLAIN TEXT chunk.
-      this->oaChunkList.emplace_back( cont_chunk_type::CODE );
-      this->oaChunkList.emplace_back( cont_chunk_type::PLAIN_TEXT );
-      this->oaChunkList.back().SetSkipFirstWhiteMode( skip_first_white::INIT );
-      break;
-    }
-
-    // Tag '@endcode':
-    // -----------
-    case tag_type::END_CODE:
-    {
-      // Eventually delete one last whitespace before end code.
-      if( this->oaChunkList.back().GetType() ==  cont_chunk_type::PLAIN_TEXT )
-      {
-        std::string& sCodeText = this->oaChunkList.back().GetContent();
-        if( sCodeText.back() == ' ' || sCodeText.back() == '\t' )
-          sCodeText.pop_back();
-      }
-
-      this->oaChunkList.emplace_back( cont_chunk_type::END_CODE );
-      break;
-    }
-
-    // Tag '@link':
-    // -----------
-    case tag_type::LINK:
-    {
-      // Write mode dependend behavior:
-      if( faWriteMode.empty() )
-      {
-        faWriteMode.emplace_back( tag_block_write_mode::PARAGRAPH );
-        oaChunkList.emplace_back( cont_chunk_type::START_PARAGRAPH );
-      }
-
-      this->oaChunkList.emplace_back( cont_chunk_type::LINK );
-      this->fAppNameTextMode = append_name_text_mode::INIT;
       break;
     }
   }
@@ -1275,6 +1313,10 @@ void escrido::CTagBlock::AppendNewLine()
         this->faWriteMode.pop_back();
         break;
       }
+
+      case tag_block_write_mode::VERBATIM:
+        this->oaChunkList.emplace_back( cont_chunk_type::NEW_LINE );
+        break;
     }
 
   // Tag block type specific behavior:
@@ -1959,7 +2001,12 @@ void escrido::CTagBlock::AppendCharDefault( const char cChar_i )
 
     // All other tag blocks accept HTML text:
     default:
-      fTextChunkType = cont_chunk_type::HTML_TEXT;
+
+      if( !faWriteMode.empty() &&
+          faWriteMode.back() == tag_block_write_mode::VERBATIM )
+        fTextChunkType = cont_chunk_type::PLAIN_TEXT;
+      else
+        fTextChunkType = cont_chunk_type::HTML_TEXT;
       break;
   }
 
@@ -1993,6 +2040,87 @@ void escrido::CTagBlock::AppendCharDefault( const char cChar_i )
 
   // Append character to the text chunk.
   oaChunkList.back().AppendChar( cChar_i );
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Escapes from a certain text write mode nesting.
+///
+/// \details    Some write modes may not be nested inside others, i.e.
+///             a tag_block_write_mode::TABLE must not appear inside
+///             a write mode tag_block_write_mode::VERBATIM. (The reason is
+///             that HTML would not allow nesting of a "table" inside a
+///             "par" element.) This function allows to escape from such nestings.
+///
+/// \param[in]  nArgN_i
+///             Number of variadic arguments that follow.
+/// \param[in]  ...
+///             Each variadic argument
+///             is expected to be of type @ref tag_block_write_mode and defines
+///             a write mode to escape from.
+// *****************************************************************************
+
+void escrido::CTagBlock::EscapeFromWriteModes( const int nArgN_i, ... )
+{
+  // Get variadic argument list.
+  std::vector<tag_block_write_mode> oaWriteModes( nArgN_i );
+  {
+    va_list oArgs;
+    va_start( oArgs, nArgN_i );
+    for( size_t awm = 0; awm < nArgN_i; ++awm )
+      oaWriteModes[awm] = va_arg( oArgs, tag_block_write_mode );
+    va_end( oArgs );
+  }
+
+  // Find first occurrance of any of the write modes to escape from.
+  bool fEscape = false;
+  size_t nEscapeLvl;
+  for( nEscapeLvl = 0; nEscapeLvl < faWriteMode.size(); ++nEscapeLvl )
+  {
+    // Check whether the write mode of this level is identical to any of the
+    // write modes given as argument.
+    for( size_t awm = 0; awm < oaWriteModes.size(); ++awm )
+      if( faWriteMode[nEscapeLvl] == oaWriteModes[awm] )
+      {
+        fEscape = true;
+        break;
+      }
+
+    if( fEscape )
+      break;
+  }
+
+  // Escape until write mode nEscapeLvl.
+  if( fEscape )
+  {
+    // Traverse all writing mode from the back until the escape level.
+    for( size_t wm = faWriteMode.size(); wm > nEscapeLvl; --wm )
+    {
+      // Add closing chunks for certain write mode types.
+      switch( faWriteMode[wm-1] )
+      {
+        case tag_block_write_mode::PARAGRAPH:
+          this->oaChunkList.emplace_back( cont_chunk_type::END_PARAGRAPH );
+          break;
+
+        case tag_block_write_mode::TABLE:
+          this->oaChunkList.emplace_back( cont_chunk_type::END_TABLE );
+          break;
+
+        case tag_block_write_mode::UL:
+          this->oaChunkList.emplace_back( cont_chunk_type::END_UL );
+          break;
+
+        case tag_block_write_mode::VERBATIM:
+          this->oaChunkList.emplace_back( cont_chunk_type::END_VERBATIM );
+          break;
+      }
+    }
+
+    // Shorten write mode stack.
+    faWriteMode.resize( nEscapeLvl );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -2094,15 +2222,16 @@ void escrido::CContentUnit::AppendLineBreak()
 {
   // Check whether in a verbatim tag block types like EXAMPLE:
   if( oaBlockList.back().GetTagType() == tag_type::EXAMPLE ||
-      oaBlockList.back().GetTagType() == tag_type::OUTPUT )
+      oaBlockList.back().GetTagType() == tag_type::OUTPUT ||
+      oaBlockList.back().GetWriteMode() == tag_block_write_mode::VERBATIM )
   {
-    // => Verbatim tag block.
+    // => Verbatim mode.
 
     oaBlockList.back().AppendNewLine();
   }
   else
   {
-    // => Non-verbatim tag block.
+    // => Non-verbatim mode.
 
     switch( fContUnitType )
     {
@@ -2169,15 +2298,16 @@ void escrido::CContentUnit::AppendBlank()
 {
   // Check whether in a verbatim tag block types like EXAMPLE:
   if( oaBlockList.back().GetTagType() == tag_type::EXAMPLE ||
-      oaBlockList.back().GetTagType() == tag_type::OUTPUT )
+      oaBlockList.back().GetTagType() == tag_type::OUTPUT ||
+      oaBlockList.back().GetWriteMode() == tag_block_write_mode::VERBATIM )
   {
-    // => Verbatim tag block.
+    // => Verbatim mode.
 
     oaBlockList.back().AppendChar( ' ' );
   }
   else
   {
-    // => Non-verbatim tag block.
+    // => Non-verbatim mode.
 
     if( fParseState[0] != parse_state::LINE_BREAK )
       oaBlockList.back().AppendChar( ' ' );
@@ -2190,16 +2320,17 @@ void escrido::CContentUnit::AppendTab()
 {
   // Check whether in a verbatim tag block types like EXAMPLE:
   if( oaBlockList.back().GetTagType() == tag_type::EXAMPLE ||
-      oaBlockList.back().GetTagType() == tag_type::OUTPUT )
+      oaBlockList.back().GetTagType() == tag_type::OUTPUT ||
+      oaBlockList.back().GetWriteMode() == tag_block_write_mode::VERBATIM )
   {
-    // => Verbatim tag block.
+    // => Verbatim mode.
 
     oaBlockList.back().AppendChar( ' ' );
     oaBlockList.back().AppendChar( ' ' );
   }
   else
   {
-    // => Non-verbatim tag block.
+    // => Non-verbatim mode.
 
     if( fParseState[0] != parse_state::LINE_BREAK )
     {
@@ -2211,120 +2342,18 @@ void escrido::CContentUnit::AppendTab()
 
 // .............................................................................
 
-void escrido::CContentUnit::AppendTag( const char* szTagName_i )
-{
-  // Check whether in a verbatim tag block types like EXAMPLE:
-  if( oaBlockList.back().GetTagType() == tag_type::EXAMPLE ||
-      oaBlockList.back().GetTagType() == tag_type::OUTPUT )
-  {
-    // => Verbatim tag block.
-
-    tag_type fTagType;
-    if( GetBlockTagType( szTagName_i, fTagType ) )
-    {
-      // => The tag is a block tag.
-
-      // Add a new block to the tag block list.
-      oaBlockList.back().CloseWrite();
-      oaBlockList.emplace_back( fTagType );
-      SetParseState( parse_state::DEFAULT );
-    }
-    else
-      if( GetInlineTagType( szTagName_i, fTagType ) )
-      {
-        // => The tag is an inline tag.
-
-        oaBlockList.back().AppendInlineTag( fTagType );
-      }
-      else
-        std::cerr << "unrecognized tag '@" << szTagName_i << "'" << std::endl;
-  }
-  else
-  {
-    // => Non-verbatim tag block.
-
-    // Special cases for line breaks/new lines in multi-line units.
-    // (This section appears in a very similar form in AppendChar(), AppendTag()
-    // and AppendLineBreak(). The handling cannot be done solely in
-    // AppendLineBreak() since there is an exception in AppendChar() for
-    // ignoring initial '*' characters.)
-    if( fContUnitType == cont_unit_type::MULTI_LINE )
-    {
-      if( fParseState[0] == parse_state::LINE_BREAK )
-      {
-        // Handle as new line.
-        SetParseState( parse_state::NEW_LINE );
-
-        // Check against double or single new line.
-        if( fParseState[0] == parse_state::NEW_LINE &&
-            fParseState[1] == parse_state::LINE_BREAK &&
-            fParseState[2] == parse_state::NEW_LINE )
-        {
-          // => Double new line.
-          oaBlockList.back().AppendDoubleNewLine();
-        }
-        else
-        {
-          // => Single new line.
-
-          oaBlockList.back().AppendNewLine();
-        }
-      }
-    }
-
-    tag_type fTagType;
-    if( GetBlockTagType( szTagName_i, fTagType ) )
-    {
-      // => The tag is a block tag.
-
-      if( !( this->fParseState[0] == parse_state::NEW_LINE ||
-            this->fParseState[0] == parse_state::LINE_BREAK ) )
-      {
-        std::cerr << "block tag '@" << szTagName_i << "' not starting in new line" << std::endl;
-        return;
-      }
-
-      // Check, if the last tag block is an empty paragraph type block (first default block).
-      if( oaBlockList.back().GetTagType() == tag_type::PARAGRAPH &&
-          oaBlockList.back().Empty() )
-      {
-        // => The last tag block is an empty paragraph type block:
-        //    convert it into the requested tag block type.
-        oaBlockList.back().SetTagType( fTagType );
-      }
-      else
-      {
-        // => Add a new block to the tag block list.
-        oaBlockList.back().CloseWrite();
-        oaBlockList.emplace_back( fTagType );
-        SetParseState( parse_state::DEFAULT );
-      }
-    }
-    else
-      if( GetInlineTagType( szTagName_i, fTagType ) )
-      {
-        // => The tag is an inline tag.
-
-        oaBlockList.back().AppendInlineTag( fTagType );
-      }
-      else
-        std::cerr << "unrecognized tag '@" << szTagName_i << "'" << std::endl;
-  }
-}
-
-// .............................................................................
-
 void escrido::CContentUnit::AppendChar( const char cChar_i )
 {
   // Check whether in a verbatim tag block types like EXAMPLE:
   if( oaBlockList.back().GetTagType() == tag_type::EXAMPLE ||
-      oaBlockList.back().GetTagType() == tag_type::OUTPUT )
+      oaBlockList.back().GetTagType() == tag_type::OUTPUT ||
+      oaBlockList.back().GetWriteMode() == tag_block_write_mode::VERBATIM )
   {
-    // => Verbatim tag block.
+    // => Verbatim mode.
   }
   else
   {
-    // => Non-verbatim tag block.
+    // => Non-verbatim mode.
 
     // Special cases for line breaks/new lines in multi-line units.
     // (This section appears in a very similar form in AppendChar(), AppendTag()
@@ -2371,6 +2400,132 @@ void escrido::CContentUnit::AppendChar( const char cChar_i )
   // => Handle as additional character to the unit.
   oaBlockList.back().AppendChar( cChar_i );
   SetParseState( parse_state::DEFAULT );
+}
+
+// .............................................................................
+
+void escrido::CContentUnit::AppendTag( const char* szTagName_i )
+{
+  // Check whether in a verbatim tag block types like EXAMPLE:
+  if( oaBlockList.back().GetTagType() == tag_type::EXAMPLE ||
+      oaBlockList.back().GetTagType() == tag_type::OUTPUT )
+  {
+    // => Verbatim block.
+
+    tag_type fTagType;
+    if( GetBlockTagType( szTagName_i, fTagType ) )
+    {
+      // => The tag is a block tag.
+
+      // Add a new block to the tag block list.
+      oaBlockList.back().CloseWrite();
+      oaBlockList.emplace_back( fTagType );
+      SetParseState( parse_state::DEFAULT );
+    }
+    else
+    {
+      // => The tag is an inline tag.
+
+      // Append tag name as a string.
+      oaBlockList.back().AppendChar( '@' );
+      const size_t nLen = strlen( szTagName_i );
+      for( size_t c = 0; c < nLen; ++c )
+        oaBlockList.back().AppendChar( szTagName_i[c] );
+    }
+  }
+  else
+  {
+    // => Non-verbatim block.
+
+    // Special case: verbatim write mode.
+    if( oaBlockList.back().GetWriteMode() == tag_block_write_mode::VERBATIM )
+    {
+      // Only relevant tag in verbatim mode is the @endverbatim inline tag.
+      tag_type fTagType;
+      if( GetInlineTagType( szTagName_i, fTagType ) )
+        if( fTagType == tag_type::END_VERBATIM )
+        {
+          oaBlockList.back().AppendInlineTag( fTagType );
+        }
+        else
+        {
+          // Append tag name as a string.
+          oaBlockList.back().AppendChar( '@' );
+          const size_t nLen = strlen( szTagName_i );
+          for( size_t c = 0; c < nLen; ++c )
+            oaBlockList.back().AppendChar( szTagName_i[c] );
+        }
+
+      return;
+    }
+
+    // Special cases for line breaks/new lines in multi-line units.
+    // (This section appears in a very similar form in AppendChar(), AppendTag()
+    // and AppendLineBreak(). The handling cannot be done solely in
+    // AppendLineBreak() since there is an exception in AppendChar() for
+    // ignoring initial '*' characters.)
+    if( fContUnitType == cont_unit_type::MULTI_LINE )
+    {
+      if( fParseState[0] == parse_state::LINE_BREAK )
+      {
+        // Handle as new line.
+        SetParseState( parse_state::NEW_LINE );
+
+        // Check against double or single new line.
+        if( fParseState[0] == parse_state::NEW_LINE &&
+            fParseState[1] == parse_state::LINE_BREAK &&
+            fParseState[2] == parse_state::NEW_LINE )
+        {
+          // => Double new line.
+          oaBlockList.back().AppendDoubleNewLine();
+        }
+        else
+        {
+          // => Single new line.
+
+          oaBlockList.back().AppendNewLine();
+        }
+      }
+    }
+
+    tag_type fTagType;
+    if( GetBlockTagType( szTagName_i, fTagType ) )
+    {
+      // => The tag is a block tag.
+
+      if( !( this->fParseState[0] == parse_state::NEW_LINE ||
+             this->fParseState[0] == parse_state::LINE_BREAK ) )
+      {
+        std::cerr << "block tag '@" << szTagName_i << "' not starting in new line" << std::endl;
+        return;
+      }
+
+      // Check, if the last tag block is an empty paragraph type block (first default block).
+      if( oaBlockList.back().GetTagType() == tag_type::PARAGRAPH &&
+          oaBlockList.back().Empty() )
+      {
+        // => The last tag block is an empty paragraph type block:
+        //    convert it into the requested tag block type.
+        oaBlockList.back().SetTagType( fTagType );
+      }
+      else
+      {
+        // => Add a new block to the tag block list.
+        oaBlockList.back().CloseWrite();
+        oaBlockList.emplace_back( fTagType );
+        SetParseState( parse_state::DEFAULT );
+      }
+    }
+    else
+      if( GetInlineTagType( szTagName_i, fTagType ) )
+      {
+        // => The tag is an inline tag.
+
+        oaBlockList.back().AppendInlineTag( fTagType );
+      }
+      else
+        std::cerr << "unrecognized tag '@" << szTagName_i << "'" << std::endl;
+  }
 }
 
 // .............................................................................

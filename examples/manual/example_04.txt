@@ -3,6 +3,7 @@
 Escrido contains some default text formatting options that are described
 on this page:
 - @ref formatting_html_tags "HTML tags"
+- @ref formatting_verbatim "verbatim"
 - @ref formatting_ul "unordered lists"
 - @ref formatting_tables "tables"
 - @ref formatting_nesting "nesting"
@@ -28,6 +29,33 @@ Format text <b>big</b> and <em>italic</em>.
 creates a horizontal line:
 
 <HR>
+
+@section formatting_verbatim Verbatim
+
+The @ref tag_verbatim "&#64;verbatim" tag opens an environment whose content
+is shown in the document with a monospace font and special characters and
+line breaks are inserted:
+
+@verbatim
+            Die Trichter
+
+Zwei Trichter wandeln durch die Nacht.
+ Durch ihres Rumpfs verengten Schacht
+       fließt weißes Mondlicht
+           still und heiter
+              auf ihren
+               Waldweg
+                 u.s.
+                  w.
+
+by Christian Morgenstern
+@endverbatim
+
+The environment is closed with a @ref tag_endverbatim "&#64;endverbatim" tag.
+
+Note that an inital line break that directly follows the
+@ref tag_verbatim "&#64;verbatim" tag is ignored (what allows a somehow more
+beautiful code).
 
 @section formatting_ul Unordered Lists
 

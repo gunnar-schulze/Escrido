@@ -104,7 +104,9 @@ The following inline tags are available:
  @ref tag_ref "&#64;ref" |
  @ref tag_table "&#64;table" @lb
 
- @ref tag_endtable "&#64;endtable"
+ @ref tag_endtable "&#64;endtable" |
+ @ref tag_verbatim "&#64;verbatim" |
+ @ref tag_endverbatim "&#64;endverbatim"
 
 @endtable
 

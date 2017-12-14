@@ -86,9 +86,11 @@ enum class cont_chunk_type
   END_UL,
   UL_ITEM,
   REF,
-  CODE,
+  START_CODE,
   END_CODE,
-  LINK
+  LINK,
+  START_VERBATIM,
+  END_VERBATIM
 };
 
 // Tag types:
@@ -125,17 +127,20 @@ enum class tag_type
   TABLE,
   END_TABLE,
   UL_ITEM,
-  VERSION
+  VERSION,
+  VERBATIM,
+  END_VERBATIM
 };
 
-// Block tag write modes:
+// Write modes inside a block tag:
 enum class tag_block_write_mode
 {
   TITLE_LINE,
   PLAIN_TEXT,
   PARAGRAPH,
   TABLE,
-  UL
+  UL,
+  VERBATIM
 };
 
 // Flag states for controlled appending of a one-word name followed by an
@@ -221,15 +226,17 @@ namespace escrido
     { tag_type::VERSION,    "version" } };
 
   // Inline tag types:
-  const unsigned int nInlineTagTypeN = 8;
+  const unsigned int nInlineTagTypeN = 10;
   const escrido::STagType oaInlineTagTypeList[nInlineTagTypeN] = {
-    { tag_type::LINE_BREAK, "lb" },
-    { tag_type::REF,        "ref" },
-    { tag_type::TABLE,      "table" },
-    { tag_type::END_TABLE,  "endtable" },
-    { tag_type::CODE,       "code" },
-    { tag_type::END_CODE,   "endcode" },
-    { tag_type::LINK,       "link" } };
+    { tag_type::CODE,         "code" },
+    { tag_type::END_CODE,     "endcode" },
+    { tag_type::LINK,         "link" },
+    { tag_type::LINE_BREAK,   "lb" },
+    { tag_type::REF,          "ref" },
+    { tag_type::TABLE,        "table" },
+    { tag_type::END_TABLE,    "endtable" },
+    { tag_type::VERBATIM,     "verbatim" },
+    { tag_type::END_VERBATIM, "endverbatim" } };
 }
 
 // -----------------------------------------------------------------------------
@@ -354,6 +361,7 @@ class escrido::CTagBlock
     bool Empty() const;
     void SetTagType( tag_type fType_i );
     tag_type GetTagType() const;
+    tag_block_write_mode GetWriteMode() const;
     std::string GetPlainText() const;
     std::string GetPlainFirstWord() const;
     std::string GetPlainFirstWordOrQuote() const;
@@ -391,6 +399,7 @@ class escrido::CTagBlock
   private:
 
     void AppendCharDefault( const char cChar_i );
+    void EscapeFromWriteModes( const int nArgN_i, ... );
 
   friend class escrido::CContentUnit;
 };
@@ -425,8 +434,8 @@ class escrido::CContentUnit
     void AppendLineBreak();
     void AppendBlank();
     void AppendTab();
-    void AppendTag( const char* szTagName_i );
     void AppendChar( const char cChar_i );
+    void AppendTag( const char* szTagName_i );
 
     // Methods for accessing tag blocks:
     size_t           GetTagBlockN() const;

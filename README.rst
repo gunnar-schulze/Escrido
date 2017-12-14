@@ -3,10 +3,9 @@ Escrido
 =======
 
 :Authors: Gunnar Schulze
-:Date: 2017-11-18
-:Version: 0.3.2
+:Date: 2017-12-14
+:Version: 1.0.0
 :Contact: <gunnar.schulze@trinckle.com>
-:Organization: trinckle 3D GmbH
 
 .. image:: logo/Escrido_logo_362x117.png
 

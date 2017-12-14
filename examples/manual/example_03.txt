@@ -17,38 +17,40 @@ currently available:
  @ref_tag_endcode "&#64;endcode" |
  @ref tag_endtable "&#64;endtable" @lb
 
+ @ref tag_endverbatim "&#64;endverbatim" |
  @ref tag_example "&#64;example" |
- @ref tag_feature "&#64;feature" |
- @ref tag_image "&#64;image" @lb
+ @ref tag_feature "&#64;feature" @lb
 
+ @ref tag_image "&#64;image" |
  @ref tag_ingroup "&#64;ingroup" |
- @ref tag_internal "&#64;internal" |
- @ref tag_lb "&#64;lb" @lb
+ @ref tag_internal "&#64;internal" @lb
 
+ @ref tag_lb "&#64;lb" |
  @ref tag_link "&#64;link" |
- @ref tag_mainpage "&#64;_mainpage_" |
- @ref tag_namespace "&#64;namespace" @lb
+ @ref tag_mainpage "&#64;_mainpage_" @lb
 
+ @ref tag_namespace "&#64;namespace" |
  @ref tag_note "&#64;note" |
- @ref tag_order "&#64;order" |
- @ref tag_output "&#64;output" @lb
+ @ref tag_order "&#64;order" @lb
 
+ @ref tag_output "&#64;output" |
  @ref tag_page "&#64;_page_" |
- @ref tag_par "&#64;par" |
- @ref tag_param "&#64;param" @lb
+ @ref tag_par "&#64;par" @lb
 
+ @ref tag_param "&#64;param" |
  @ref tag_refpage "&#64;_refpage_" |
- @ref tag_ref "&#64;ref" |
- @ref tag_remark "&#64;remark" @lb
+ @ref tag_ref "&#64;ref" @lb
 
+ @ref tag_remark "&#64;remark" |
  @ref tag_return "&#64;return" |
- @ref tag_see "&#64;see" |
- @ref tag_section "&#64;section" @lb
+ @ref tag_see "&#64;see" @lb
 
+ @ref tag_section "&#64;section" |
  @ref tag_signature "&#64;signature" |
- @ref tag_subsection "&#64;subsection" |
- @ref tag_table "&#64;table" @lb
+ @ref tag_subsection "&#64;subsection" @lb
 
+ @ref tag_table "&#64;table" |
+ @ref tag_verbatim "&#64;verbatim" |
  @ref tag_version "&#64;version"
 
 @endtable
@@ -118,6 +120,11 @@ is drawn in "code style" what is typically a monotype font.
 
 Closes a table environment opended by the @ref tag_table "&#64;table" tag.
 (See @ref formatting_tables "tables").
+
+<HR>
+@section tag_endverbatim &#64;endverbatim
+
+Closes a verbatim text environment that was opened by the @ref tag_verbatim "&#64;verbatim" tag.
 
 <HR>
 @section tag_example &#64;example { example code }
@@ -307,5 +314,12 @@ the @ref tag_endtable "&#64;endtable" tag.
 @section tag_version &#64;version { version number }
 
 Adds information about the version to the current documentation page.
+
+<HR>
+@section tag_verbatim &#64;verbatim
+
+Starts a text environment whose content will be verbatim included in the document.
+The environment is closed with the @ref tag_endverbatim "&#64;endverbatim" tag.
+All other commands are disabled in a verbatim environment.
 
 #*/

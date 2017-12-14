@@ -56,9 +56,9 @@ namespace applicationInfo
 {
   const char szName[]        = "Escrido";
   const char szDescription[] = "Multi-language documentation generator.";
-  const char szVersion[]     = "0.3.2";
+  const char szVersion[]     = "1.0.0";
   const char szFirstDate[]   = "October 2015";
-  const char szDate[]        = "November 2017";
+  const char szDate[]        = "December 2017";
   const char szAuthor[]      = "Gunnar Schulze";
 }
 
