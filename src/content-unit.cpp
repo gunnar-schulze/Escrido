@@ -2876,7 +2876,8 @@ void escrido::CContentUnit::WriteHTMLTagBlockList( tag_type fTagType_i,
 
         // Cycle to next feature type.
         std::list <std::string>::iterator iFeat = iFeatType;
-        while( *iFeat == *iFeatType )
+        while( iFeat != saFeatureTypeList.end() &&
+               *iFeat == *iFeatType )
           ++iFeat;
         iFeatType = iFeat;
       }
@@ -3167,7 +3168,8 @@ void escrido::CContentUnit::WriteLaTeXTagBlockList( tag_type fTagType_i,
 
         // Cycle to next feature type.
         std::list <std::string>::iterator iFeat = iFeatType;
-        while( *iFeat == *iFeatType )
+        while( iFeat != saFeatureTypeList.end() &&
+               *iFeat == *iFeatType )
           ++iFeat;
         iFeatType = iFeat;
       }

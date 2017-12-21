@@ -9,7 +9,7 @@
 
 /* Section of code that will appears early in the output file. */
 %{
-  #include <string>;          // std::string;
+  #include <string>           // std::string
   #include "content-unit.h"   // CContentUnit
 
   // Include the bison/yacc parser header.
