@@ -1200,10 +1200,9 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
     {
       // Escape from write modes the TABLE mode cannot be nested inside.
       // This is partially due to HTML not allowing some kinds of element nestings.
-      EscapeFromWriteModes( 3,
-                            tag_block_write_mode::PLAIN_TEXT,
-                            tag_block_write_mode::PARAGRAPH,
-                            tag_block_write_mode::VERBATIM );
+      EscapeFromWriteModes( { tag_block_write_mode::PLAIN_TEXT,
+                              tag_block_write_mode::PARAGRAPH,
+                              tag_block_write_mode::VERBATIM } );
 
       this->faWriteMode.emplace_back( tag_block_write_mode::TABLE );
       this->oaChunkList.emplace_back( cont_chunk_type::START_TABLE );
@@ -1253,10 +1252,9 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
     {
       // Escape from write modes the VERBATIM mode cannot be nested inside.
       // This is partially due to HTML not allowing some kinds of element nestings.
-      EscapeFromWriteModes( 3,
-                            tag_block_write_mode::PLAIN_TEXT,
-                            tag_block_write_mode::PARAGRAPH,
-                            tag_block_write_mode::VERBATIM );
+      EscapeFromWriteModes( { tag_block_write_mode::PLAIN_TEXT,
+                              tag_block_write_mode::PARAGRAPH,
+                              tag_block_write_mode::VERBATIM } );
 
       this->faWriteMode.emplace_back( tag_block_write_mode::VERBATIM );
       this->oaChunkList.emplace_back( cont_chunk_type::START_VERBATIM );
@@ -2053,26 +2051,12 @@ void escrido::CTagBlock::AppendCharDefault( const char cChar_i )
 ///             that HTML would not allow nesting of a "table" inside a
 ///             "par" element.) This function allows to escape from such nestings.
 ///
-/// \param[in]  nArgN_i
-///             Number of variadic arguments that follow.
-/// \param[in]  ...
-///             Each variadic argument
-///             is expected to be of type @ref tag_block_write_mode and defines
-///             a write mode to escape from.
+/// \param[in]  oaWriteModes_i
+///             List of write modes the function will escape from.
 // *****************************************************************************
 
-void escrido::CTagBlock::EscapeFromWriteModes( const int nArgN_i, ... )
+void escrido::CTagBlock::EscapeFromWriteModes( const std::vector<tag_block_write_mode>& oaWriteModes_i )
 {
-  // Get variadic argument list.
-  std::vector<tag_block_write_mode> oaWriteModes( nArgN_i );
-  {
-    va_list oArgs;
-    va_start( oArgs, nArgN_i );
-    for( size_t awm = 0; awm < nArgN_i; ++awm )
-      oaWriteModes[awm] = va_arg( oArgs, tag_block_write_mode );
-    va_end( oArgs );
-  }
-
   // Find first occurrance of any of the write modes to escape from.
   bool fEscape = false;
   size_t nEscapeLvl;
@@ -2080,8 +2064,8 @@ void escrido::CTagBlock::EscapeFromWriteModes( const int nArgN_i, ... )
   {
     // Check whether the write mode of this level is identical to any of the
     // write modes given as argument.
-    for( size_t awm = 0; awm < oaWriteModes.size(); ++awm )
-      if( faWriteMode[nEscapeLvl] == oaWriteModes[awm] )
+    for( size_t awm = 0; awm < oaWriteModes_i.size(); ++awm )
+      if( faWriteMode[nEscapeLvl] == oaWriteModes_i[awm] )
       {
         fEscape = true;
         break;

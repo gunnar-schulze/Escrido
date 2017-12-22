@@ -133,7 +133,7 @@ enum class tag_type
 };
 
 // Write modes inside a block tag:
-enum class tag_block_write_mode
+enum class tag_block_write_mode : unsigned char
 {
   TITLE_LINE,
   PLAIN_TEXT,
@@ -399,7 +399,7 @@ class escrido::CTagBlock
   private:
 
     void AppendCharDefault( const char cChar_i );
-    void EscapeFromWriteModes( const int nArgN_i, ... );
+    void EscapeFromWriteModes( const std::vector<tag_block_write_mode>& oaWriteModes_i );
 
   friend class escrido::CContentUnit;
 };
