@@ -132,9 +132,9 @@ namespace applicationInfo
 {
   const char szName[]      = "Blue-Footed Booby";
   const char szDesc[]      = "Command line argument scanner generator";
-  const char szVersion[]   = "2.3.3";
+  const char szVersion[]   = "2.4.0";
   const char szFirstDate[] = "Mai 2012";
-  const char szDate[]      = "January 2016";
+  const char szDate[]      = "July 2017";
   const char szAuthor[]    = "Gunnar Schulze";
 }
 
@@ -1144,26 +1144,18 @@ std::string SplitFirstDescrLine( std::string& sDescr_io, unsigned int nLineLen_i
   // ** Spalte einen Text der Laenge nLineLen_i ab; **
   std::string sLine = sDescr_io.substr( 0, nLineLen_i );
 
-  // ** Pruefe, ob vor Ende der Zeile ein Zeilenumbruch vorkommt; **
+  // ** Pruefe, ob vor Ende der Zeile ein manuell eingefuegter Zeilenumbruch
+  // ** vorkommt, d.h. string "\\n". **
   bool fLBreak = false;
   {
-    size_t nPos = sLine.find_first_of( "\r\n" );
+    size_t nPos = sLine.find( "\\n" );
     if( nPos != string::npos )
     {
       fLBreak = true;
       sLine.resize( nPos );
 
       // ** Entferne den Zeilenumbruch aus der Beschreibung; **
-      if( ( sDescr_io[nPos] == '\r' ) || ( sDescr_io[nPos] == '\n' ) )
-        if( sDescr_io[nPos] == '\r' )
-        {
-          sDescr_io.erase( nPos, 1 );
-          if( nPos < sDescr_io.length() )
-            if( sDescr_io[nPos] == '\n' )
-              sDescr_io.erase( nPos, 1 );
-        }
-        else
-          sDescr_io.erase( nPos, 1 );
+      sDescr_io.erase( nPos, 2 );
     }
   }
 
@@ -1171,10 +1163,9 @@ std::string SplitFirstDescrLine( std::string& sDescr_io, unsigned int nLineLen_i
   // ** (d.h. nicht gefolgt von einem Weisszeichen) erfolgte; **
   bool fLShort = false;
   if( sLine.length() < sDescr_io.length() )
+  {
     if( !( ( sDescr_io[sLine.length()] == ' ' ) ||
-           ( sDescr_io[sLine.length()] == '\t' ) ||
-           ( sDescr_io[sLine.length()] == '\r' ) ||
-           ( sDescr_io[sLine.length()] == '\n' ) ) )
+           ( sDescr_io[sLine.length()] == '\t' ) ) )
     {
       // ** => Versuche, ein Weisszeichen zur Verkuerzung zu finden; **
       size_t nPos = sLine.find_last_of(" \t");
@@ -1184,11 +1175,11 @@ std::string SplitFirstDescrLine( std::string& sDescr_io, unsigned int nLineLen_i
         sLine.resize( nPos );
       }
     }
+  }
 
   // ** Reduziere den Beschreibungstext um die Zeile und ggf. um vorausgehende; **
   // ** Weisszeichen; **
   sDescr_io.erase( 0, sLine.length() );
-  if( !fLBreak )
   {
     while( !sDescr_io.empty() )
       if( ( sDescr_io[0] == ' ' ) ||
