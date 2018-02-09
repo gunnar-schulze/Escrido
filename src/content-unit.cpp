@@ -16,7 +16,7 @@
 #include <string.h>         // strlen()
 #include <iostream>         // cin, cout, cerr, endl
 #include <fstream>          // std::ofstream
-#include <cstdarg>          // va_list,  va_start(),  va_arg(),  va_end()
+// #include <cstdarg>          // va_list,  va_start(),  va_arg(),  va_end()
 
 // -----------------------------------------------------------------------------
 
@@ -708,6 +708,7 @@ escrido::CTagBlock::CTagBlock( tag_type fType_i ):
   // Switch on "delimitate title line" mode for specific tag block types:
   if( fType == tag_type::SECTION ||
       fType == tag_type::SUBSECTION ||
+      fType == tag_type::SUBSUBSECTION ||
       fType == tag_type::FEATURE )
     faWriteMode.emplace_back( tag_block_write_mode::TITLE_LINE );
 
@@ -739,7 +740,8 @@ void escrido::CTagBlock::SetTagType( tag_type fType_i )
 
   // Switch on "delimitate title line" mode for specific tag block types:
   if( fType == tag_type::SECTION ||
-      fType == tag_type::SUBSECTION )
+      fType == tag_type::SUBSECTION ||
+      fType == tag_type::SUBSUBSECTION )
     faWriteMode.emplace_back( tag_block_write_mode::TITLE_LINE );
 }
 
@@ -2699,6 +2701,24 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
           break;
         }
 
+        case tag_type::SUBSUBSECTION:
+        {
+          // Surrounding "<section>".
+          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<section id=\""
+                                                         << oaBlockList[t].GetPlainFirstWord()
+                                                         << "\" class=\"tagblock subsubsection\">" << std::endl;
+
+          // Title line.
+          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h4>";
+          oaBlockList[t].WriteHTMLTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << "</h4>" << std::endl;
+
+          // Content and terminating "</section>".
+          oaBlockList[t].WriteHTMLAllButTitleLine( oOutStrm_i, oWriteInfo_i );
+          WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
+          break;
+        }
+
         case tag_type::EXAMPLE:
         {
           WriteHTMLTagLine( "<div class=\"tagblock examples\">", oOutStrm_i, oWriteInfo_i++ );
@@ -2991,6 +3011,20 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
         {
           // Title line.
           oOutStrm_i << "\\tagblocksubsection{";
+          oaBlockList[t].WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << "}%" << std::endl
+                     << "\\label{" << oaBlockList[t].GetPlainFirstWord() << "}%" << std::endl << std::endl;
+
+          // Content.
+          oaBlockList[t].WriteLaTeXAllButTitleLine( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::SUBSUBSECTION:
+        {
+          // Title line.
+          oOutStrm_i << "\\tagblocksubsubsection{";
           oaBlockList[t].WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "}%" << std::endl
                      << "\\label{" << oaBlockList[t].GetPlainFirstWord() << "}%" << std::endl << std::endl;

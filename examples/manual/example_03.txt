@@ -49,8 +49,10 @@ currently available:
  @ref tag_signature "&#64;signature" |
  @ref tag_subsection "&#64;subsection" @lb
 
+ @ref tag_subsubsection "&#64;subsubsection" |
  @ref tag_table "&#64;table" |
- @ref tag_verbatim "&#64;verbatim" |
+ @ref tag_verbatim "&#64;verbatim" @lb
+
  @ref tag_version "&#64;version"
 
 @endtable
@@ -302,7 +304,13 @@ function, a class method etc.) is used in the code.
 @section tag_subsection &#64;subsection &lt;subsection-name&gt; (subsection title)
 
 Adds a <em>subsection</em> to the current document page. A subsection works like a
-@ref tag_section "section" but contains heading with a lower level.
+@ref tag_section "section" but contains a heading with one level lower.
+
+<HR>
+@section tag_subsubsection &#64;subsubsection &lt;subsubsection-name&gt; (subsubsection title)
+
+Adds a <em>subsubsection</em> to the current document page. A subsubsection works like a
+@ref tag_section "subsection" but contains a heading with one level lower.
 
 <HR>
 @section tag_table &#64;table

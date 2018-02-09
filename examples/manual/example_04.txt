@@ -8,6 +8,12 @@ on this page:
 - @ref formatting_tables "tables"
 - @ref formatting_nesting "nesting"
 
+@section formatting_html_section This is a section title
+
+@subsection formatting_html_subsection This is a subsection title
+
+@subsubsection formatting_html_subsubsection This is a subsubsection title
+
 @section formatting_html_tags HTML Tags
 
 Escrido allows the usage of HTML inline tags for text formatting. Note that

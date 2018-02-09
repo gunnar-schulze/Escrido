@@ -82,6 +82,8 @@ The following table shows all block tags that are currently available:
 
  @ref tag_section "&#64;section" |
  @ref tag_subsection "&#64;subsection" |
+ @ref tag_subsubsection "&#64;subsubsection" @lb
+
  @ref tag_version "&#64;version"
 
 @endtable

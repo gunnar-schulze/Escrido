@@ -142,7 +142,7 @@ article h3 {
 }
 
 article h4 {
-  font-size:1.2em;
+  font-size:1.1em;
 }
 
 article p{
@@ -179,6 +179,10 @@ article section{
 }
 
 article .subsection{
+  border-top:0px solid;
+}
+
+article .subsubsection{
   border-top:0px solid;
 }
 

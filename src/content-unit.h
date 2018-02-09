@@ -124,6 +124,7 @@ enum class tag_type
   SECTION,
   SIGNATURE,
   SUBSECTION,
+  SUBSUBSECTION,
   TABLE,
   END_TABLE,
   UL_ITEM,
@@ -198,32 +199,33 @@ namespace escrido
   };
 
   // Block tag types:
-  const unsigned int nBlockTagTypeN = 24;
+  const unsigned int nBlockTagTypeN = 25;
   const escrido::STagType oaBlockTagTypeList[nBlockTagTypeN] = {
-    { tag_type::ATTRIBUTE,  "attribute" },
-    { tag_type::AUTHOR,     "author" },
-    { tag_type::BRIEF,      "brief" },
-    { tag_type::COPYRIGHT,  "copyright" },
-    { tag_type::DATE,       "date" },
-    { tag_type::DETAILS,    "details"},
-    { tag_type::EXAMPLE,    "example" },
-    { tag_type::FEATURE,    "feature" },
-    { tag_type::IMAGE,      "image" },
-    { tag_type::INGROUP,    "ingroup" },
-    { tag_type::INTERNAL,   "internal" },
-    { tag_type::NAMESPACE,  "namespace" },
-    { tag_type::NOTE,       "note" },
-    { tag_type::ORDER,      "order" },
-    { tag_type::OUTPUT,     "output" },
-    { tag_type::PARAGRAPH,  "par" },
-    { tag_type::PARAM,      "param"},
-    { tag_type::REMARK,     "remark" },
-    { tag_type::RETURN,     "return" },
-    { tag_type::SEE,        "see" },
-    { tag_type::SECTION,    "section" },
-    { tag_type::SIGNATURE,  "signature" },
-    { tag_type::SUBSECTION, "subsection" },
-    { tag_type::VERSION,    "version" } };
+    { tag_type::ATTRIBUTE,     "attribute" },
+    { tag_type::AUTHOR,        "author" },
+    { tag_type::BRIEF,         "brief" },
+    { tag_type::COPYRIGHT,     "copyright" },
+    { tag_type::DATE,          "date" },
+    { tag_type::DETAILS,       "details"},
+    { tag_type::EXAMPLE,       "example" },
+    { tag_type::FEATURE,       "feature" },
+    { tag_type::IMAGE,         "image" },
+    { tag_type::INGROUP,       "ingroup" },
+    { tag_type::INTERNAL,      "internal" },
+    { tag_type::NAMESPACE,     "namespace" },
+    { tag_type::NOTE,          "note" },
+    { tag_type::ORDER,         "order" },
+    { tag_type::OUTPUT,        "output" },
+    { tag_type::PARAGRAPH,     "par" },
+    { tag_type::PARAM,         "param"},
+    { tag_type::REMARK,        "remark" },
+    { tag_type::RETURN,        "return" },
+    { tag_type::SEE,           "see" },
+    { tag_type::SECTION,       "section" },
+    { tag_type::SIGNATURE,     "signature" },
+    { tag_type::SUBSECTION,    "subsection" },
+    { tag_type::SUBSUBSECTION, "subsubsection" },
+    { tag_type::VERSION,       "version" } };
 
   // Inline tag types:
   const unsigned int nInlineTagTypeN = 10;
