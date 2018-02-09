@@ -393,6 +393,15 @@ void escrido::CDocPage::AddToRefTable( CRefTable& oRefTable_o, const std::string
     oRefTable_o.AppendRef( sIdent, this->GetURL( sOutputPostfix_i ) + "#" + sIdent );
     pTagBlock = oContUnit.GetNextTagBlock( pTagBlock, tag_type::SUBSECTION );
   }
+
+  // Add reference to subsubsections.
+  pTagBlock = oContUnit.GetFirstTagBlock( tag_type::SUBSUBSECTION );
+  while( pTagBlock != NULL )
+  {
+    std::string sIdent = MakeIdentifier( pTagBlock->GetPlainFirstWord() );
+    oRefTable_o.AppendRef( sIdent, this->GetURL( sOutputPostfix_i ) + "#" + sIdent );
+    pTagBlock = oContUnit.GetNextTagBlock( pTagBlock, tag_type::SUBSUBSECTION );
+  }
 }
 
 // .............................................................................
