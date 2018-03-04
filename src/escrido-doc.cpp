@@ -374,14 +374,18 @@ void escrido::CDocPage::WriteLaTeXTagBlockList( tag_type fTagType_i,
 void escrido::CDocPage::AddToRefTable( CRefTable& oRefTable_o, const std::string& sOutputPostfix_i ) const
 {
   // Add reference to the page.
-  oRefTable_o.AppendRef( sIdent, this->GetURL( sOutputPostfix_i ) );
+  oRefTable_o.AppendRef( sIdent,
+                         this->GetURL( sOutputPostfix_i ),
+                         sTitle );
 
   // Add reference to sections.
   const CTagBlock* pTagBlock = oContUnit.GetFirstTagBlock( tag_type::SECTION );
   while( pTagBlock != NULL )
   {
     std::string sIdent = MakeIdentifier( pTagBlock->GetPlainFirstWord() );
-    oRefTable_o.AppendRef( sIdent, this->GetURL( sOutputPostfix_i ) + "#" + sIdent );
+    oRefTable_o.AppendRef( sIdent,
+                           this->GetURL( sOutputPostfix_i ) + "#" + sIdent,
+                           pTagBlock->GetPlainTitleLineButFirstWord() );
     pTagBlock = oContUnit.GetNextTagBlock( pTagBlock, tag_type::SECTION );
   }
 
@@ -390,7 +394,9 @@ void escrido::CDocPage::AddToRefTable( CRefTable& oRefTable_o, const std::string
   while( pTagBlock != NULL )
   {
     std::string sIdent = MakeIdentifier( pTagBlock->GetPlainFirstWord() );
-    oRefTable_o.AppendRef( sIdent, this->GetURL( sOutputPostfix_i ) + "#" + sIdent );
+    oRefTable_o.AppendRef( sIdent,
+                           this->GetURL( sOutputPostfix_i ) + "#" + sIdent,
+                           pTagBlock->GetPlainTitleLineButFirstWord() );
     pTagBlock = oContUnit.GetNextTagBlock( pTagBlock, tag_type::SUBSECTION );
   }
 
@@ -399,7 +405,9 @@ void escrido::CDocPage::AddToRefTable( CRefTable& oRefTable_o, const std::string
   while( pTagBlock != NULL )
   {
     std::string sIdent = MakeIdentifier( pTagBlock->GetPlainFirstWord() );
-    oRefTable_o.AppendRef( sIdent, this->GetURL( sOutputPostfix_i ) + "#" + sIdent );
+    oRefTable_o.AppendRef( sIdent,
+                           this->GetURL( sOutputPostfix_i ) + "#" + sIdent,
+                           pTagBlock->GetPlainTitleLineButFirstWord() );
     pTagBlock = oContUnit.GetNextTagBlock( pTagBlock, tag_type::SUBSUBSECTION );
   }
 }

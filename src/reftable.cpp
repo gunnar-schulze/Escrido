@@ -19,9 +19,12 @@
 
 // -----------------------------------------------------------------------------
 
-escrido::CRef::CRef( const std::string& sIdent_i, const std::string& sLink_i ) :
+escrido::CRef::CRef( const std::string& sIdent_i,
+                     const std::string& sLink_i,
+                     const std::string& sName_i ) :
   sIdent ( sIdent_i ),
-  sLink  ( sLink_i )
+  sLink  ( sLink_i ),
+  sName  ( sName_i )
 {}
 
 // -----------------------------------------------------------------------------
@@ -35,12 +38,34 @@ escrido::CRefTable::CRefTable()
 
 // .............................................................................
 
-void escrido::CRefTable::AppendRef( const std::string& sIdent_i, const std::string& sLink_i )
+void escrido::CRefTable::AppendRef( const std::string& sIdent_i,
+                                    const std::string& sLink_i )
 {
-  oaRefList.emplace_back( sIdent_i, sLink_i );
+  oaRefList.emplace_back( sIdent_i, sLink_i, sIdent_i );
 }
 
 // .............................................................................
+
+void escrido::CRefTable::AppendRef( const std::string& sIdent_i,
+                                    const std::string& sLink_i,
+                                    const std::string& sName_i )
+{
+  oaRefList.emplace_back( sIdent_i, sLink_i, sName_i );
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// @brief      Checks whether a reference with a given identifier exists and
+///             retrieves its index.
+///
+/// @param[in]  sIdent_i
+///             The reference label identifier that is searched for.
+/// @param[out] nRefIdx_o
+///             Returns the index of the reference, if it exists.
+///
+/// @return     'true' if the reference exists, 'false' otherwise.
+// *****************************************************************************
 
 bool escrido::CRefTable::GetRefIdx( const std::string& sIdent_i, size_t& nRefIdx_o ) const
 {
@@ -62,6 +87,16 @@ std::string escrido::CRefTable::GetLink( size_t nRefIdx_i ) const
 {
   if( nRefIdx_i < oaRefList.size() )
     return oaRefList[nRefIdx_i].sLink;
+  else
+    return std::string();
+}
+
+// .............................................................................
+
+const std::string& escrido::CRefTable::GetName( size_t nRefIdx_i ) const
+{
+  if( nRefIdx_i < oaRefList.size() )
+    return oaRefList[nRefIdx_i].sName;
   else
     return std::string();
 }

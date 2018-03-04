@@ -279,11 +279,15 @@ Adds a <em>return</em> section to the current reference page. A <em>return</em>
 section describes the return value of a code structure.
 
 <HR>
-@section tag_see &#64;see { references }
+@section tag_see &#64;see { reference }
 
 Adds a <em>see</em> section to the current page. A <em>see</em> section
-contains references (given as identifier names) to other pages that are connected
-to this page in some way.
+contains references to other pages or sections that are connected to this page
+in some way. Multiple <em>see</em> tags are grouped together in one <em>see</em>
+section.
+
+If the referenced page or section cannot be found, the refence
+label is added to the <em>see</em> section as static text.
 
 <HR>
 @section tag_section &#64;section &lt;section-name&gt; (section title)

@@ -368,7 +368,7 @@ bool escrido::CContentChunk::WriteHTMLFirstWord( std::ostream& oOutStrm_i, const
 bool escrido::CContentChunk::WriteHTMLAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   // Get all-but-first-word.
-  std::string sAllButFirstWord ;
+  std::string sAllButFirstWord;
   if( !AllButFirstWord( sContent, sAllButFirstWord ) )
     return false;
 
@@ -816,6 +816,59 @@ std::string escrido::CTagBlock::GetPlainFirstWordOrQuote() const
     sReturn = oaChunkList[c].GetPlainFirstWordOrQuote();
     if( !sReturn.empty() )
       break;
+  }
+
+  return sReturn;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Returns the title line (i.e. the first line up to the title
+///             delimitor chunk) without the first word of the tag block.
+///
+/// \return     The title line without the first word
+///             or an empty string, if no first word or quote
+///             exists.
+// *****************************************************************************
+
+std::string escrido::CTagBlock::GetPlainTitleLineButFirstWord() const
+{
+  std::string sReturn;
+
+  // Loop through all text chunks until the something after the first word was written.
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+  {
+    // Break off in the title line delimitor is reached.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return sReturn;
+
+    // Skip writing start and end paragraphs.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    if( !oaChunkList[c].GetPlainFirstWord().empty() )
+    {
+      sReturn += oaChunkList[c].GetPlainAllButFirstWord();
+      break;
+    }
+  }
+
+  // Add remaining chunks up to the title line delimitor.
+  for( c++; c < oaChunkList.size(); c++ )
+  {
+    // Break off in the title line delimitor is reached.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return sReturn;
+
+    // Skip writing start and end paragraphs.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    sReturn += oaChunkList[c].GetPlainText();
   }
 
   return sReturn;
@@ -1437,7 +1490,7 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
         if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx ) )
         {
           oOutStrm_i << "<a href=\"" + oWriteInfo_i.oRefTable.GetLink( nRefIdx ) + "\">";
-          WriteHTMLFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << oWriteInfo_i.oRefTable.GetName( nRefIdx );
           oOutStrm_i << "</a>";
         }
         else
@@ -1711,7 +1764,7 @@ void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo&
       if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx ) )
       {
         oOutStrm_i << "\\hyperref[" << MakeIdentifier( this->GetPlainFirstWord() ) << "]{";
-        WriteLaTeXFirstWord( oOutStrm_i, oWriteInfo_i );
+        oOutStrm_i << ConvertHTMLToLaTeX( oWriteInfo_i.oRefTable.GetName( nRefIdx ) );
         oOutStrm_i << "}%";
       }
       else

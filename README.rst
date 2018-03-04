@@ -3,8 +3,8 @@ Escrido
 =======
 
 :Authors: Gunnar Schulze
-:Date: 2018-02-09
-:Version: 1.1.0
+:Date: 2018-03-04
+:Version: 1.2.0
 :Contact: <gunnar.schulze@trinckle.com>
 
 .. image:: logo/Escrido_logo_362x117.png

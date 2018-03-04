@@ -367,6 +367,7 @@ class escrido::CTagBlock
     std::string GetPlainText() const;
     std::string GetPlainFirstWord() const;
     std::string GetPlainFirstWordOrQuote() const;
+    std::string GetPlainTitleLineButFirstWord() const;
     void CloseWrite();
 
     // Content chunk navigation:
