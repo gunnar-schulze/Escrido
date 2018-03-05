@@ -277,7 +277,7 @@ struct escrido::SWriteInfo
   CRefTable                  oRefTable;
   bool                       fShowInternal;
   mutable const CTagBlock*   pTagBlock;
-  mutable signed int         nIndent;     // TODO Change to unsigned int
+  mutable signed int         nIndent;
 
   const SWriteInfo& operator++() const;   // Prefix:  ++c
   const SWriteInfo operator++(int) const; // Postfix: c++

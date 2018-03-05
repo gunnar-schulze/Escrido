@@ -263,7 +263,8 @@ The <em>name</em> is used for external references to the page (see
 
 This tag inserts a reference to another page or section of the document. In a web
 document, the reference is realized as a link. The optional text is shown instead
-of the indentifier name if present.
+of the reference title (or, if this cannot be found, the indentifier name) if
+present.
 
 <HR>
 @section tag_remark &#64;remark { remark text }
@@ -279,15 +280,15 @@ Adds a <em>return</em> section to the current reference page. A <em>return</em>
 section describes the return value of a code structure.
 
 <HR>
-@section tag_see &#64;see { reference }
+@section tag_see &#64;see { name }
 
 Adds a <em>see</em> section to the current page. A <em>see</em> section
 contains references to other pages or sections that are connected to this page
 in some way. Multiple <em>see</em> tags are grouped together in one <em>see</em>
 section.
 
-If the referenced page or section cannot be found, the refence
-label is added to the <em>see</em> section as static text.
+If the referenced page or section cannot be found, the identifier name
+is shown in the <em>see</em> section as static text.
 
 <HR>
 @section tag_section &#64;section &lt;section-name&gt; (section title)

@@ -275,7 +275,10 @@ void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteIn
       if( !sText.empty() )
         oOutStrm_i << sText;
       else
-        oOutStrm_i << sContent;
+        if( fHasRef )
+          oOutStrm_i << oWriteInfo_i.oRefTable.GetName( nRefIdx );
+        else
+          oOutStrm_i << sContent;
 
       if( fHasRef )
         oOutStrm_i << "</a>";
@@ -531,7 +534,10 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
       if( !sText.empty() )
         oOutStrm_i << ConvertHTMLToLaTeX( sText );
       else
-        oOutStrm_i << ConvertHTMLToLaTeX( sContent );
+        if( fHasRef )
+          oOutStrm_i << ConvertHTMLToLaTeX( oWriteInfo_i.oRefTable.GetName( nRefIdx ) );
+        else
+          oOutStrm_i << ConvertHTMLToLaTeX( sContent );
 
       if( fHasRef )
         oOutStrm_i << "}";

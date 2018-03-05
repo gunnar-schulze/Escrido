@@ -135,7 +135,8 @@ namespace escrido
                            std::string& sTemplateData_io );
   void ReplacePlaceholder( const char* szPlaceholder_i,
                            const CDocumentation& oDocumentation_i,
-                           void (CDocumentation::*WriteMethod_i)( std::ostream&, const SWriteInfo& ) const,
+                           void (CDocumentation::*WriteMethod_i)( const CDocPage*, std::ostream&, const SWriteInfo& ) const,
+                           const CDocPage* pPage_i,
                            const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
 
@@ -376,9 +377,10 @@ class escrido::CDocumentation
   private:
 
     // Helper functions:
-    void WriteTableOfContentHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteTableOfContentHTML( const CDocPage* pWritePage_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteTOCPageType( const CGroup& oGroup_i,
                            const std::string& sPageTypeID_i,
+                           const CDocPage* pWritePage_i,
                            std::ostream& oOutStrm_i,
                            const SWriteInfo& oWriteInfo_i ) const;
 

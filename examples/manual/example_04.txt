@@ -2,11 +2,11 @@
 
 Escrido contains some default text formatting options that are described
 on this page:
-- @ref formatting_html_tags "HTML tags"
-- @ref formatting_verbatim "verbatim"
-- @ref formatting_ul "unordered lists"
-- @ref formatting_tables "tables"
-- @ref formatting_nesting "nesting"
+- @ref formatting_html_tags"
+- @ref formatting_verbatim
+- @ref formatting_ul
+- @ref formatting_tables
+- @ref formatting_nesting
 
 @section formatting_html_section This is a section title
 

@@ -705,7 +705,7 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
       }
   }
 
-  // Create all other pages.
+  // Create all pages.
   for( size_t p = 0; p < this->paDocPageList.size(); p++ )
   {
     // Get a pointer to this page.
@@ -749,7 +749,7 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
       ReplacePlaceholder( "*escrido-type*", GetCapForm( pPage->GetPageTypeLit() ), sTemplatePage );
       ReplacePlaceholder( "*escrido-groupname*", pPage->GetGroupName(), sTemplatePage );
       ReplacePlaceholder( "*escrido-title*", pPage->GetTitle(), sTemplatePage );
-      ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteTableOfContentHTML, oWriteInfo, sTemplatePage );
+      ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteTableOfContentHTML, pPage, oWriteInfo, sTemplatePage );
 
       ReplacePlaceholder( "*escrido-brief*", *pPage, &CDocPage::WriteHTMLTagBlock, tag_type::BRIEF, oWriteInfo, sTemplatePage );
       ReplacePlaceholder( "*escrido-return*", *pPage, &CDocPage::WriteHTMLTagBlock, tag_type::RETURN, oWriteInfo, sTemplatePage );
@@ -932,7 +932,7 @@ void escrido::CDocumentation::DebugOutput() const
 
 // .............................................................................
 
-void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+void escrido::CDocumentation::WriteTableOfContentHTML( const CDocPage* pWritePage_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
   if( !fGroupOrdered )
     this->FillGroupListOrdered();
@@ -946,9 +946,9 @@ void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i,
     if( this->oaGroupList.size() > 1 )
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>" << oaGroupList[g].sGroupName << "</h2>" << std::endl;
 
-    // Write page types "mainpage" and "page".
-    WriteTOCPageType( this->oaGroupList[g], "mainpage", oOutStrm_i, oWriteInfo_i );
-    WriteTOCPageType( this->oaGroupList[g], "page", oOutStrm_i, oWriteInfo_i );
+    // Write all pages of page types "mainpage" and "page" of this group.
+    WriteTOCPageType( this->oaGroupList[g], "mainpage", pWritePage_i, oOutStrm_i, oWriteInfo_i );
+    WriteTOCPageType( this->oaGroupList[g], "page", pWritePage_i, oOutStrm_i, oWriteInfo_i );
 
     // Populate a list of all user-defined page types that appear in this group.
     std::vector<std::string>saPageTypeList;
@@ -968,10 +968,10 @@ void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i,
         saPageTypeList.push_back( sPageTypeID );
     }
 
-    // Write all other page types.
+    // Write all pages of all other page types of this group.
     for( size_t pt = 0; pt < saPageTypeList.size(); pt++ )
       if( saPageTypeList[pt] != "mainpage" && saPageTypeList[pt] != "page" )
-        WriteTOCPageType( this->oaGroupList[g], saPageTypeList[pt], oOutStrm_i, oWriteInfo_i );
+        WriteTOCPageType( this->oaGroupList[g], saPageTypeList[pt], pWritePage_i, oOutStrm_i, oWriteInfo_i );
   }
 }
 
@@ -979,11 +979,12 @@ void escrido::CDocumentation::WriteTableOfContentHTML( std::ostream& oOutStrm_i,
 
 void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
                                                 const std::string& sPageTypeID_i,
+                                                const CDocPage* pWritePage_i,
                                                 std::ostream& oOutStrm_i,
                                                 const SWriteInfo& oWriteInfo_i ) const
 {
   // Check whether any pages of this type exist and (if so) retrieve the
-  // lierary form of the page type name.
+  // literal form of the page type name.
   bool fPageExist = false;
   std::string sPageTypeLit;
   for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); p++ )
@@ -1018,10 +1019,19 @@ void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
         std::string sBrief = pPage->GetBrief();
 
         // Write list item tag, either with or w/o brief description as title.
-        if( sBrief.empty() )
-          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<li>";
-        else
-          WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<li title=\"" << sBrief << "\">";
+        {
+          if( sBrief.empty() )
+            WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<li";
+          else
+            WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<li title=\"" << sBrief << "\"";
+
+          // Mark if the entry is the page currently written.
+          if( pPage == pWritePage_i )
+            oOutStrm_i << " class=\"activepage\"";
+
+          // Close <li> tag.
+          oOutStrm_i << ">";
+        }
 
         // Create link, if available:
         bool fLink = false;
@@ -1488,6 +1498,8 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
 ///             Pointer to the generation method (member of oDocumentation_i)
 ///             whose output is used to replace the respective placeholder
 ///             string.
+/// \param[in]  pPage_i
+///             Pointer to the page currently in progress.
 /// \param[in]  oWriteInfo_i
 ///             Argument to WriteMethod_i().
 /// \param      sTemplateData_io
@@ -1498,7 +1510,8 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
 
 void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
                                   const CDocumentation& oDocumentation_i,
-                                  void (CDocumentation::*WriteMethod_i)( std::ostream&, const SWriteInfo& ) const,
+                                  void (CDocumentation::*WriteMethod_i)( const CDocPage*, std::ostream&, const SWriteInfo& ) const,
+                                  const CDocPage* pPage_i,
                                   const SWriteInfo& oWriteInfo_i,
                                   std::string& sTemplateData_io )
 {
@@ -1511,7 +1524,7 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
 
     // Create replacement string.
     std::stringstream sReplacement;
-    ( oDocumentation_i.*WriteMethod_i )( sReplacement, oWriteInfo_i );
+    ( oDocumentation_i.*WriteMethod_i )( pPage_i, sReplacement, oWriteInfo_i );
 
     // Replace all occurances of the placeholder by the replacement string.
     ReplacePlaceholder( szPlaceholder_i, sReplacement.str(), sTemplateData_io );
