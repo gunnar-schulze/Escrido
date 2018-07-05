@@ -90,12 +90,21 @@ std::string& escrido::CContentChunk::GetContent()
 
 // .............................................................................
 
+void escrido::CContentChunk::SetSkipFirstWhiteMode( skip_first_white fSkipFirstWhite_i )
+{
+  fSkipFirstWhite = fSkipFirstWhite_i;
+}
+
+// .............................................................................
+
 std::string escrido::CContentChunk::GetPlainText() const
 {
   if( fType == cont_chunk_type::NEW_LINE )
     return "\n";
 
-  return sContent;
+  std::string sReturn;
+  All( sContent, sReturn );
+  return sReturn;
 }
 
 // .............................................................................
@@ -159,13 +168,6 @@ std::string escrido::CContentChunk::GetPlainAllButFirstWord() const
   std::string sReturn;
   AllButFirstWord( sContent, sReturn );
   return sReturn;
-}
-
-// .............................................................................
-
-void escrido::CContentChunk::SetSkipFirstWhiteMode( skip_first_white fSkipFirstWhite_i )
-{
-  fSkipFirstWhite = fSkipFirstWhite_i;
 }
 
 // .............................................................................
@@ -770,6 +772,38 @@ tag_block_write_mode escrido::CTagBlock::GetWriteMode() const
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Closes all write modes by adding the respective chunks.
+// *****************************************************************************
+
+void escrido::CTagBlock::CloseWrite()
+{
+  while( faWriteMode.size() > 0 )
+  {
+    switch( faWriteMode.back() )
+    {
+      case tag_block_write_mode::PARAGRAPH:
+        this->oaChunkList.emplace_back( cont_chunk_type::END_PARAGRAPH );
+        break;
+
+      case tag_block_write_mode::TABLE:
+        this->oaChunkList.emplace_back( cont_chunk_type::END_TABLE );
+        break;
+
+      case tag_block_write_mode::UL:
+        this->oaChunkList.emplace_back( cont_chunk_type::END_UL );
+        break;
+
+      case tag_block_write_mode::VERBATIM:
+        this->oaChunkList.emplace_back( cont_chunk_type::END_VERBATIM );
+        break;
+    }
+    faWriteMode.pop_back();
+  }
+}
+
+// .............................................................................
+
 std::string escrido::CTagBlock::GetPlainText() const
 {
   std::string sReturn;
@@ -878,38 +912,6 @@ std::string escrido::CTagBlock::GetPlainTitleLineButFirstWord() const
   }
 
   return sReturn;
-}
-
-// .............................................................................
-
-// *****************************************************************************
-/// \brief      Closes all write modes by adding the respective chunks.
-// *****************************************************************************
-
-void escrido::CTagBlock::CloseWrite()
-{
-  while( faWriteMode.size() > 0 )
-  {
-    switch( faWriteMode.back() )
-    {
-      case tag_block_write_mode::PARAGRAPH:
-        this->oaChunkList.emplace_back( cont_chunk_type::END_PARAGRAPH );
-        break;
-
-      case tag_block_write_mode::TABLE:
-        this->oaChunkList.emplace_back( cont_chunk_type::END_TABLE );
-        break;
-
-      case tag_block_write_mode::UL:
-        this->oaChunkList.emplace_back( cont_chunk_type::END_UL );
-        break;
-
-      case tag_block_write_mode::VERBATIM:
-        this->oaChunkList.emplace_back( cont_chunk_type::END_VERBATIM );
-        break;
-    }
-    faWriteMode.pop_back();
-  }
 }
 
 // .............................................................................
@@ -1165,7 +1167,7 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
     case tag_type::END_CODE:
     {
       // Eventually delete one last whitespace before end code.
-      if( this->oaChunkList.back().GetType() ==  cont_chunk_type::PLAIN_TEXT )
+      if( this->oaChunkList.back().GetType() == cont_chunk_type::PLAIN_TEXT )
       {
         std::string& sCodeText = this->oaChunkList.back().GetContent();
         if( sCodeText.back() == ' ' || sCodeText.back() == '\t' )
@@ -3563,6 +3565,38 @@ bool escrido::ReplaceIfMatch( std::string& sText_i, size_t& nPos_i, const char* 
     sText_i.replace( nPos_i, strlen( szPattern_i ), szReplacement_i );
     size_t nReplaceLen = strlen( szReplacement_i );
     nPos_i += nReplaceLen;
+    return true;
+  }
+  else
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the plain text of a string. (Strips off first and last
+///             whitespaces.)
+///
+/// \param[in]  sText_i
+///             The input text.
+/// \param[out] sAll_o
+///             The text or an empty string, if no text exists.
+///
+/// \return     true, if a text exists, false otherwise.
+// *****************************************************************************
+
+bool escrido::All( const std::string& sText_i, std::string& sAll_o )
+{
+  sAll_o.clear();
+
+  // Search the text after the first white space.
+  size_t nBegin = sText_i.find_first_not_of( ' ' );
+  if( nBegin != std::string::npos )
+  {
+    // Detect length of the text
+    size_t nLen = sText_i.find_last_not_of( ' ' ) + 1 - nBegin;
+
+    sAll_o = sText_i.substr( nBegin, nLen );
     return true;
   }
   else

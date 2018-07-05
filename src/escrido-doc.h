@@ -366,6 +366,7 @@ class escrido::CDocumentation
 
     // Special methods:
     void RemoveNamespaces( const std::vector<std::string>& saNSWhiteList_i );
+    void RemoveGroups( const std::vector<std::string>& saGroupBlackList_i );
 
     // Output methods:
     void WriteHTMLDoc( const std::string& sTemplateDir_i, const std::string& sOutputDir_i, const std::string& sOutputPostfix_i, bool fShowInternal_i ) const;

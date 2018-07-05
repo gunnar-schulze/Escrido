@@ -123,6 +123,16 @@ inline size_t config_file_parser::ParseConfigFile( const std::string& sConfigFil
         }
       }
       else
+      if( strcmp( szFirstTok, "EXCLUDE_GROUPS" ) == 0 )
+      {
+        escrido::saExludeGroups.clear();
+        while( szTok != NULL )
+        {
+          escrido::saExludeGroups.push_back( szTok );
+          szTok = strtok( NULL, " \t" );
+        }
+      }
+      else
       if( strcmp( szFirstTok, "GENERATE_WEBDOC" ) == 0 )
       {
         if( strcmp( szTok, "YES" ) == 0 )

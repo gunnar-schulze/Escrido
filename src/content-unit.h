@@ -255,6 +255,7 @@ namespace escrido
   std::string   LaTeXEscape( const std::string& sText_i );
   std::string   ConvertHTMLToLaTeX( const std::string& sText_i );
   bool          ReplaceIfMatch( std::string& sText_i, size_t& nPos_i, const char* szPattern_i, const char* szReplacement_i );
+  bool          All( const std::string& sText_i, std::string& sAll_o );
   bool          FirstWord( const std::string& sText_i, std::string& sFirstWord_o );
   bool          FirstQuote( const std::string& sText_i, std::string& sFirstQuote_o );
   bool          AllButFirstWord( const std::string& sText_i, std::string& sAllButFirstWord_o );
@@ -306,14 +307,16 @@ class escrido::CContentChunk
     CContentChunk();
     CContentChunk( const cont_chunk_type fType_i );
 
-    // Member access:
+    // Member administration:
     cont_chunk_type GetType() const;
     std::string& GetContent();
+    void SetSkipFirstWhiteMode( skip_first_white fSkipFirstWhite_i );
+
+    // Access of formated text content:
     std::string GetPlainText() const;
     std::string GetPlainFirstWord() const;
     std::string GetPlainFirstWordOrQuote() const;
     std::string GetPlainAllButFirstWord() const;
-    void SetSkipFirstWhiteMode( skip_first_white fSkipFirstWhite_i );
 
     // Append parsing content:
     void AppendChar( const char cChar_i );
@@ -359,16 +362,18 @@ class escrido::CTagBlock
     CTagBlock();
     CTagBlock( tag_type fType_i );
 
-    // Content managment:
+    // Member administration:
     bool Empty() const;
     void SetTagType( tag_type fType_i );
     tag_type GetTagType() const;
     tag_block_write_mode GetWriteMode() const;
+    void CloseWrite();
+
+    // Access of formated text content:
     std::string GetPlainText() const;
     std::string GetPlainFirstWord() const;
     std::string GetPlainFirstWordOrQuote() const;
     std::string GetPlainTitleLineButFirstWord() const;
-    void CloseWrite();
 
     // Content chunk navigation:
     const CContentChunk* GetNextContentChunk( const CContentChunk* pContentChunk ) const;

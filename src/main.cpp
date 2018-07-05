@@ -75,6 +75,7 @@ namespace escrido
   std::string sConfigFile;                    ///< Configuration file name (if specified).
   std::vector <std::string> saIncludePaths;   ///< Include file names.
   std::vector <std::string> saNamespaces;     ///< List of namespaces the output shall be restricted to.
+  std::vector <std::string> saExludeGroups;   ///< List of groups that shall be excluded from output.
   std::string sTemplateDir = "./template/";   ///< Template directory name.
   bool fWDOutput = true;                      ///< Flag whether web document output shall be created.
   std::string sWDOutputDir = "./html/";       ///< Output directory name for web document files.
@@ -231,6 +232,10 @@ int main( int argc, char* argv[] )
   // Remove all content unit that do not comply to the namespace white list.
   if( !saNamespaces.empty() )
     escrido::oDocumentation.RemoveNamespaces( saNamespaces );
+
+  // Remove all content unit that do not comply to the groups black list.
+  if( !saExludeGroups.empty() )
+    escrido::oDocumentation.RemoveGroups( saExludeGroups );
 
   // Output web document.
   if( fWDOutput )

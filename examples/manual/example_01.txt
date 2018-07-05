@@ -2,8 +2,6 @@ This is an example file containing different Escrido markup.
 
 Everything outside the Escrido markup deliminators is ignored.
 
-"Markup deliminators inside single or double quotes are ignored: //#, /*#, #*/"
-
 /*# @_mainpage_ Escrido Short Manual
  *  @author     Gunnar Schulze
  *  @date       2018-03-05

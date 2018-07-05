@@ -678,6 +678,35 @@ void escrido::CDocumentation::RemoveNamespaces( const std::vector<std::string>& 
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Removes all documentation pages belonging to groups that
+///             are in the black list.
+///
+/// \param[in]  saGroupBlackList_i
+///             Black list of groups that are deleted.
+// *****************************************************************************
+
+void escrido::CDocumentation::RemoveGroups( const std::vector<std::string>& saGroupBlackList_i )
+{
+  for( size_t f = 0; f < this->paDocPageList.size(); )
+  {
+    bool fRemove = false;
+    for( size_t g = 0; g < saGroupBlackList_i.size(); g++ )
+      if( this->paDocPageList[f]->GetGroupName() == saGroupBlackList_i[g] )
+      {
+        fRemove = true;
+        break;
+      }
+
+    if( fRemove )
+      this->paDocPageList.erase( this->paDocPageList.begin() + f );
+    else
+      f++;
+  }
+}
+
+// .............................................................................
+
 void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
                                             const std::string& sOutputDir_i,
                                             const std::string& sOutputPostfix_i,

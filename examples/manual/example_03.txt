@@ -164,7 +164,10 @@ that is then used as image caption.
 @section tag_ingroup &#64;ingroup &lt;groupname&gt;
 
 The <em>&#64;ingroup</em> command is used to mark the page as belonging to a
-specific group labeled by &lt;groupname&gt;.
+specific group labeled by &lt;groupname&gt;. Elements of one group appear together
+in the navigation. Groups can be excluded from the documentation via
+the -xg or --exclude-groups command line argument or the EXCLUDE_GROUPS field
+in the escrido file.
 
 <HR>
 @section tag_internal &#64;internal

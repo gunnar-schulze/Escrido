@@ -42,6 +42,13 @@ ns                   string
   'Generate documentation only for this namespace. (Multiple use is possible.)'
                                                  {escrido::saNamespaces.push_back( #1 );}
 
+xg                   string
+  'Exclude groups from output. (Multiple use is possible.)'
+                                                 {escrido::saExludeGroups.push_back( #1 );}
+-exlude-groups       string
+  'Exclude groups from output. (Multiple use is possible.)'
+                                                 {escrido::saExludeGroups.push_back( #1 );}
+
 wd                   onoff
   'Flag defining whether a web document shall be created. If this flag is set to "on",
    Escrido will generate HTML output. (default "on")'
@@ -80,7 +87,7 @@ ldo                  string
 -latex-output-dir    string
   'Output directory for LaTeX document files. (default "./latex/")'
                                                  {escrido::sLOutputDir = #1;}
-                                                 
+
 it
   'Show tags of type "internal"'                 {escrido::fShowInternal = true;}
 -internal

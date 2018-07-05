@@ -31,6 +31,16 @@ INCLUDE            = "./examples/manual/*.txt"
 
 NAMESPACE          =
 
+# This parameter defines a list of groups that shall NOT appear in the
+# documentation, i.e. it creates a versions of the documentation with these
+# groups filtered out, e.g. for a group 'Internal'.
+# If empty, all groups are included. Multiple values can be given seperated by
+# blank spaces.
+#
+# Equals the "-xg" and "--exclude-groups" command line options
+
+EXCLUDE_GROUPS     = Internal
+
 # -----------------------------------------------------------------------------
 # Web document output options
 # -----------------------------------------------------------------------------
