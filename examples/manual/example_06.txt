@@ -1,0 +1,38 @@
+/*# @_page_ replacement_tags Escrido Replacement Tags
+
+<em>Replacement tags</em> are used inside @ref template_files "template files" to define where a part of the content of an Escrido document should go to. If the respective value is not present within the Escrido content, the replacement tag will not be replaced.
+
+The following replacement tags are currently defined:
+
+- <b> &#42;escrido-maintitle* </b>
+- <b> &#42;escrido-metadata* </b>
+- <b> &#42;escrido-mainauthor* </b>
+- <b> &#42;escrido-maindate* </b>
+- <b> &#42;escrido-mainbrief* </b>
+- <b> &#42;escrido-headline* </b>
+- <b> &#42;escrido-page-text* </b>
+- <b> &#42;escrido-type* </b>
+- <b> &#42;escrido-groupname* </b>
+- <b> &#42;escrido-title* </b>
+- <b> &#42;escrido-toc* </b>
+- <b> &#42;escrido-brief* </b>
+- <b> &#42;escrido-return* </b>
+- <b> &#42;escrido-attributes* </b>
+- <b> &#42;escrido-params* </b>
+- <b> &#42;escrido-see* </b>
+- <b> &#42;escrido-signatures* </b>
+- <b> &#42;escrido-features* </b>
+
+
+For LaTex templates, the following replacement tags are additionally defined:
+
+- <b> &#42;escrido_latex_packages* </b>
+- <b> &#42;escrido_latex_commands* </b>
+- <b> &#42;escrido-grouptitle* </b>
+
+
+
+
+
+
+#*/

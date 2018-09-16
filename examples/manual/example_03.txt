@@ -1,7 +1,58 @@
-/*# @_page_ tags_reference Escrido Tags Reference
+/*# @_page_ commands Escrido Commands
 
-This page gives an detailed description of all the Escrido tags that are
-currently available:
+Escrido uses <em>tags</em> to define commands inside its markup.
+Tags are strings that start with an "at" sign (&#64;) followed by the
+command name. In general there are three different groups of tags:
+
+- @ref page_tags "page tags",
+- @ref block_tags "block tags" and
+- @ref inline_tags "inline tags"
+
+@section page_tags Page Tags
+
+The class of <em>page tags</em> are tags that start a new <em>page</em>
+section, like a chapter in a document or a subpage of a website.
+Page tags differ from other tags by the fact that their names start and end
+with an underscore sign, e.g. '&#64;_page_'. Page tags may expect
+<em>type specifiers</em>, <em>identifier names</em> and <em>titles</em>
+following the tag. The identifiers are used for referencing
+to the page (see @ref tag_ref "&#64;ref") while the titles are displayed
+as page titles in the output documents.
+
+The table shows all page tags that are currently available:
+
+@table
+
+ <b>Page Opening Tag</b> | <b>Type Specifier</b> | <b>Identifier</b> | <b>Title</b> |
+ <b>Description</b> @lb
+
+ @ref tag_mainpage "&#64;_mainpage_" | no | no | no |
+ Content of the document that becomes either the index page or the
+ first chapter.@lb
+
+ @ref tag_page "&#64;_page_" | no | yes | yes |
+ A page (like this page) that represents either a singe web page or a chapter. @lb
+
+ @ref tag_refpage "&#64;_refpage_" | yes | yes | yes |
+ A reference page with technical information about a specific code structure.
+
+@endtable
+
+Inside the HTML documentation, each sections contained within one <em>page tag</em> 
+will be viewed in one HTML page and is represented by one entry inside the 
+table of content / navigation bar.
+
+@section block_tags Block Tags
+
+<em>Block tags</em> can be used inside a page. Unlike page tags they
+have no leading or trailing underscore characters (_) in their names.
+Block tags are only valid after a line break / new line and mark the beginning of
+a new data block or text section. Data blocks are usually used for storing specific
+data (like @ref tag_date "&#64;date" or @ref tag_author "&#64;author") or to
+start text sections (like @ref tag_details "&#64;details" or
+@ref tag_section "&#64;section").
+
+The following table shows all block tags that are currently available:
 
 @table
 
@@ -9,333 +60,60 @@ currently available:
  @ref tag_author "&#64;author" |
  @ref tag_brief "&#64;brief" @lb
 
- @ref_tag_code "&#64;code" |
  @ref tag_copyright "&#64;copyright" |
- @ref tag_date "&#64;date" @lb
+ @ref tag_date "&#64;date" |
+ @ref tag_details "&#64;details" @lb
 
- @ref tag_details "&#64;details" |
- @ref_tag_endcode "&#64;endcode" |
- @ref tag_endtable "&#64;endtable" @lb
-
- @ref tag_endverbatim "&#64;endverbatim" |
  @ref tag_example "&#64;example" |
- @ref tag_feature "&#64;feature" @lb
+ @ref tag_feature "&#64;feature" |
+ @ref tag_image "&#64;image" @lb
 
- @ref tag_image "&#64;image" |
  @ref tag_ingroup "&#64;ingroup" |
- @ref tag_internal "&#64;internal" @lb
+ @ref tag_internal "&#64;internal" |
+ @ref tag_namespace "&#64;namespace" @lb
 
- @ref tag_lb "&#64;lb" |
- @ref tag_link "&#64;link" |
- @ref tag_mainpage "&#64;_mainpage_" @lb
-
- @ref tag_namespace "&#64;namespace" |
  @ref tag_note "&#64;note" |
- @ref tag_order "&#64;order" @lb
+ @ref tag_order "&#64;order" |
+ @ref tag_output "&#64;output" @lb
 
- @ref tag_output "&#64;output" |
- @ref tag_page "&#64;_page_" |
- @ref tag_par "&#64;par" @lb
-
+ @ref tag_par "&#64;par" |
  @ref tag_param "&#64;param" |
- @ref tag_refpage "&#64;_refpage_" |
- @ref tag_ref "&#64;ref" @lb
+ @ref tag_remark "&#64;remark" @lb
 
- @ref tag_remark "&#64;remark" |
  @ref tag_return "&#64;return" |
- @ref tag_see "&#64;see" @lb
+ @ref tag_see "&#64;see" |
+ @ref tag_signature "&#64;signature" @lb
 
  @ref tag_section "&#64;section" |
- @ref tag_signature "&#64;signature" |
- @ref tag_subsection "&#64;subsection" @lb
-
- @ref tag_subsubsection "&#64;subsubsection" |
- @ref tag_table "&#64;table" |
- @ref tag_verbatim "&#64;verbatim" @lb
+ @ref tag_subsection "&#64;subsection" |
+ @ref tag_subsubsection "&#64;subsubsection" @lb
 
  @ref tag_version "&#64;version"
 
 @endtable
 
-Argument values formatting:
-- () : content in paranthese must be in the same line as the tag
-- &lt;&gt; : text in angle bracket are single words (e.g names or identifiers)
-- "" : text in double quotation marks in the same line
-- &lt;""&gt; : either a single word or a string in double quotation marks
-- [] : content in squared brackets is optional
-- {} : content in curly bracket is the tag main content (e.g. text)
+@section inline_tags Inline Tags
 
-<HR>
-@section tag_attribute &#64;attribute &lt;attribute-name&gt; { attribute description }
+<em>Inline tags</em> may appear anywhere inside the text. Their task is
+often to mark up links or references or specially formatted environments
+like tables.
 
-Adds an <em>attribute</em> section to the current reference page. An attribute
-section is meant for documenting certain attribute of a code structure (like
-e.g. member elements of a class).
+The following inline tags are available:
 
-<HR>
-@section tag_author &#64;author { author name }
+@table
 
-The <em>author</em> data block stores information about authorship
-of an document.
+ @ref_tag_code "&#64;code" |
+ @ref_tag_endcode "&#64;endcode" |
+ @ref tag_lb "&#64;lb" @lb
 
-<HR>
-@section tag_brief &#64;brief { brief description }
+ @ref tag_link "&#64;link" |
+ @ref tag_ref "&#64;ref" |
+ @ref tag_table "&#64;table" @lb
 
-The <em>brief</em> section is used to store a short description of a
-topic or an item. In the final document brief descriptions are used at
-places where there is too little space for a complete description.
-Therefore it should be short but meaningful.
+ @ref tag_endtable "&#64;endtable" |
+ @ref tag_verbatim "&#64;verbatim" |
+ @ref tag_endverbatim "&#64;endverbatim"
 
-<HR>
-@section tag_code &#64;code { text }
-
-Text between the &#64;code and the @ref tag_endcode "&#64;endcode" tags
-is drawn in "code style" what is typically a monotype font.
-
-<HR>
-@section tag_copyright &#64;copyright { copyright description }
-
-This data block tag is used to store copyright information.
-
-<HR>
-@section tag_date &#64;date { date description }
-
-The <em>date</em> data block tag is used to store information about the
-creation and/or modification date.
-
-<HR>
-@section tag_details &#64;details { detailed description }
-
-The <em>details</em> section works like the @ref tag_brief "&#64;brief" tag
-but it is intended for storing detailed information about an object. The
-details section may appear multiple times and multiple details sections will
-be put together in the output document.
-
-<HR>
-@section tag_endcode &#64;endcode
-
-Text between the @ref tag_code "&#64;code" and the &#64;endcode tags
-is drawn in "code style" what is typically a monotype font.
-
-<HR>
-@section tag_endtable &#64;endtable
-
-Closes a table environment opended by the @ref tag_table "&#64;table" tag.
-(See @ref formatting_tables "tables").
-
-<HR>
-@section tag_endverbatim &#64;endverbatim
-
-Closes a verbatim text environment that was opened by the @ref tag_verbatim "&#64;verbatim" tag.
-
-<HR>
-@section tag_example &#64;example { example code }
-
-The <em>example</em> section is intended to contain example code (like code snippets).
-It is read in <em>verbatim mode</em>.
-In the output document these examples are typically drawn in a monotype font and are
-eventually placed inside a special frame.
-
-An example can be finished by other block commands, e.g. by the @ref tag_par "&#64;par"
-or an @ref tag_output "&#64;output" tag.
-
-If an example block starts with a direct line break, this is not considered in the
-output.
-
-<HR>
-@section tag_feature &#64;feature &lt;"feature-name"&gt; (feature title) { feature description }
-
-Add information about a specific <em>feature</em> to a reference page. This is
-similar to the @ref tag_attribute "&#64;attribute" or the
-@ref tag_param "&#64;param" tags but a feature can be used more generally. The type
-of the feature is defined by the user as <em>feature name</em>. It can be either a
-single word or a string extression in double quotes. Features
-with equal name will appear grouped together in the documentation with the
-feature name as common title.
-
-<HR>
-@section tag_image &#64;image &lt;file&gt; [caption]
-
-The <em>&#64;image</em> command appends an image to the document. The file name
-must be given as &lt;file&gt; argument. This can be followed by an optional text
-that is then used as image caption.
-
-<HR>
-@section tag_ingroup &#64;ingroup &lt;groupname&gt;
-
-The <em>&#64;ingroup</em> command is used to mark the page as belonging to a
-specific group labeled by &lt;groupname&gt;. Elements of one group appear together
-in the navigation. Groups can be excluded from the documentation via
-the -xg or --exclude-groups command line argument or the EXCLUDE_GROUPS field
-in the escrido file.
-
-<HR>
-@section tag_internal &#64;internal
-
-Sections tagged with this command are meant for internal use and will appear only
-in the documentation when the respective flag in the settings file is set.
-
-<HR>
-@section tag_lb &#64;lb
-
-This tag is used for manually adding a line break into a text or to start a
-new table row inside a table (see @ref formatting_tables "tables").
-
-<HR>
-@section tag_link &#64;link &lt;url&gt; ["(text)"]
-
-Creates a link to the specified url e.g. to an external web site. It an optional
-text is given in double quotes, this is used as link specification, otherwise
-the url is used.
-
-<HR>
-@section tag_mainpage &#64;_mainpage_ [(title)]
-
-Creates the main page of the documentation.
-
-<HR>
-@section tag_namespace &#64;namespace &lt;name&gt;
-
-Marks the respective page as belonging to a certain <em>namespace</em>.
-Namespaces can be used to produce selected output via the respective
-flag in the settings file.
-
-<HR>
-@section tag_note &#64;note { text }
-
-This command adds a <em>note</em> section to the current page.
-A <em>note</em> section will be specially emphasized in the output. It is
-typically used to express warnings of different kinds.
-
-<HR>
-@section tag_order &#64;order [&lt;name&gt; &lt;name&gt; ...]
-
-This tag is used to define an order for selected pages of the document. The &#64;order command
-takes a list of identifiers as argument (seperated by commas, whitespaces or line breaks).
-The order of this list is then applied to the groups and pages. &#64;order commands can
-be used multiple times and they get combined in the order of their appearance. Only
-&#64;order commands in the main page are processed.
-
-<HR>
-@section tag_output &#64;output { output text }
-
-The <em>output</em> section is intended to contain the output that is generated by an
-@ref tag_example "&#64;example" code block. It will be read in <em>verbatim mode</em>.
-In the output document this block is typically drawn in a monotype font and it is
-eventually placed inside a special frame.
-
-An output can be finished by other block commands, e.g. by the @ref tag_par "&#64;par"
-tag.
-
-If an output block starts with a direct line break, this is not considered in the
-output.
-
-<HR>
-@section tag_page &#64;_page_ &lt;name&gt; (title)
-
-Creates a new pure page with the given title. The <em>name</em> is used as
-identifier of the page and can be used for referencing the page (see
-@ref tag_ref "&#64;ref" tag). A page represents a single unit of content inside
-the whole document like one subpage in a web document or one chapter in a LaTeX
-document.
-
-<HR>
-@section tag_par &#64;par
-
-Adds a new <em>paragraph</em> block to the document.  A paragraph is like a
-@ref tag_sectio "section" but without an identifier or a title. One case where this
-tag is useful is e.g. after an @ref tag_example "&#64;example" block.
-
-<HR>
-@section tag_param &#64;param &lt;parameter-name&gt; { parameter description }
-
-Adds a new <em>parameter</em> section plus description to a code
-structure on an reference page (see @ref tag_refpage "&#64;refpage").
-
-<HR>
-@section tag_refpage &#64;_refpage_ "code structure type" &lt;name&gt; (title)
-
-Creates a new <em>reference page</em> for a certain type of code structure
-like e.g. a function, an operator, a data types etc. The type of structure can
-be defined freely  and is given as <em>code structure type</em> in the tag call.
-The <em>name</em> is used for external references to the page (see
-@ref tag_ref "&#64;ref").
-
-<HR>
-@section tag_ref &#64;ref &lt;name&gt; ["(text)"]
-
-This tag inserts a reference to another page or section of the document. In a web
-document, the reference is realized as a link. The optional text is shown instead
-of the reference title (or, if this cannot be found, the indentifier name) if
-present.
-
-<HR>
-@section tag_remark &#64;remark { remark text }
-
-Adds a <em>remark</em> section to the current page. A <em>remark</em> section
-will be specially emphasized in the output. It is typically used to express
-useful or interesting information.
-
-<HR>
-@section tag_return &#64;return { description of the return value }
-
-Adds a <em>return</em> section to the current reference page. A <em>return</em>
-section describes the return value of a code structure.
-
-<HR>
-@section tag_see &#64;see { name }
-
-Adds a <em>see</em> section to the current page. A <em>see</em> section
-contains references to other pages or sections that are connected to this page
-in some way. Multiple <em>see</em> tags are grouped together in one <em>see</em>
-section.
-
-If the referenced page or section cannot be found, the identifier name
-is shown in the <em>see</em> section as static text.
-
-<HR>
-@section tag_section &#64;section &lt;section-name&gt; (section title)
-
-Adds a <em>section</em> to the current document page.
-The section name is a unique identifier used for referencing to the section (see
-@ref tag_ref "&#64;ref" tag). The section title is displayed as title of the section.
-
-<HR>
-@section tag_signature &#64;signature (signature text)
-
-Adds a <em>signature</em> section to the current reference page. A
-<em>signature</em> section will be specially emphasized in the output. A
-<em>signature</em> defines the exact syntactical form a code structure (as a
-function, a class method etc.) is used in the code.
-
-<HR>
-@section tag_subsection &#64;subsection &lt;subsection-name&gt; (subsection title)
-
-Adds a <em>subsection</em> to the current document page. A subsection works like a
-@ref tag_section "section" but contains a heading with one level lower.
-
-<HR>
-@section tag_subsubsection &#64;subsubsection &lt;subsubsection-name&gt; (subsubsection title)
-
-Adds a <em>subsubsection</em> to the current document page. A subsubsection works like a
-@ref tag_section "subsection" but contains a heading with one level lower.
-
-<HR>
-@section tag_table &#64;table
-
-Starts a table environment (see @ref formatting_tables "tables"). The table is closed by
-the @ref tag_endtable "&#64;endtable" tag.
-
-<HR>
-@section tag_version &#64;version { version number }
-
-Adds information about the version to the current documentation page.
-
-<HR>
-@section tag_verbatim &#64;verbatim
-
-Starts a text environment whose content will be verbatim included in the document.
-The environment is closed with the @ref tag_endverbatim "&#64;endverbatim" tag.
-All other commands are disabled in a verbatim environment.
+@endtable
 
 #*/

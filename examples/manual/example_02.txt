@@ -1,115 +1,41 @@
-/*# @_page_ commands Escrido Commands
+/*# @_page_ setup Escrido Setup
 
-Escrido uses <em>tags</em> to define commands inside its markup.
-Tags are strings that start with an "at" sign (&#64;) followed by the
-command name. In general there are three different groups of tags:
+The basic concept behind Escrido is, that it reads one @ref escrido_file "configuration file", one or more @ref source_files "source files" and one or more @ref template_files "document template files" and returns a web document (as a set of HTML files) and/or a LaTeX document (multiple .tex files). 
 
-- @ref page_tags "page tags",
-- @ref block_tags "block tags" and
-- @ref inline_tags "inline tags"
+@section escrido_file The Escrido Configuration File
 
-@section page_tags Page Tags
+The <em>Escrido  configuration file</em> is a text file that contains all configuration options for generating the required output. It is typically named "escridofile" without any extension. Examples are the files <em>examples/manual/escridofile</em> and <em>examples/minimal/escridofile</em> inside the @link https://github.com/gunnar-schulze/Escrido "Escrido repository". Note that all options that can be written into the Escrido file can also be applied as <em>command line arguments</em> on calling the program (run @code >escrido --help @endcode for all command line arguments). If an option happens to be set in the configuration file as well as it is given as an argument of the command line call, the command line call argument has precendence.
 
-The class of <em>page tags</em> are tags that start a new <em>page</em>
-section, like a chapter in a document or a subpage of a website.
-Page tags differ from other tags by the fact that their names start and end
-with an underscore sign, e.g. '&#64;_page_'. Page tags may expect
-<em>type specifiers</em>, <em>identifier names</em> and <em>titles</em>
-following the tag. The identifiers are used for referencing
-to the page (see @ref tag_ref "&#64;ref") while the titles are displayed
-as page titles in the output documents.
+On calling Escrido, the configuration file is specified by the @code -f @endcode option:
 
-The table shows all page tags that are currently available:
+@example
+escrido -f ./doc/escridofile
+@par
 
-@table
+@section source_files Source Files
 
- <b>Page Opening Tag</b> | <b>Type Specifier</b> | <b>Identifier</b> | <b>Title</b> |
- <b>Description</b> @lb
+The <em>source files</em> contain the content for the Escrido document. These can either be plain text files that contain   Escrido content only (typically used for chapters that do not have a 1:1 correspondence to the documented code) or the Escrido content can turn up inside text files of some other type, e.g. inside comments in source code files. Escrido reads through all source files and searches for start deliminators (<tt>&#47;*#</tt> for multi-line content, <tt>&#47;&#47;#</tt> for single lines) and interprets everything <em>after that</em> as Escrido content until either the multi-line end deliminator (<tt>#*&#47;</tt>) or a line break is encountered.
 
- @ref tag_mainpage "&#64;_mainpage_" | no | no | no |
- Content of the document that becomes either the index page or the
- first chapter.@lb
+The definition of which files shall be used as source files is given as command @code INCLUDE @endcode in the @ref escrido_file "configuration file" or as argument @code -I @endcode in the command line call.
 
- @ref tag_page "&#64;_page_" | no | yes | yes |
- A page (like this page) that represents either a singe web page or a chapter. @lb
+@section template_files Template Files
 
- @ref tag_refpage "&#64;_refpage_" | yes | yes | yes |
- A reference page with technical information about a specific code structure.
+So how is the output brought into shape? This is done by using <em>template files</em> for HTML or LaTeX output. A template file for HTML output is little more than a common HTML file that contains certain @ref replacement_tags "Escrido replacement tags" at the desired positions. These tags are then replaced by Escrido with the actual content from the source files in order to generate the output files. This procedure has the advantage that it is possible to bring the content into very different shape by using different template files and that the structurization can be done by using HTML only.
 
-@endtable
+There should be at least one HTML template file <em>default.html</em> that is applied when no other template files are found. However, each page (see @ref page_tags ) can have its own template file that should be named like page followed by the ending <em>.html</em>. The template for the @ref main_page "main page" can be given as <em>index.html</em>. Note that there is an option @code WEBDOC_FILE_ENDING @endcode for the @ref escrido_file "configuration file" and its sibling @code -wdo @endcode for the command line that allows to define a alternative ending for the file names (e.g. <em>.php</em> files shall be generated).
 
-@section block_tags Block Tags
+Templates for LaTeX files work similarly but with slightly more complexity.
 
-<em>Block tags</em> can be used inside a page. Unlike page tags they
-have no leading or trailing underscore characters (_) in their names.
-Block tags are only valid after a line break / new line and mark the beginning of
-a new data block or text section. Data blocks are usually used for storing specific
-data (like @ref tag_date "&#64;date" or @ref tag_author "&#64;author") or to
-start text sections (like @ref tag_details "&#64;details" or
-@ref tag_section "&#64;section").
+The directory for all template files is given as option @code TEMPLATE_DIR @endcode in the @ref escrido_file "configuration file" or as argument @code -t @endcode in the command line calls.
 
-The following table shows all block tags that are currently available:
 
-@table
 
- @ref tag_attribute "&#64;attribute" |
- @ref tag_author "&#64;author" |
- @ref tag_brief "&#64;brief" @lb
 
- @ref tag_copyright "&#64;copyright" |
- @ref tag_date "&#64;date" |
- @ref tag_details "&#64;details" @lb
 
- @ref tag_example "&#64;example" |
- @ref tag_feature "&#64;feature" |
- @ref tag_image "&#64;image" @lb
 
- @ref tag_ingroup "&#64;ingroup" |
- @ref tag_internal "&#64;internal" |
- @ref tag_namespace "&#64;namespace" @lb
 
- @ref tag_note "&#64;note" |
- @ref tag_order "&#64;order" |
- @ref tag_output "&#64;output" @lb
 
- @ref tag_par "&#64;par" |
- @ref tag_param "&#64;param" |
- @ref tag_remark "&#64;remark" @lb
 
- @ref tag_return "&#64;return" |
- @ref tag_see "&#64;see" |
- @ref tag_signature "&#64;signature" @lb
 
- @ref tag_section "&#64;section" |
- @ref tag_subsection "&#64;subsection" |
- @ref tag_subsubsection "&#64;subsubsection" @lb
-
- @ref tag_version "&#64;version"
-
-@endtable
-
-@section inline_tags Inline Tags
-
-<em>Inline tags</em> may appear anywhere inside the text. Their task is
-often to mark up links or references or specially formatted environments
-like tables.
-
-The following inline tags are available:
-
-@table
-
- @ref_tag_code "&#64;code" |
- @ref_tag_endcode "&#64;endcode" |
- @ref tag_lb "&#64;lb" @lb
-
- @ref tag_link "&#64;link" |
- @ref tag_ref "&#64;ref" |
- @ref tag_table "&#64;table" @lb
-
- @ref tag_endtable "&#64;endtable" |
- @ref tag_verbatim "&#64;verbatim" |
- @ref tag_endverbatim "&#64;endverbatim"
-
-@endtable
 
 #*/
