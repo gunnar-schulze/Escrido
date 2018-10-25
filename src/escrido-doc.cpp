@@ -768,6 +768,12 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
         if( pMainContentUnit->HasTagBlock( tag_type::DATE ) )
           ReplacePlaceholder( "*escrido-maindate*", pMainContentUnit->GetFirstTagBlock( tag_type::DATE )->GetPlainText(), sTemplatePage );
 
+        if( pMainContentUnit->HasTagBlock( tag_type::VERSION ) )
+          ReplacePlaceholder( "*escrido-mainversion*", pMainContentUnit->GetFirstTagBlock( tag_type::VERSION )->GetPlainText(), sTemplatePage );
+
+        if( pMainContentUnit->HasTagBlock( tag_type::COPYRIGHT ) )
+          ReplacePlaceholder( "*escrido-maincopyright*", pMainContentUnit->GetFirstTagBlock( tag_type::COPYRIGHT )->GetPlainText(), sTemplatePage );
+
         if( pMainContentUnit->HasTagBlock( tag_type::BRIEF ) )
           ReplacePlaceholder( "*escrido-mainbrief*", pMainContentUnit->GetFirstTagBlock( tag_type::BRIEF )->GetPlainText(), sTemplatePage );
       }
@@ -860,6 +866,12 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
 
         if( pMainContentUnit->HasTagBlock( tag_type::DATE ) )
           ReplacePlaceholder( "*escrido-maindate*", pMainContentUnit->GetFirstTagBlock( tag_type::DATE )->GetPlainText(), sTemplateDoc );
+
+        if( pMainContentUnit->HasTagBlock( tag_type::VERSION ) )
+          ReplacePlaceholder( "*escrido-mainversion*", pMainContentUnit->GetFirstTagBlock( tag_type::VERSION )->GetPlainText(), sTemplateDoc );
+
+        if( pMainContentUnit->HasTagBlock( tag_type::COPYRIGHT ) )
+          ReplacePlaceholder( "*escrido-maincopyright*", pMainContentUnit->GetFirstTagBlock( tag_type::COPYRIGHT )->GetPlainText(), sTemplateDoc );
 
         if( pMainContentUnit->HasTagBlock( tag_type::BRIEF ) )
           ReplacePlaceholder( "*escrido-mainbrief*", pMainContentUnit->GetFirstTagBlock( tag_type::BRIEF )->GetPlainText(), sTemplateDoc );

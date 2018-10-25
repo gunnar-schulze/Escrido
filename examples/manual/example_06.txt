@@ -1,28 +1,69 @@
 /*# @_page_ replacement_tags Escrido Replacement Tags
 
-<em>Replacement tags</em> are used inside @ref template_files "template files" to define where a part of the content of an Escrido document should go to. If the respective value is not present within the Escrido content, the replacement tag will not be replaced.
+<em>Replacement tags</em> are used inside @ref template_files "template files" to define where a part of the content of an Escrido document should go to. Each replacement tags starts and ends with an asterisk (&#42;) and contains the replacment tag name, e.g. '<b>&#42;escrido-title&#42;</b>'. If the respective value is not present within the Escrido content, the replacement tag will not be replaced.
+
+A replacement tag either creates <em>formatted</em> or <em>unformatted</em> output, depending on its type. Formatted output already contains a certain amount of HTML or LaTeX tags around the output that is required to "bring the content in shape" while unformatted output contains just a bare string (i.e. can be placed anywhere in the template).
 
 The following replacement tags are currently defined:
 
-- <b> &#42;escrido-maintitle* </b>
-- <b> &#42;escrido-metadata* </b>
-- <b> &#42;escrido-mainauthor* </b>
-- <b> &#42;escrido-maindate* </b>
-- <b> &#42;escrido-mainbrief* </b>
-- <b> &#42;escrido-headline* </b>
-- <b> &#42;escrido-page-text* </b>
-- <b> &#42;escrido-type* </b>
-- <b> &#42;escrido-groupname* </b>
-- <b> &#42;escrido-title* </b>
-- <b> &#42;escrido-toc* </b>
-- <b> &#42;escrido-brief* </b>
-- <b> &#42;escrido-return* </b>
-- <b> &#42;escrido-attributes* </b>
-- <b> &#42;escrido-params* </b>
-- <b> &#42;escrido-see* </b>
-- <b> &#42;escrido-signatures* </b>
-- <b> &#42;escrido-features* </b>
+@table
+ <b>Replacement tag</b> | <b>Formated</b> | <b>Description</b> @lb
 
+ <b> &#42;escrido-maintitle* </b> | no |
+ The <em>title</em> of @ref tag_mainpage "&#64;_mainpage_". @lb
+
+ <b> &#42;escrido-metadata* </b> | yes |
+ A block containing values of the @ref tag_author "&#64;author", @ref tag_date "&#64;date", @ref tag_version "&#64;version" and @ref tag_copyright "&#64;copyright" tags if these exist inside @ref tag_mainpage "&#64;_mainpage_". @lb
+
+ <b> &#42;escrido-mainauthor* </b> | no |
+ The <em>author name</em> of @ref tag_author "&#64;author" inside @ref tag_mainpage "&#64;_mainpage_". @lb
+
+ <b> &#42;escrido-maindate* </b> | no |
+ The <em>date description</em> of @ref tag_date "&#64;date" inside @ref tag_mainpage "&#64;_mainpage_". @lb
+
+ <b> &#42;escrido-mainversion* </b> | no |
+ The <em>version number</em> of @ref tag_version "&#64;version" inside @ref tag_mainpage "&#64;_mainpage_". @lb
+
+  <b> &#42;escrido-maincopyright* </b> | no |
+  The <em>copyright description</em> of @ref tag_copyright "&#64;copyright" inside @ref tag_mainpage "&#64;_mainpage_". @lb
+
+  <b> &#42;escrido-mainbrief* </b> | no |
+  The <em>brief description</em> of @ref tag_brief "&#64;brief" inside @ref tag_mainpage "&#64;_mainpage_". @lb
+
+  <b> &#42;escrido-headline* </b> | yes |
+  The <em>title</em> of the current @ref tag_mainpage "&#64;_mainpage_", @ref tag_page "&#64;_page_" or @ref tag_refpage "&#64;_refpage_" as a headline. @lb
+
+  <b> &#42;escrido-page-text* </b> | yes |
+  The content of the current @ref tag_mainpage "&#64;_mainpage_", @ref tag_page "&#64;_page_" or @ref tag_refpage "&#64;_refpage_". This includes tags as @ref tag_details "&#64;details", @ref tag_par "&#64;par", @ref tag_section "&#64;section", @ref tag_subsection "&#64;subsection", @ref tag_subsubsection "&#64;subsubsection" and others. @lb
+
+  <b> &#42;escrido-type* </b> | no |
+  The <em>code structure type</em> of the current @ref tag_refpage "&#64;_refpage_". @lb
+
+  <b> &#42;escrido-toc* </b> | yes |
+  A table of contents of the whole document (as navigation tool in HTML). @lb
+
+  <b> &#42;escrido-brief* </b> | yes |
+  The <em>brief description</em> of the current @ref tag_brief "&#64;brief" tag as a paragraph. @lb
+
+  <b> &#42;escrido-return* </b> | yes |
+  The <em>description of the return value</em> of the current @ref tag_return "&#64;return" tag as a paragraph. @lb
+
+  <b> &#42;escrido-attributes* </b> | yes |
+  A section containing all content of the current @ref tag_attribute "&#64;attribute" tags. @lb
+
+  <b> &#42;escrido-params* </b> | yes |
+  A section containing all content of the current @ref tag_param "&#64;param" tags. @lb
+
+  <b> &#42;escrido-see* </b> | yes |
+  A section containing all content of the current @ref tag_see "&#64;see" tags. @lb
+
+  <b> &#42;escrido-signatures* </b> | yes |
+  A section containing all content of the current @ref tag_signature "&#64;signature" tags. @lb
+
+  <b> &#42;escrido-features* </b> | yes |
+  A section containing all content of the current @ref tag_feature "&#64;feature" tags.
+
+@endtable
 
 For LaTex templates, the following replacement tags are additionally defined:
 
