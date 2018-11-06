@@ -9,11 +9,11 @@
 
 /* Section of code that will appears early in the output file. */
 %{
-  #include <string>           // std::string
   #include "content-unit.h"   // CContentUnit
+  #include <string>           // std::string
 
   // Include the bison/yacc parser header.
-  #include "yescrido.h"
+  #include "yescrido.h"  
 
   using namespace escrido;
 
@@ -32,9 +32,17 @@
 
   // Character position an line number counter.
   unsigned long nLexLine;         // Line number position of the scanner.
+  
+  // A fix that is required, since different versions of the lex tool exist that
+  // are mutually incompatible.
+  #ifdef LEX_COMPAT_MODE
+  typedef size_t lex_buf_t;
+  #else
+  typedef int lex_buf_t;
+  #endif  
 
   // Replacement of function YY_INPUT(buf,result,max_size);
-  int ReadLexInput( char* paBuf_o, int* pBytesRead_o, size_t nMaxBytesToRead_i );
+  int ReadLexInput( char* paBuf_o, lex_buf_t* pBytesRead_o, size_t nMaxBytesToRead_i );
 
   // Redefine the Lex data input function YY_INPUT() and use ReadLexInput() instead.
   #undef YY_INPUT
@@ -169,7 +177,7 @@ void InitScanner( const std::string* pSrc_i )
 /// \return     0 on success.
 // *****************************************************************************
 
-int ReadLexInput( char* paBuf_o, int* pBytesRead_o, size_t nMaxBytesToRead_i )
+int ReadLexInput( char* paBuf_o, lex_buf_t* pBytesRead_o, size_t nMaxBytesToRead_i )
 {
   // Use the very handy function std::string::copy() to perform the copying
   // into the cache. Use the string pointed to by pLexSrc as input

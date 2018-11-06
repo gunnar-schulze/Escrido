@@ -2,7 +2,7 @@
 # Display introduction
 # ====================
 
-$(info escrido makefile 1.0)
+$(info escrido makefile 1.1)
 $(info Copyright (C) 2017 Gunnar Schulze)
 $(info )
 
@@ -33,6 +33,10 @@ LINKFLAGS := -std=c++11
 
 # Additional compiler flag (can be overwritten by calling user):
 ARG :=
+
+# Define for OS selection in module 'filesys.h'.
+# This needs to be changed for targeting different OSs:
+OSDEF := -D FILESYS_UNIX
 
 # ===========
 # Directories
@@ -94,14 +98,14 @@ $(LIBDIR)/main.o: $(GENDIR)/interpargs.h $(GENDIR)/yescrido.h
 define C_COMPILE_RULE_TEMPLATE
 $$(LIBDIR)/%.o: $(1)/%.c
 	@echo "Compiling module '$$<' ..."
-	$$(CPP) $$(INCLUDEDIRS) $$(CPPFLAGS) $$(ARG) -c -o $$@ $$<
+	$$(CPP) $$(INCLUDEDIRS) $$(CPPFLAGS) $$(ARG) $$(OSDEF) -c -o $$@ $$<
 	@echo
 endef
 
 define CPP_COMPILE_RULE_TEMPLATE
 $$(LIBDIR)/%.o: $(1)/%.cpp
 	@echo "Compiling module '$$<' ..."
-	$$(CPP) $$(INCLUDEDIRS) $$(CPPFLAGS) $$(ARG) -c -o $$@ $$<
+	$$(CPP) $$(INCLUDEDIRS) $$(CPPFLAGS) $$(ARG) $$(OSDEF) -c -o $$@ $$<
 	@echo
 endef
 
@@ -154,3 +158,11 @@ clean:
 	rm -f $(LIBDIR)/*.o
 	rm -f $(GENDIR)/*
 	rm -f tools/bb/bb
+
+# ============
+# "win" target
+# ============
+
+.PHONY: win
+win: OSDEF := -D FILESYS_WINDOWS
+win: $(BINDIR)/escrido
