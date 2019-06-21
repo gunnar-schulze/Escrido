@@ -1,5 +1,4 @@
 # Example configuration file of the general-purpose documentation generator
-# Espreescrido.
 # Author: Gunnar Schulze
 # (C) 2015 trinckle 3D GmbH
 
@@ -15,7 +14,7 @@
 TEMPLATE_DIR       = "./templates/manual/"
 
 # This parameter defines the files to be included into the documentation.
-# The file names can be enclosed in quoation marks and may include wildcards,
+# The file names can be enclosed in quotation marks and may include wildcards,
 # e.g. "/usr/src/file*". Multiple values can be given seperated by blank
 # spaces.
 #
