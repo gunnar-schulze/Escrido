@@ -4,7 +4,7 @@ Escrido
 
 :Authors: Gunnar Schulze
 :Date: 2020-07-27
-:Version: 1.4.0
+:Version: 1.5.0
 :Contact: <gunnar.schulze@gmx.com>
 
 .. image:: logo/Escrido_logo_362x117.png
