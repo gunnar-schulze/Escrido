@@ -60,7 +60,7 @@ currently available:
 Argument values formatting:
 - () : content in paranthese must be in the same line as the tag
 - &lt;&gt; : text in angle bracket are single words (e.g names or identifiers)
-- "" : text in double quotation marks in the same line
+- "" : text that stands in double quotation marks within the same line
 - &lt;""&gt; : either a single word or a string in double quotation marks
 - [] : content in squared brackets is optional
 - {} : content in curly bracket is the tag main content (e.g. text)
@@ -161,13 +161,21 @@ must be given as &lt;file&gt; argument. This can be followed by an optional text
 that is then used as image caption.
 
 <HR>
-@section tag_ingroup &#64;ingroup &lt;groupname&gt;
+@section tag_ingroup &#64;ingroup (group name)
 
 The <em>&#64;ingroup</em> command is used to mark the page as belonging to a
-specific group labeled by &lt;groupname&gt;. Elements of one group appear together
-in the navigation. Groups can be excluded from the documentation via
+specific <em>group</em> labeled by (group name). Elements of one group appear
+together in the navigation. Groups can be excluded from the documentation via
 the -xg or --exclude-groups command line argument or the EXCLUDE_GROUPS field
 in the escrido file.
+
+A page may belong to multiple groups. This is done by adding multiple &#64;ingroup
+tag lines. The order of the tag lines defines the nesting of the
+groups. This means that the first &#64;ingroup command defines the top level
+group, following &#64;ingroup command define subgroups of decreasing levels.
+
+The &#64;ingroup command order also defines the index for addressing specific
+group names via @ref replacement_tags "replacement tags".
 
 <HR>
 @section tag_internal &#64;internal
@@ -211,7 +219,7 @@ typically used to express warnings of different kinds.
 @section tag_order &#64;order [&lt;name&gt; &lt;name&gt; ...]
 
 This tag is used to define an order for selected pages of the document. The &#64;order command
-takes a list of identifiers as argument (seperated by commas, whitespaces or line breaks).
+takes a list of identifiers as argument (seperated by commas).
 The order of this list is then applied to the groups and pages. &#64;order commands can
 be used multiple times and they get combined in the order of their appearance. Only
 &#64;order commands in the main page are processed.

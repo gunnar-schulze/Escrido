@@ -32,7 +32,13 @@
 
 // *********************
 // *                   *
-// *      CGroup       *
+// *     CGroupNode    *
+// *                   *
+// *********************
+
+// *********************
+// *                   *
+// *     CGroupTree    *
 // *                   *
 // *********************
 
@@ -69,7 +75,8 @@
 /// Namespace of the Escrido "multi-language documentation generator" project.
 namespace escrido
 {
-  class CGroup;
+  class CGroupNode;
+  class CGroupTree;
   class CParam;
   class CParamList;
   class CDocPage;            // Basic documentation page. Parent class of all pages.
@@ -120,6 +127,9 @@ namespace escrido
 
   // String replacement:
   void ReplacePlaceholder( const char* szPlaceholder_i,
+                           const std::vector<std::string>& asReplacementList_i,
+                           std::string& sTemplateData_io );
+  void ReplacePlaceholder( const char* szPlaceholder_i,
                            const std::string& sReplacement_i,
                            std::string& sTemplateData_io );
   void ReplacePlaceholder( const char* szPlaceholder_i,
@@ -145,27 +155,73 @@ namespace escrido
                             const SWriteInfo& oWriteInfo_io );
 }
 
+// -----------------------------------------------------------------------------
 
-
-
+// CLASS CGroupNode
 
 // -----------------------------------------------------------------------------
 
-// CLASS CGroup
-
-// -----------------------------------------------------------------------------
-
-class escrido::CGroup
+class escrido::CGroupNode
 {
   public:
 
-    std::string sGroupName;
+    const std::string sGroupName;
     std::vector <size_t> naDocPageIdxList;
+
+  private:
+
+    std::vector <CGroupNode*> apChildNodeList;
+
+  public:
+
+    // Constructor, destructor:
+    CGroupNode( const std::string& sGroupName_i );
+    ~CGroupNode();
+
+    // Child node managment:
+    CGroupNode* AddChildGroup( const std::string& sGroupName_i );
+    CGroupNode* GetChildGroup( const std::string& sGroupName_i ) const;
+    void Clear();
+    void Order( const std::vector <CDocPage*>& apDocPageList_i,
+                const std::vector <std::string>& asRefList_i );
+
+  friend class CGroupTree;
+};
+
+// -----------------------------------------------------------------------------
+
+// CLASS CGroupTree
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      A tree container for organizing the membership of individual
+///             document pages in various groups.
+// *****************************************************************************
+
+class escrido::CGroupTree
+{
+  private:
+
+    const std::vector <CDocPage*>& apDocPageList;
+
+    CGroupNode oRoot;
+    size_t nMaxLvl;
 
   public:
 
     // Constructor:
-    CGroup( const std::string& sGroupName_i );
+    CGroupTree( const std::vector <CDocPage*>& apDocPageList_i );
+
+    void Update();
+    void Clear();
+    void Order( const std::vector <std::string>& asRefList_i );
+
+    // Group access:
+    const CGroupNode* FirstGroupNode( size_t& nLvl_o ) const;
+    const CGroupNode* NextGroupNode( const CGroupNode* pLast_i, size_t& nLvl_o ) const;
+    size_t MaxLvl() const;
+    std::vector <std::string> GetGroupNames( const CGroupNode* pGroup_i ) const;
 };
 
 // -----------------------------------------------------------------------------
@@ -256,7 +312,7 @@ class escrido::CDocPage
     CContentUnit&      GetContentUnit();
     const std::string  GetBrief() const;
     const std::string  GetNamespace() const;
-    const std::string  GetGroupName() const;
+    const std::vector<std::string> GetGroupNames() const;
 
     // Output method:
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
@@ -348,10 +404,10 @@ class escrido::CDocumentation
 {
   private:
 
-    std::vector <CDocPage*> paDocPageList;               ///< List of all contained documentation pages.
+    std::vector <CDocPage*> paDocPageList; ///< List of all contained documentation pages.
 
-    mutable bool fGroupOrdered;                          ///< Flag whether a group ordering is available for the documentation pages.
-    mutable std::vector <escrido::CGroup> oaGroupList;   ///< List of the ordering groups.
+    mutable bool fGroupOrdered;            ///< Flag whether a group ordering is available for the documentation pages.
+    mutable CGroupTree oaGroupTree;        ///< Container for ordering of groups.
 
   public:
 
@@ -378,14 +434,16 @@ class escrido::CDocumentation
   private:
 
     // Helper functions:
-    void WriteTableOfContentHTML( const CDocPage* pWritePage_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
-    void WriteTOCPageType( const CGroup& oGroup_i,
-                           const std::string& sPageTypeID_i,
-                           const CDocPage* pWritePage_i,
-                           std::ostream& oOutStrm_i,
-                           const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTableOfContent( const CDocPage* pWritePage_i,
+                                  std::ostream& oOutStrm_i,
+                                  const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
+                               const std::string& sPageTypeID_i,
+                               const CDocPage* pWritePage_i,
+                               std::ostream& oOutStrm_i,
+                               const SWriteInfo& oWriteInfo_i ) const;
 
-    void FillGroupListOrdered() const;
+    void FillGroupTreeOrdered() const;
 };
 
 

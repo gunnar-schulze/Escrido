@@ -258,6 +258,7 @@ namespace escrido
   bool          All( const std::string& sText_i, std::string& sAll_o );
   bool          FirstWord( const std::string& sText_i, std::string& sFirstWord_o );
   bool          FirstQuote( const std::string& sText_i, std::string& sFirstQuote_o );
+  bool          FirstLine( const std::string& sText_i, std::string& sFirstLine_o );
   bool          AllButFirstWord( const std::string& sText_i, std::string& sAllButFirstWord_o );
   bool          AllButFirstQuote( const std::string& sText_i, std::string& sAllButFirstQuote_o );
   std::string   MakeIdentifier( const std::string& sWord_i );
@@ -317,6 +318,7 @@ class escrido::CContentChunk
     std::string GetPlainFirstWord() const;
     std::string GetPlainFirstWordOrQuote() const;
     std::string GetPlainAllButFirstWord() const;
+    std::string GetPlainFirstLine() const;
 
     // Append parsing content:
     void AppendChar( const char cChar_i );
@@ -373,6 +375,7 @@ class escrido::CTagBlock
     std::string GetPlainText() const;
     std::string GetPlainFirstWord() const;
     std::string GetPlainFirstWordOrQuote() const;
+    std::string GetPlainTitleLine() const;
     std::string GetPlainTitleLineButFirstWord() const;
 
     // Content chunk navigation:

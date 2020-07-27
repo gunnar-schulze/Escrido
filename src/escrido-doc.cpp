@@ -16,16 +16,401 @@
 #include <fstream>      // std::ifstream, std::ofstream
 #include <iostream>     // std::cout, std::cin, std::cerr, std::endl
 #include <cctype>       // tolower, toupper
+#include <algorithm>    // std::sort
 
 // -----------------------------------------------------------------------------
 
-// CLASS CGroup
+// CLASS CGroupNode
 
 // -----------------------------------------------------------------------------
 
-escrido::CGroup::CGroup( const std::string& sGroupName_i ):
+escrido::CGroupNode::CGroupNode( const std::string& sGroupName_i ):
   sGroupName ( sGroupName_i )
 {}
+
+// .............................................................................
+
+escrido::CGroupNode::~CGroupNode()
+{
+  this->Clear();
+}
+
+// .............................................................................
+
+escrido::CGroupNode* escrido::CGroupNode::AddChildGroup( const std::string& sGroupName_i )
+{
+  CGroupNode* pNewSubGroup = new CGroupNode( sGroupName_i );
+
+  apChildNodeList.push_back( pNewSubGroup );
+
+  return pNewSubGroup;
+}
+
+// .............................................................................
+
+escrido::CGroupNode* escrido::CGroupNode::GetChildGroup( const std::string& sGroupName_i ) const
+{
+  for( size_t g = 0; g < apChildNodeList.size(); ++g )
+    if( apChildNodeList[g]->sGroupName == sGroupName_i )
+      return apChildNodeList[g];
+
+  return NULL;
+}
+
+// .............................................................................
+
+void escrido::CGroupNode::Clear()
+{
+  for( size_t g = 0; g < apChildNodeList.size(); ++g )
+    delete apChildNodeList[g];
+
+  apChildNodeList.resize( 0 );
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Orders the group node on base of a reference list.
+///
+/// \details    The function orderds the containing doc pages and the subgroup
+///             nodes based on the given reference list.
+///
+///             Elements that are noted in the reference list are positoned at
+///             the front in an order equal to the one of the reference list.
+///             Other elements come after that in alphanumerical order.
+// *****************************************************************************
+
+void escrido::CGroupNode::Order( const std::vector <CDocPage*>& apDocPageList_i,
+                                 const std::vector <std::string>& asRefList_i )
+{
+  // An object for alphanumeric sorting.
+  struct SSortObj
+  {
+    const std::string* psTitle;
+    size_t nIdx;
+
+    SSortObj( const std::string* psTitle_i, size_t nIdx_i ):
+      psTitle ( psTitle_i ),
+      nIdx    ( nIdx_i )
+    {};
+
+    // Alphanumeric comparison
+    bool operator<( const SSortObj& oRHS_i )
+    {
+      const std::string& sLHS = *this->psTitle;
+      const std::string& sRHS = *oRHS_i.psTitle;
+
+      size_t nMinLen = sLHS.size();
+      if( sRHS.size() < nMinLen )
+        nMinLen = sRHS.size();
+
+      for( size_t c = 0; c < nMinLen; ++c )
+        if( sLHS[c] != sRHS[c] )
+        {
+          return ( toupper( sLHS[c] ) < toupper( sRHS[c] ) );
+        }
+
+      // For strings equal up to nMinLen use string length:
+      return sLHS.size() < sRHS.size();
+    };
+
+    SSortObj& operator=( const SSortObj& oRHS_i )
+    {
+      psTitle = oRHS_i.psTitle;
+      nIdx = oRHS_i.nIdx;
+    };
+  };
+
+  // Step 1: order doc pages inside by the @order tags.
+  {
+    // Create a new doc page list
+    std::vector<size_t> anNewDocPageIdxList;
+
+    // Step 1.1: loop over reference list
+    for( size_t r = 0; r < asRefList_i.size(); ++r )
+    {
+      const std::string& sRef = asRefList_i[r];
+
+      // Check if the reference occurs within the original list of doc pages.
+      for( size_t p = 0; p < this->naDocPageIdxList.size(); ++p )
+        if( apDocPageList_i[this->naDocPageIdxList[p]]->GetIdent() == sRef )
+        {
+          // Add doc page index to new doc page list.
+          anNewDocPageIdxList.push_back( this->naDocPageIdxList[p] );
+
+          // Remove doc page from original list. (Change of order does not matter.)
+          this->naDocPageIdxList[p] = this->naDocPageIdxList.back();
+          this->naDocPageIdxList.pop_back();
+
+          break;
+        }
+    }
+
+    // Step 1.2: order remaining doc pages alphanumerically by title.
+    {
+      // Create a sort object list of the remaining doc pages.
+      std::vector <SSortObj> aoRemDocPageList;
+      for( size_t p = 0; p < this->naDocPageIdxList.size(); ++p )
+        aoRemDocPageList.emplace_back( &(apDocPageList_i[this->naDocPageIdxList[p]]->GetTitle()),
+                                       this->naDocPageIdxList[p] );
+
+      // Sort the list.
+      std::sort( aoRemDocPageList.begin(), aoRemDocPageList.end() );
+
+      // Add result to new doc pages list.
+      for( size_t p = 0; p < aoRemDocPageList.size(); ++p )
+        anNewDocPageIdxList.push_back( aoRemDocPageList[p].nIdx );
+    }
+
+    // Step 1.3: swap doc page index lists.
+    this->naDocPageIdxList.swap( anNewDocPageIdxList );
+  }
+
+  // Step 2: order subgroups.
+  {
+    // Create a new child node list
+    std::vector<CGroupNode*> anNewChildNodeList;
+
+    // Step 2.1: loop over reference list
+    for( size_t r = 0; r < asRefList_i.size(); ++r )
+    {
+      const std::string& sRef = asRefList_i[r];
+
+      // Check if the reference occurs within the original list of children.
+      for( size_t c = 0; c < this->apChildNodeList.size(); ++c )
+        if( this->apChildNodeList[c]->sGroupName == sRef )
+        {
+          // Add subgroup to new child node list.
+          anNewChildNodeList.push_back( this->apChildNodeList[c] );
+
+          // Remove child node from original list. (Change of order does not matter.)
+          this->apChildNodeList[c] = this->apChildNodeList.back();
+          this->apChildNodeList.pop_back();
+
+          break;
+        }
+    }
+
+    // Step 2.2: order remaining child nodes alphanumerically by title.
+    {
+      // Create a sort object list of the remaining doc pages.
+      std::vector <SSortObj> aoRemChildNodeList;
+      for( size_t c = 0; c < this->apChildNodeList.size(); ++c )
+        aoRemChildNodeList.emplace_back( &(this->apChildNodeList[c]->sGroupName),
+                                         c );
+
+      // Sort the list.
+      std::sort( aoRemChildNodeList.begin(), aoRemChildNodeList.end() );
+
+      // Add result to new doc pages list.
+      for( size_t c = 0; c < aoRemChildNodeList.size(); ++c )
+        anNewChildNodeList.push_back( this->apChildNodeList[aoRemChildNodeList[c].nIdx] );
+    }
+
+    // Step 2.3: swap child node lists.
+    this->apChildNodeList.swap( anNewChildNodeList );
+  }
+
+  // Step 3: apply to all children.
+  for( size_t c = 0; c < this->apChildNodeList.size(); ++c )
+    this->apChildNodeList[c]->Order( apDocPageList_i, asRefList_i );
+}
+
+// -----------------------------------------------------------------------------
+
+// CLASS CGroupTree
+
+// -----------------------------------------------------------------------------
+
+escrido::CGroupTree::CGroupTree( const std::vector <CDocPage*>& apDocPageList_i ) :
+  apDocPageList ( apDocPageList_i ),
+  oRoot         ( "" ),
+  nMaxLvl       ( 0 )
+{}
+
+// .............................................................................
+
+// *****************************************************************************
+/// @brief      Creates a full group tree based on the current state of the
+///             doc pages list.
+// *****************************************************************************
+
+void escrido::CGroupTree::Update()
+{
+  this->Clear();
+
+  for( size_t f = 0; f < this->apDocPageList.size(); f++ )
+  {
+    // Get list of group memberships (in priorized order) of the doc page.
+    const std::vector<std::string> asDocPageGroupNames = apDocPageList[f]->GetGroupNames();
+
+    // Update maximum group level depth.
+    if( asDocPageGroupNames.size() > this->nMaxLvl )
+      this->nMaxLvl = asDocPageGroupNames.size();
+
+    // Cycle over tree in search for the respective group bin.
+    CGroupNode* pGroupNode = &oRoot;
+    for( size_t g = 0; g < asDocPageGroupNames.size(); ++g )
+    {
+      // Group name on this level.
+      const std::string& sGroupName = asDocPageGroupNames[g];
+
+      // Find or create subgroup as child of the current node.
+      CGroupNode* pSubGroup = pGroupNode->GetChildGroup( sGroupName );
+      if( pSubGroup == NULL )
+        pSubGroup = pGroupNode->AddChildGroup( sGroupName );
+
+      // Proceed with subgroup.
+      pGroupNode = pSubGroup;
+    }
+
+    // Add the doc page index to the terminal (sub-)group
+    pGroupNode->naDocPageIdxList.push_back( f );
+  }
+}
+
+// .............................................................................
+
+void escrido::CGroupTree::Clear()
+{
+  oRoot.Clear();
+  this->nMaxLvl = 0;
+}
+
+// .............................................................................
+
+void escrido::CGroupTree::Order( const std::vector <std::string>& asRefList_i )
+{
+  oRoot.Order( apDocPageList, asRefList_i );
+}
+
+// .............................................................................
+
+const escrido::CGroupNode* escrido::CGroupTree::FirstGroupNode( size_t& nLvl_o ) const
+{
+  nLvl_o = 0;
+
+  return &oRoot;
+}
+
+// .............................................................................
+
+const escrido::CGroupNode* escrido::CGroupTree::NextGroupNode( const CGroupNode* pLast_i,
+                                                               size_t& nLvl_o ) const
+{
+  // A search stack element
+  struct SNode
+  {
+    const size_t nLvl;
+    const CGroupNode* pNode;
+
+    SNode( size_t nLvl_i, const CGroupNode* pNode_i ):
+      nLvl  ( nLvl_i ),
+      pNode ( pNode_i )
+      {};
+  };
+
+  // A search stack for looping over the tree.
+  // Initialize with root node.
+  std::vector <SNode> apStack;
+  apStack.emplace_back( 0, &oRoot );
+
+  // Walk over tree.
+  while( !apStack.empty() )
+  {
+    // Pop last node
+    const CGroupNode* pNode = apStack.back().pNode;
+    size_t nLvl = apStack.back().nLvl;
+    apStack.pop_back();
+
+    // Search for the given node:
+    if( pNode == pLast_i )
+    {
+      if( pNode->apChildNodeList.empty() )
+      {
+        if( apStack.empty() )
+        {
+          // Return NULL, signaling that no further element proceeds.
+          return NULL;
+        }
+        else
+        {
+          // Return next element in stack.
+          nLvl_o = apStack.back().nLvl;
+          return apStack.back().pNode;
+        }
+      }
+      else
+      {
+        // Return first child.
+        nLvl_o = nLvl + 1;
+        return pNode->apChildNodeList.front();
+      }
+    }
+
+    // Add all children back-to-front to the stack (i.e. depth first looping).
+    for( size_t c = pNode->apChildNodeList.size(); c > 0; --c )
+      apStack.emplace_back( nLvl + 1, pNode->apChildNodeList[c-1] );
+  }
+
+  return NULL;
+}
+
+// .............................................................................
+
+size_t escrido::CGroupTree::MaxLvl() const
+{
+  return nMaxLvl;
+}
+
+// .............................................................................
+
+std::vector<std::string> escrido::CGroupTree::GetGroupNames( const CGroupNode* pGroup_i ) const
+{
+  // A search stack element
+  struct SNode
+  {
+    const size_t nLvl;
+    const CGroupNode* pNode;
+
+    SNode( size_t nLvl_i, const CGroupNode* pNode_i ):
+      nLvl  ( nLvl_i ),
+      pNode ( pNode_i )
+      {};
+  };
+
+  // String list for the function result.
+  std::vector<std::string> oResult;
+
+  // A search stack for looping over the tree.
+  // Initialize with root node.
+  std::vector <SNode> apStack;
+  apStack.emplace_back( 0, &oRoot );
+
+  // Walk over tree.
+  while( !apStack.empty() )
+  {
+    // Pop last node
+    const CGroupNode* pNode = apStack.back().pNode;
+    size_t nLvl = apStack.back().nLvl;
+    apStack.pop_back();
+
+    // Delete all names in the output string list up to this level.
+    oResult.resize( nLvl );
+    if( nLvl > 0 )
+      oResult[nLvl - 1] = pNode->sGroupName;
+
+    // Search for the given node:
+    if( pNode == pGroup_i )
+      return oResult;
+
+    // Add all children back-to-front to the stack (i.e. depth first looping).
+    for( size_t c = pNode->apChildNodeList.size(); c > 0; --c )
+      apStack.emplace_back( nLvl + 1, pNode->apChildNodeList[c-1] );
+  }
+
+  return oResult;
+}
 
 // -----------------------------------------------------------------------------
 
@@ -197,12 +582,22 @@ const std::string escrido::CDocPage::GetNamespace() const
 
 // .............................................................................
 
-const std::string escrido::CDocPage::GetGroupName() const
+const std::vector <std::string> escrido::CDocPage::GetGroupNames() const
 {
+  std::vector <std::string> oResult;
+
   if( this->oContUnit.HasTagBlock( tag_type::INGROUP ) )
-    return this->oContUnit.GetFirstTagBlock( tag_type::INGROUP )->GetPlainText();  // TODO: GetPlainFirstLine
-  else
-    return std::string();
+  {
+    const CTagBlock* oTagBlock = this->oContUnit.GetFirstTagBlock( tag_type::INGROUP );
+    oResult.push_back( oTagBlock->GetPlainTitleLine() );
+
+    while( ( oTagBlock = this->oContUnit.GetNextTagBlock( oTagBlock, tag_type::INGROUP ) ) != NULL )
+    {
+      oResult.push_back( oTagBlock->GetPlainTitleLine() );
+    }
+  }
+
+  return oResult;
 }
 
 // .............................................................................
@@ -571,7 +966,8 @@ void escrido::CRefPage::BuildPageTypeID()
 // -----------------------------------------------------------------------------
 
 escrido::CDocumentation::CDocumentation() :
-  fGroupOrdered ( false )
+  fGroupOrdered ( false ),
+  oaGroupTree   ( this->paDocPageList )
 {}
 
 // .............................................................................
@@ -690,13 +1086,23 @@ void escrido::CDocumentation::RemoveGroups( const std::vector<std::string>& saGr
 {
   for( size_t f = 0; f < this->paDocPageList.size(); )
   {
+    std::vector<std::string> asGroupPage = this->paDocPageList[f]->GetGroupNames();
+
     bool fRemove = false;
-    for( size_t g = 0; g < saGroupBlackList_i.size(); g++ )
-      if( this->paDocPageList[f]->GetGroupName() == saGroupBlackList_i[g] )
+    for( size_t pg = 0; pg < asGroupPage.size(); ++pg )
+    {
+      for( size_t bg = 0; bg < saGroupBlackList_i.size(); bg++ )
       {
-        fRemove = true;
-        break;
+        if( asGroupPage[pg] == saGroupBlackList_i[bg] )
+        {
+          fRemove = true;
+          goto break_loop;
+        }
       }
+    }
+
+    // GOTO target for breaking the double loop:
+    break_loop:
 
     if( fRemove )
       this->paDocPageList.erase( this->paDocPageList.begin() + f );
@@ -782,9 +1188,9 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
       ReplacePlaceholder( "*escrido-headline*", *pPage, &CDocPage::WriteHTMLHeadline, oWriteInfo, sTemplatePage );
       ReplacePlaceholder( "*escrido-page-text*", *pPage, &CDocPage::WriteHTMLParSectDet, oWriteInfo, sTemplatePage );
       ReplacePlaceholder( "*escrido-type*", GetCapForm( pPage->GetPageTypeLit() ), sTemplatePage );
-      ReplacePlaceholder( "*escrido-groupname*", pPage->GetGroupName(), sTemplatePage );
+      ReplacePlaceholder( "*escrido-groupname#*", pPage->GetGroupNames(), sTemplatePage );
       ReplacePlaceholder( "*escrido-title*", pPage->GetTitle(), sTemplatePage );
-      ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteTableOfContentHTML, pPage, oWriteInfo, sTemplatePage );
+      ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteHTMLTableOfContent, pPage, oWriteInfo, sTemplatePage );
 
       ReplacePlaceholder( "*escrido-brief*", *pPage, &CDocPage::WriteHTMLTagBlock, tag_type::BRIEF, oWriteInfo, sTemplatePage );
       ReplacePlaceholder( "*escrido-return*", *pPage, &CDocPage::WriteHTMLTagBlock, tag_type::RETURN, oWriteInfo, sTemplatePage );
@@ -877,23 +1283,52 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
           ReplacePlaceholder( "*escrido-mainbrief*", pMainContentUnit->GetFirstTagBlock( tag_type::BRIEF )->GetPlainText(), sTemplateDoc );
       }
 
-      // Loop over groups:
-      for( size_t g = 0; g < this->oaGroupList.size(); g++ )
+      // Loop over group tree to write groups content
+      size_t nLvl;
+      const CGroupNode* pGroup = this->oaGroupTree.FirstGroupNode( nLvl );
+      while( pGroup != NULL )
       {
-        // Expand "*escrido-pages*" and
-        ReplacePlaceholder( "*escrido-pages*", "\\pagegroupheadline{*escrido-grouptitle*}%\n\n*escrido-pages*", sTemplateDoc );
+        // Write group headline if
+        // - groups are used at all
+        // - this group contains any pages
+        if( ( this->oaGroupTree.MaxLvl() > 0 ) &&
+            !pGroup->naDocPageIdxList.empty() )
+        {
+          // Expand "*escrido-pages*" in order to add a group headline
+          ReplacePlaceholder( "*escrido-pages*",
+                              "\\pagegroupheadline{*escrido-grouptitle*}%\n\n*escrido-pages*",
+                              sTemplateDoc );
 
-        // Insert group name as chapter title:
-        if( oaGroupList[g].sGroupName.empty() )
-          ReplacePlaceholder( "*escrido-grouptitle*", "Introduction", sTemplateDoc );
-        else
-          ReplacePlaceholder( "*escrido-grouptitle*", oaGroupList[g].sGroupName, sTemplateDoc );
+          // Write group name
+          if( nLvl == 0 )
+          {
+            // Root level group becomes 'Introduction':
+            ReplacePlaceholder( "*escrido-grouptitle*", "Introduction", sTemplateDoc );
+          }
+          else
+          {
+            // Get list of parent names of this group.
+            std::vector <std::string> asGroupNameList = this->oaGroupTree.GetGroupNames( pGroup );
+
+            // Generate a combined name string from that.
+            std::string sCombGroupName;
+            for( size_t gn = 0; gn < asGroupNameList.size(); ++gn )
+            {
+              sCombGroupName += asGroupNameList[gn];
+              if( gn + 1 < asGroupNameList.size() )
+                sCombGroupName += " - ";
+            }
+
+            // Set combined group name
+            ReplacePlaceholder( "*escrido-grouptitle*", sCombGroupName, sTemplateDoc );
+          }
+        }
 
         // Write pages of the group.
-        for( size_t p = 0; p < oaGroupList[g].naDocPageIdxList.size(); p++ )
+        for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); p++ )
         {
           // Get a pointer to this page.
-          CDocPage* pPage = paDocPageList[oaGroupList[g].naDocPageIdxList[p]];
+          CDocPage* pPage = paDocPageList[pGroup->naDocPageIdxList[p]];
 
           // Output
           std::cout << "writing page '" << pPage->GetIdent() << "' ";
@@ -931,7 +1366,7 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
             ReplacePlaceholder( "*escrido-headline*", *pPage, &CDocPage::WriteLaTeXHeadline, oWriteInfo, sTemplatePage );
             ReplacePlaceholder( "*escrido-page-text*", *pPage, &CDocPage::WriteLaTeXParSectDet, oWriteInfo, sTemplatePage );
             ReplacePlaceholder( "*escrido-type*", GetCapForm( pPage->GetPageTypeLit() ), sTemplatePage );
-            ReplacePlaceholder( "*escrido-groupname*", pPage->GetGroupName(), sTemplatePage );
+            ReplacePlaceholder( "*escrido-groupname#*", pPage->GetGroupNames(), sTemplatePage );
             ReplacePlaceholder( "*escrido-title*", pPage->GetTitle(), sTemplatePage );
 
             ReplacePlaceholder( "*escrido-brief*", *pPage, &CDocPage::WriteLaTeXTagBlock, tag_type::BRIEF, oWriteInfo, sTemplatePage );
@@ -950,6 +1385,9 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
           // Output
           std::cout << std::endl;
         }
+
+        // Get next group
+        pGroup = this->oaGroupTree.NextGroupNode( pGroup, nLvl );
       }
 
       // Delete final "*escrido-pages*":
@@ -973,29 +1411,42 @@ void escrido::CDocumentation::DebugOutput() const
 
 // .............................................................................
 
-void escrido::CDocumentation::WriteTableOfContentHTML( const CDocPage* pWritePage_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePage_i,
+                                                       std::ostream& oOutStrm_i,
+                                                       const SWriteInfo& oWriteInfo_i ) const
 {
   if( !fGroupOrdered )
-    this->FillGroupListOrdered();
+    this->FillGroupTreeOrdered();
 
   WriteHTMLTagLine( "<h1>Contents</h1>", oOutStrm_i, oWriteInfo_i );
 
-  // Loop over groups:
-  for( size_t g = 0; g < this->oaGroupList.size(); g++ )
+  // Loop over group tree:
+  size_t nLvl;
+  const CGroupNode* pGroup = this->oaGroupTree.FirstGroupNode( nLvl );
+  while( pGroup != NULL )
   {
-    // If groups are used: show group name.
-    if( this->oaGroupList.size() > 1 )
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>" << oaGroupList[g].sGroupName << "</h2>" << std::endl;
+    // If group name is not empty: display it
+    if( !(pGroup->sGroupName.empty()) )
+    {
+      // Determine HTML heading level from the group nesting level.
+      // Don't go below level 5 since level 6 is reserved for page type.
+      size_t nHeadingLvl = nLvl + 1;
+      if( nHeadingLvl > 5 )
+        nHeadingLvl = 5;
+
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) <<
+        "<h" << nHeadingLvl << ">" << pGroup->sGroupName << "</h" << nHeadingLvl << ">" << std::endl;
+    }
 
     // Write all pages of page types "mainpage" and "page" of this group.
-    WriteTOCPageType( this->oaGroupList[g], "mainpage", pWritePage_i, oOutStrm_i, oWriteInfo_i );
-    WriteTOCPageType( this->oaGroupList[g], "page", pWritePage_i, oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTOCPageType( *pGroup, "mainpage", pWritePage_i, oOutStrm_i, oWriteInfo_i );
+    WriteHTMLTOCPageType( *pGroup, "page", pWritePage_i, oOutStrm_i, oWriteInfo_i );
 
     // Populate a list of all user-defined page types that appear in this group.
     std::vector<std::string>saPageTypeList;
-    for( size_t p = 0; p < this->oaGroupList[g].naDocPageIdxList.size(); p++ )
+    for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); p++ )
     {
-      std::string sPageTypeID = paDocPageList[this->oaGroupList[g].naDocPageIdxList[p]]->GetPageTypeID();
+      std::string sPageTypeID = paDocPageList[pGroup->naDocPageIdxList[p]]->GetPageTypeID();
 
       bool fExists = false;
       for( size_t pt = 0; pt < saPageTypeList.size(); pt++ )
@@ -1012,17 +1463,20 @@ void escrido::CDocumentation::WriteTableOfContentHTML( const CDocPage* pWritePag
     // Write all pages of all other page types of this group.
     for( size_t pt = 0; pt < saPageTypeList.size(); pt++ )
       if( saPageTypeList[pt] != "mainpage" && saPageTypeList[pt] != "page" )
-        WriteTOCPageType( this->oaGroupList[g], saPageTypeList[pt], pWritePage_i, oOutStrm_i, oWriteInfo_i );
+        WriteHTMLTOCPageType( *pGroup, saPageTypeList[pt], pWritePage_i, oOutStrm_i, oWriteInfo_i );
+
+    // Get next group
+    pGroup = this->oaGroupTree.NextGroupNode( pGroup, nLvl );
   }
 }
 
 // .............................................................................
 
-void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
-                                                const std::string& sPageTypeID_i,
-                                                const CDocPage* pWritePage_i,
-                                                std::ostream& oOutStrm_i,
-                                                const SWriteInfo& oWriteInfo_i ) const
+void escrido::CDocumentation::WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
+                                                    const std::string& sPageTypeID_i,
+                                                    const CDocPage* pWritePage_i,
+                                                    std::ostream& oOutStrm_i,
+                                                    const SWriteInfo& oWriteInfo_i ) const
 {
   // Check whether any pages of this type exist and (if so) retrieve the
   // literal form of the page type name.
@@ -1045,7 +1499,7 @@ void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
     // For all but "page" and "mainpage": write a headline.
     if( sPageTypeID_i != "page" &&
         sPageTypeID_i != "mainpage" )
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h3>" << GetCapPluralForm( sPageTypeLit ) << "</h3>" << std::endl;
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h6>" << GetCapPluralForm( sPageTypeLit ) << "</h6>" << std::endl;
 
     WriteHTMLTagLine( "<ul>", oOutStrm_i, oWriteInfo_i );
     ++oWriteInfo_i;
@@ -1102,30 +1556,13 @@ void escrido::CDocumentation::WriteTOCPageType( const CGroup& oGroup_i,
 // .............................................................................
 
 // *****************************************************************************
-/// \brief      Fills the group list oaGroupList in an ordered form.
+/// \brief      Fills the group tree oaGroupTree in an ordered form.
 // *****************************************************************************
 
-void escrido::CDocumentation::FillGroupListOrdered() const
+void escrido::CDocumentation::FillGroupTreeOrdered() const
 {
-  // Step 1: create group list and fill in all pages.
-  oaGroupList.clear();
-  for( size_t f = 0; f < this->paDocPageList.size(); f++ )
-  {
-    bool fFound = false;
-    for( size_t g = 0; g < oaGroupList.size(); g++ )
-      if( this->paDocPageList[f]->GetGroupName() == oaGroupList[g].sGroupName )
-      {
-        oaGroupList[g].naDocPageIdxList.push_back( f );
-        fFound = true;
-        break;
-      }
-
-    if( !fFound )
-    {
-      oaGroupList.emplace_back( this->paDocPageList[f]->GetGroupName() );
-      oaGroupList.back().naDocPageIdxList.push_back( f );
-    }
-  }
+  // Step 1: create group tree and fill in all pages.
+  oaGroupTree.Update();
 
   // Step 2: create a reference list from the @order tags of the main page.
   std::vector <std::string> saOrderRefList;
@@ -1156,16 +1593,20 @@ void escrido::CDocumentation::FillGroupListOrdered() const
         size_t nBeg = sOrderText.find_first_not_of( " \t," );
         while( nBeg != std::string::npos )
         {
-          size_t nEnd = sOrderText.find_first_of( " \t,", nBeg );
-          if( nEnd == std::string::npos )
+          size_t nDelim = sOrderText.find_first_of( ",", nBeg );
+          if( nDelim == std::string::npos )
           {
-            saOrderRefList.emplace_back( sOrderText.substr( nBeg ) );
+            size_t nEnd = sOrderText.find_last_not_of( " \t," );
+
+            saOrderRefList.emplace_back( sOrderText.substr( nBeg, nEnd - nBeg + 1 ) );
             break;
           }
           else
           {
-            saOrderRefList.emplace_back( sOrderText.substr( nBeg, nEnd - nBeg ) );
-            nBeg = sOrderText.find_first_not_of( " \t,", nEnd );
+            size_t nEnd = sOrderText.find_last_not_of( " \t,", nDelim );
+
+            saOrderRefList.emplace_back( sOrderText.substr( nBeg, nEnd - nBeg + 1 ) );
+            nBeg = sOrderText.find_first_not_of( " \t,", nDelim );
           }
         }
 
@@ -1174,119 +1615,9 @@ void escrido::CDocumentation::FillGroupListOrdered() const
     }
   }
 
-  // Step 3: order pages of each group by the @order tags.
-  // (This implements the most primitive sorting algorithm but it only has to work on
-  // small sets.)
-  if( !saOrderRefList.empty() )
-    for( size_t g = 0; g < oaGroupList.size(); g++ )
-      for( size_t p1 = 0; p1 < oaGroupList[g].naDocPageIdxList.size(); p1++ )
-      {
-        // Get identifier of page p1.
-        const std::string sIdentP1 = paDocPageList[oaGroupList[g].naDocPageIdxList[p1]]->GetIdent();
-
-        // Check if order reference list contains p1.
-        bool fRef = false;
-        for( size_t r1 = 0; r1 < saOrderRefList.size(); r1++ )
-          if( saOrderRefList[r1] == sIdentP1 )
-          {
-            // For each element after r1...
-            for( size_t r2 = r1 + 1; r2 < saOrderRefList.size(); r2++ )
-            {
-              // ... check if there is an element p2 before p1...
-              for( size_t p2 = 0; p2 < p1; p2++ )
-              {
-                // Get identifier of page p2.
-                const std::string sIdentP2 = paDocPageList[oaGroupList[g].naDocPageIdxList[p2]]->GetIdent();
-
-                if( saOrderRefList[r2] == sIdentP2 )
-                {
-                  // ... and exchange p1 and p2.
-                  size_t nBuf = oaGroupList[g].naDocPageIdxList[p1];
-                  oaGroupList[g].naDocPageIdxList[p1] = oaGroupList[g].naDocPageIdxList[p2];
-                  oaGroupList[g].naDocPageIdxList[p2] = nBuf;
-                  break;
-                }
-              }
-            }
-            break;
-          }
-      }
-
-
-  // Step 4: order groups by the @order tags
-  if( !saOrderRefList.empty() )
-  {
-    // Create a list of group indices that has the correct order.
-    std::vector <size_t> naOrderGroupIdxList;
-
-    // Eventually add the group with empty name first, if this one exists.
-    for( size_t g = 0; g < oaGroupList.size(); g++ )
-      if( oaGroupList[g].sGroupName.empty() )
-      {
-        naOrderGroupIdxList.push_back( g );
-        break;
-      }
-
-    // Add other groups in the order of their appearance in the order reference list.
-    for( size_t r = 0; r < saOrderRefList.size(); r++ )
-    {
-      // Check if there is a group assoziated with this reference
-      size_t nGroupIdx;
-      bool fFound = false;
-      for( nGroupIdx = 0; nGroupIdx < oaGroupList.size(); nGroupIdx++ )
-      {
-        for( size_t p = 0; p < oaGroupList[nGroupIdx].naDocPageIdxList.size(); p++ )
-        {
-          // Check whether the reference points to this page.
-          if( saOrderRefList[r] == paDocPageList[oaGroupList[nGroupIdx].naDocPageIdxList[p]]->GetIdent() )
-          {
-            fFound = true;
-            break;
-          }
-        }
-        if( fFound )
-          break;
-      }
-
-     // Appending to ordered group list.
-     if( fFound )
-     {
-       // Check whether the index is already listed.
-       bool fNewIndex = true;
-       for( size_t og = 0; og < naOrderGroupIdxList.size(); og++ )
-         if( naOrderGroupIdxList[og] == nGroupIdx )
-         {
-           fNewIndex = false;
-           break;
-         }
-
-       if( fNewIndex )
-         naOrderGroupIdxList.push_back( nGroupIdx );
-     }
-    } // Creation of ordered group index list.
-
-    // Append all group indices that are not in the order group index list yet.
-    for( int g = 0; g < oaGroupList.size(); g++ )
-    {
-      bool fListed = false;
-      for( size_t og = 0; og < naOrderGroupIdxList.size(); og++ )
-        if( naOrderGroupIdxList[og] == g )
-        {
-          fListed = true;
-          break;
-        }
-
-      if( !fListed )
-        naOrderGroupIdxList.push_back( g );
-    }
-
-    // Create a full copy of the group list.
-    std::vector <CGroup> oaGroupListCpy( oaGroupList );
-
-    // Refill the group list in the correct order.
-    for( size_t g = 0; g < oaGroupList.size(); g++ )
-      oaGroupList[g] = oaGroupListCpy[naOrderGroupIdxList[g]];
-  }
+  // Step 3: sort the group tree based on the reference list and alphanumeric
+  //         order.
+  oaGroupTree.Order( saOrderRefList );
 
   fGroupOrdered = true;
 }
@@ -1415,6 +1746,59 @@ void escrido::WriteOutput( const std::string& sFileName_i,
 
 // *****************************************************************************
 /// \brief      Exchanges a placeholder inside a to-be-modified string by a
+///             string out of a list of strings.
+// *****************************************************************************
+
+void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
+                                  const std::vector<std::string>& asReplacementList_i,
+                                  std::string& sTemplateData_io )
+{
+  // Step 1: replace without numbering wildcard character.
+  {
+    // Prepare placeholder.
+    std::string sPlaceholder( szPlaceholder_i );
+    size_t nPos = sPlaceholder.find( '#' );
+    if( nPos != std::string::npos )
+      sPlaceholder.erase( nPos, 1 );
+
+    // Prepare replacement: either first element or empty string.
+    std::string sReplacement;
+    if( !asReplacementList_i.empty() )
+      sReplacement = asReplacementList_i[0];
+
+    ReplacePlaceholder( sPlaceholder.c_str(), sReplacement, sTemplateData_io );
+  }
+
+  // Step 2: replace with different index numbers at wildcard position.
+  if( strchr( szPlaceholder_i, '#' ) != NULL )
+  {
+    // Either check for indices [0,9] or how many elements are in the replacement
+    // vector.
+    size_t nIdxN = 10;
+    if( asReplacementList_i.size() > nIdxN )
+      nIdxN = asReplacementList_i.size();
+
+    for( size_t i = 0; i < nIdxN; ++i )
+    {
+      // Prepare placeholder.
+      std::string sPlaceholder = szPlaceholder_i;
+      size_t nPos = sPlaceholder.find( '#' );
+      sPlaceholder.replace( nPos, 1, std::to_string( i ) );
+
+      // Prepare replacement: either ith element or empty string.
+      std::string sReplacement;
+      if( i < asReplacementList_i.size() )
+        sReplacement = asReplacementList_i[i];
+
+      ReplacePlaceholder( sPlaceholder.c_str(), sReplacement, sTemplateData_io );
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Exchanges a placeholder inside a to-be-modified string by a
 ///             given string.
 // *****************************************************************************
 
@@ -1471,7 +1855,7 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
     std::stringstream sReplacement;
     ( oPage_i.*WriteMethod_i )( sReplacement, oWriteInfo_i );
 
-    // Replace all occurances of the placeholder by the replacement string.
+    // Replace all occurrences of the placeholder by the replacement string.
     ReplacePlaceholder( szPlaceholder_i, sReplacement.str(), sTemplateData_io );
   }
 }
@@ -1519,7 +1903,7 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
     std::stringstream sReplacement;
     ( oPage_i.*WriteMethod_i )( fTagType_i, sReplacement, oWriteInfo_i );
 
-    // Replace all occurances of the placeholder by the replacement string.
+    // Replace all occurrences of the placeholder by the replacement string.
     ReplacePlaceholder( szPlaceholder_i, sReplacement.str(), sTemplateData_io );
   }
 }
@@ -1567,7 +1951,7 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
     std::stringstream sReplacement;
     ( oDocumentation_i.*WriteMethod_i )( pPage_i, sReplacement, oWriteInfo_i );
 
-    // Replace all occurances of the placeholder by the replacement string.
+    // Replace all occurrences of the placeholder by the replacement string.
     ReplacePlaceholder( szPlaceholder_i, sReplacement.str(), sTemplateData_io );
   }
 }
@@ -1575,7 +1959,7 @@ void escrido::ReplacePlaceholder( const char* szPlaceholder_i,
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-/// \brief      Used inside string replacement to asjust the indentation of
+/// \brief      Used inside string replacement to adjust the indentation of
 ///             blocks accordingly to the replacement marker.
 // *****************************************************************************
 

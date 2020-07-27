@@ -16,7 +16,6 @@
 #include <string.h>         // strlen()
 #include <iostream>         // cin, cout, cerr, endl
 #include <fstream>          // std::ofstream
-// #include <cstdarg>          // va_list,  va_start(),  va_arg(),  va_end()
 
 // -----------------------------------------------------------------------------
 
@@ -167,6 +166,26 @@ std::string escrido::CContentChunk::GetPlainAllButFirstWord() const
 {
   std::string sReturn;
   AllButFirstWord( sContent, sReturn );
+  return sReturn;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Returns the first line (i.e. the first group of characters
+///             before the first line break '\r', '\n' or '\r\n' ) of the chunk.
+///
+/// \see        escrido::FirstLine()
+/// \see        escrido::MakeIdentifier()
+///
+/// \return     The first line or an empty string, if no
+///             first word exists.
+// *****************************************************************************
+
+std::string escrido::CContentChunk::GetPlainFirstLine() const
+{
+  std::string sReturn;
+  FirstLine( sContent, sReturn );
   return sReturn;
 }
 
@@ -865,6 +884,39 @@ std::string escrido::CTagBlock::GetPlainFirstWordOrQuote() const
 
 // *****************************************************************************
 /// \brief      Returns the title line (i.e. the first line up to the title
+///             delimitor chunk) of the tag block.
+///
+/// \return     The title line or an empty string, if no text in the first line
+///             exists.
+// *****************************************************************************
+
+std::string escrido::CTagBlock::GetPlainTitleLine() const
+{
+  std::string sReturn;
+
+  // Loop through all text chunks until the title line delimitor is reached.
+  size_t c = 0;
+  for( size_t c = 0; c < oaChunkList.size(); c++ )
+  {
+    // Break off in the title line delimitor is reached.
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return sReturn;
+
+    // Skip writing start and end paragraphs.
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    sReturn += oaChunkList[c].GetPlainText();
+  }
+
+  return sReturn;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Returns the title line (i.e. the first line up to the title
 ///             delimitor chunk) without the first word of the tag block.
 ///
 /// \return     The title line without the first word
@@ -876,7 +928,7 @@ std::string escrido::CTagBlock::GetPlainTitleLineButFirstWord() const
 {
   std::string sReturn;
 
-  // Loop through all text chunks until the something after the first word was written.
+  // Loop through all text chunks until something after the first word was written.
   size_t c = 0;
   for( c = 0; c < oaChunkList.size(); c++ )
   {
@@ -3622,7 +3674,7 @@ bool escrido::FirstWord( const std::string& sText_i, std::string& sFirstWord_o )
 {
   sFirstWord_o.clear();
 
-  // Search the first white space after the first word.
+  // Search the first non-white space (i.e. beginning of the first word).
   size_t nBegin = sText_i.find_first_not_of( ' ' );
   if( nBegin != std::string::npos )
   {
@@ -3677,6 +3729,50 @@ bool escrido::FirstQuote( const std::string& sText_i, std::string& sFirstQuote_o
   }
 
   return false;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the first non-empty line (i.e. the first group of
+///             characters before the first line break '\r', '\n'
+///             or '\r\n' ) of a string.
+///             (Strips off first and last whitespaces.)
+///
+/// \param[in]  sText_i
+///             The input text.
+/// \param[out] sFirstLine_o
+///             The first line or the whole text if no first line exists or an
+///             empty string, if no text exists.
+///
+/// \return     true, if a first line exists, false otherwise.
+// *****************************************************************************
+
+bool escrido::FirstLine( const std::string& sText_i, std::string& sFirstLine_o )
+{
+  sFirstLine_o.clear();
+
+  // Search the text after the first white space.
+  size_t nBegin = sText_i.find_first_not_of( ' ' );
+  if( nBegin != std::string::npos )
+  {
+    // Search the first line break or alternative the end of the string.
+    size_t nEnd = sText_i.find_first_of( "\r\n", nBegin );
+    if( nEnd == std::string::npos )
+      nEnd = sText_i.length();
+    if( nEnd == nBegin )
+      return false;
+    else
+      --nEnd;
+
+    // Detect length of the text by skipping last white spaces
+    size_t nLen = sText_i.find_last_not_of( ' ', nEnd ) + 1 - nBegin;
+
+    sFirstLine_o = sText_i.substr( nBegin, nLen );
+    return true;
+  }
+  else
+    return false;
 }
 
 // -----------------------------------------------------------------------------

@@ -3,16 +3,16 @@ Escrido
 =======
 
 :Authors: Gunnar Schulze
-:Date: 2018-11-06
+:Date: 2020-07-27
 :Version: 1.4.0
-:Contact: <gunnar.schulze@trinckle.com>
+:Contact: <gunnar.schulze@gmx.com>
 
 .. image:: logo/Escrido_logo_362x117.png
 
 What is this?
 -------------
 
-Escrido is a multi-language documentation generator. It is a tool that generates LaTeX and web documents of references and manuals for code and/or programming languages. It is strongly influenced by Doxygen and has a similar syntax. Nevertheless it differs from Doxygen in several points:
+Escrido is a multi-language documentation generator. It is a tool that generates HTML and LaTeX documents of references and manuals for code and/or programming languages. It is influenced by Doxygen and has a similar syntax. Nevertheless it differs from Doxygen in several points:
 
 - Escrido is not bound to any programming language. This allows the markup text to be stored in any place, not only the original code file. In the same way elements that have no actual source code can be documented by Escrido.
 - Its output can be controlled easily by the use of template files.
@@ -42,27 +42,27 @@ Under Debian Linux these three can be installed via the command::
 To compile, run the makefile from within the Escrido directory::
 
  make
- 
+
 or (for Windows)::
 
  make win
-  
+
 Static compiling
 ----------------
 
 If you wish for compiling statically (i.e. to not avoid shipping .dll files), add a modification of the linker arguments to make::
 
  make LINKFLAGS="-std=c++11 -static -pthread -static-libgcc -static-libstdc++"
- 
+
 Compiling issues
 ----------------
- 
+
 One common problem during compiling is an error that occurs in files "precomp.h", "precomp.l", "mcomp.h" and "mcomp.l" and that is caused by a different version of the lexical scanner tool "lex". If you encounter this issue, try the "lex compatibility mode" for compiling by calling make as follows::
- 
+
  make ARG="-D LEX_COMPAT_MODE"
-  
+
 or for Windows::
- 
+
  make win ARG="-D LEX_COMPAT_MODE"
 
 Is there a manual?

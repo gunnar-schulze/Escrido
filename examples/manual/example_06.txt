@@ -4,6 +4,8 @@
 
 A replacement tag either creates <em>formatted</em> or <em>unformatted</em> output, depending on its type. Formatted output already contains a certain amount of HTML or LaTeX tags around the output that is required to "bring the content in shape" while unformatted output contains just a bare string (i.e. can be placed anywhere in the template).
 
+Some replacement tags allow to specify an <em>index</em>, like the '<b>&#42;escrido-groupname#&#42;</b>' tag. In the template, the number sign ('#') must be replaced by the desired index integer, e.g. &#42;escrido-groupname2&#42;.
+
 The following replacement tags are currently defined:
 
 @table
@@ -38,6 +40,13 @@ The following replacement tags are currently defined:
 
   <b> &#42;escrido-type* </b> | no |
   The <em>code structure type</em> of the current @ref tag_refpage "&#64;_refpage_". @lb
+
+  <b> &#42;escrido-groupname* </b><br>
+  <b> &#42;escrido-groupname#* </b><br>| no |
+  A <em>group name</em> defined by @ref tag_ingroup "&#64;ingroup" of the current @ref tag_page "&#64;_page_" or @ref tag_refpage "&#64;_refpage_". If no index integer is given, the name of the first group will be inserted, otherwise the name of the group with the respective index.@lb
+
+  <b> &#42;escrido-title* </b> | no |
+  The <em>title</em> of the current @ref tag_mainpage "&#64;_mainpage_", @ref tag_page "&#64;_page_" or @ref tag_refpage "&#64;_refpage_". @lb
 
   <b> &#42;escrido-toc* </b> | yes |
   A table of contents of the whole document (as navigation tool in HTML). @lb

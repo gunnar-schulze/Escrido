@@ -25,7 +25,7 @@ YACC := yacc
 # =========================
 
 # Compiler flag options:
-# A version optimized for the use of valgrind is available under the 'valgrind' target
+# For useing valgrind use here: CPPFLAGS="-std=c++11 -O0 -g -w"
 CPPFLAGS := -std=c++11 -O3 -w
 
 # Linker flag options:
