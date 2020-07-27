@@ -219,7 +219,7 @@ typically used to express warnings of different kinds.
 @section tag_order &#64;order [&lt;name&gt; &lt;name&gt; ...]
 
 This tag is used to define an order for selected pages of the document. The &#64;order command
-takes a list of identifiers as argument (seperated by commas).
+takes a list of <em>group names</em> or <em>page names</em> as argument (seperated by commas).
 The order of this list is then applied to the groups and pages. &#64;order commands can
 be used multiple times and they get combined in the order of their appearance. Only
 &#64;order commands in the main page are processed.
