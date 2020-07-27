@@ -48,8 +48,15 @@ nav {
 
 nav h1,
 nav h2,
-nav h3{
+nav h3,
+nav h4,
+nav h5,
+nav h6{
   color:#333;
+}
+
+nav h1,
+nav h2{
   border-bottom:1px solid #f6f6f6;
   padding:5px 0;
 }
@@ -74,6 +81,19 @@ nav h2{
 
 nav h3{
   font-size:1.0em;
+}
+
+nav h4{
+  font-size:0.85em;
+}
+
+nav h5{
+  font-size:0.7em;
+}
+
+nav h6{
+  font-size:0.7em;
+  font-weight:bold;
 }
 
 nav ul {
