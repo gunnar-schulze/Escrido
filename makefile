@@ -165,4 +165,6 @@ clean:
 
 .PHONY: win
 win: OSDEF := -D FILESYS_WINDOWS
+win: CPPFLAGS := -std=gnu++11 -O3 -w
+win: LINKFLAGS := -std=gnu++11 -pthread -static-libgcc -static-libstdc++
 win: $(BINDIR)/escrido
