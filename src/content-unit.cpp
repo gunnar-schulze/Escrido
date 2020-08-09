@@ -191,6 +191,37 @@ std::string escrido::CContentChunk::GetPlainFirstLine() const
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Returns the plain content text (i.e. without Escrido labels and
+///             commands).
+// *****************************************************************************
+
+std::string escrido::CContentChunk::GetPlainContent() const
+{
+  switch( fType )
+  {
+    case cont_chunk_type::NEW_LINE:
+      return "\n";
+
+    case cont_chunk_type::LINK:
+    case cont_chunk_type::REF:
+    {
+      std::string sText = this->GetPlainAllButFirstWord();
+      if( sText.empty() )
+        sText = " [ref] ";
+      else
+        sText = " " + this->GetPlainAllButFirstWord() + " ";
+
+      return sText;
+    }
+
+    default:
+      return sContent;
+  }
+}
+
+// .............................................................................
+
 void escrido::CContentChunk::AppendChar( const char cChar_i )
 {
   // Check "skip first whitespace" mode.
@@ -961,6 +992,64 @@ std::string escrido::CTagBlock::GetPlainTitleLineButFirstWord() const
       continue;
 
     sReturn += oaChunkList[c].GetPlainText();
+  }
+
+  return sReturn;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Returns the plain content text (i.e. without Escrido labels and
+///             commands).
+// *****************************************************************************
+
+std::string escrido::CTagBlock::GetPlainContent() const
+{
+  std::string sReturn;
+
+  switch( this->fType )
+  {
+    case tag_type::SECTION:
+    case tag_type::SUBSECTION:
+    case tag_type::SUBSUBSECTION:
+    {
+      return this->GetPlainContentButFirstWord();
+    }
+
+    default:
+    {
+      for( size_t c = 0; c < oaChunkList.size(); c++ )
+        sReturn += oaChunkList[c].GetPlainContent();
+    }
+  }
+
+  return sReturn;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Returns the plain content text (i.e. without Escrido labels and
+///             commands) after the first word.
+// *****************************************************************************
+
+std::string escrido::CTagBlock::GetPlainContentButFirstWord() const
+{
+  std::string sReturn;
+
+  for( size_t c1 = 0; c1 < oaChunkList.size(); c1++ )
+  {
+    sReturn = oaChunkList[c1].GetPlainFirstWord();
+    if( !sReturn.empty() )
+    {
+      sReturn = oaChunkList[c1].GetPlainAllButFirstWord();
+
+      for( size_t c2 = c1 + 1; c2 < oaChunkList.size(); c2++ )
+        sReturn += oaChunkList[c2].GetPlainContent();
+
+      break;
+    }
   }
 
   return sReturn;
@@ -3605,6 +3694,29 @@ std::string escrido::ConvertHTMLToLaTeX( const std::string& sText_i )
   }
 
   return sTextCpy;
+}
+
+// -----------------------------------------------------------------------------
+
+std::string escrido::RemoveHTMLTags( const std::string& sText_i )
+{
+  std::string sResult;
+  for( size_t c1 = 0; c1 < sText_i.size(); ++c1 )
+  {
+    if( sText_i[c1] == '<' )
+    {
+      size_t c2;
+      for( c2 = c1 + 1; c2 < sText_i.size(); ++c2 )
+        if( sText_i[c2] == '>' )
+          break;
+
+      c1 = c2;
+    }
+    else
+      sResult.push_back( sText_i[c1] );
+  }
+
+  return sResult;
 }
 
 // -----------------------------------------------------------------------------

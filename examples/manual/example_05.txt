@@ -2,7 +2,7 @@
 
 Escrido contains some default text formatting options that are described
 on this page:
-- @ref formatting_html_tags"
+- @ref formatting_html_tags
 - @ref formatting_verbatim
 - @ref formatting_ul
 - @ref formatting_tables

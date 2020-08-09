@@ -65,6 +65,31 @@ WEBDOC_OUT_DIR     = "./manual/html/"
 
 WEBDOC_FILE_ENDING =
 
+# This parameter turns on the generation of a search index list that can be
+# used to implement a search functionality for the pages, e.g. in combination with
+# some external search library. Default is NO.
+#
+# Equals the "-si" and "--search-index" command line options
+
+GENERATE_SEARCH_INDEX = YES
+
+# This parameter defines the encoding of the search index file. If this is 'JSON',
+# the search index file contains a pure JSON array, if it is 'JS', the search
+# index file contains a JavaScript object 'searchIndex'.
+# Default is "JSON".
+#
+# Equals the "-sie" and "--search-index-encoding" command line options
+
+SEARCH_INDEX_ENDCODING = JS
+
+# This parameter defines the file path of the search index file (relative to the
+# HTML folder). The content of the file is a JSON search index list.
+# Default is "srchidx.json".
+#
+# Equals the "-sif" and "--search-index-file" command line options
+
+SEARCH_INDEX_FILE  = "js/srchidx.js"
+
 # -----------------------------------------------------------------------------
 # LaTeX document output options
 # -----------------------------------------------------------------------------

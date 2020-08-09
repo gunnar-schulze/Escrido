@@ -70,25 +70,29 @@ namespace applicationInfo
 
 namespace escrido
 {
-  bool fVersion = false;                      ///< Flag if the program outputs version information.
-  bool fHelp    = false;                      ///< Flag if the program outputs help information.
-  std::string sConfigFile;                    ///< Configuration file name (if specified).
-  std::vector <std::string> saIncludePaths;   ///< Include file names.
-  std::vector <std::string> saNamespaces;     ///< List of namespaces the output shall be restricted to.
-  std::vector <std::string> saExludeGroups;   ///< List of groups that shall be excluded from output.
-  std::string sTemplateDir = "./template/";   ///< Template directory name.
-  bool fWDOutput = true;                      ///< Flag whether web document output shall be created.
-  std::string sWDOutputDir = "./html/";       ///< Output directory name for web document files.
-  std::string sWDOutputPostfix = ".html";     ///< Output postfix (file ending) of webdocument files.
-  bool fLOutput = false;                      ///< Flag whether LaTeX output shall be created.
-  std::string sLOutputDir = "./latex/";       ///< Output directory name for LaTeX document files.
-  bool fShowInternal = false;                 ///< Flag, whether 'internal' tag blocks shall be shown.
-  bool fDebug   = false;                      ///< Output debug information.
+  bool fVersion = false;                        ///< Flag if the program outputs version information.
+  bool fHelp    = false;                        ///< Flag if the program outputs help information.
+  std::string sConfigFile;                      ///< Configuration file name (if specified).
+  std::vector <std::string> saIncludePaths;     ///< Include file names.
+  std::vector <std::string> saNamespaces;       ///< List of namespaces the output shall be restricted to.
+  std::vector <std::string> saExludeGroups;     ///< List of groups that shall be excluded from output.
+  std::string sTemplateDir = "./template/";     ///< Template directory name.
+  bool fWDOutput = true;                        ///< Flag whether web document output shall be created.
+  std::string sWDOutputDir = "./html/";         ///< Output directory name for web document files.
+  std::string sWDOutputPostfix = ".html";       ///< Output postfix (file ending) of webdocument files.
+  bool fLOutput = false;                        ///< Flag whether LaTeX output shall be created.
+  std::string sLOutputDir = "./latex/";         ///< Output directory name for LaTeX document files.
+  bool fShowInternal = false;                   ///< Flag, whether 'internal' tag blocks shall be shown.
+  bool fDebug   = false;                        ///< Output debug information.
+  bool fSearchIndex = false;                    ///< Flag whether an index list for static search shall be generated.
+  search_index_encoding fSearchIdxEncode
+    = search_index_encoding::JSON;              ///< Search index encoding type.
+  std::string sSeachIndexFile = "srchidx.json"; ///< Name of the search index file.
 
-  CDocumentation oDocumentation;              ///< The code documentation content.
+  CDocumentation oDocumentation;                ///< The code documentation content.
 
   // Parsing buffers:
-  CContentUnit oParseContUnit;                ///< Content unit that is written to while parsing.
+  CContentUnit oParseContUnit;                  ///< Content unit that is written to while parsing.
 }
 
 // -----------------------------------------------------------------------------
@@ -171,7 +175,6 @@ int main( int argc, char* argv[] )
     std::cout << "Scanning file(s) '" << saIncludePaths[i] << "':" << std::endl
               << std::endl;
 
-
     // Get list of files defined by the include paths list.
     std::vector<filesys::SFileInfo> oaFileInfo;
     {
@@ -243,6 +246,13 @@ int main( int argc, char* argv[] )
     std::cout << "Writing HTML document into '" << sWDOutputDir << "':" << std::endl
               << std::endl;
     escrido::oDocumentation.WriteHTMLDoc( sTemplateDir, sWDOutputDir, sWDOutputPostfix, fShowInternal );
+
+    if( fSearchIndex )
+      escrido::oDocumentation.WriteHTMLSearchIndex( sWDOutputDir,
+                                                    sSeachIndexFile,
+                                                    sWDOutputPostfix,
+                                                    fSearchIdxEncode );
+
     std::cout << std::endl;
   }
 

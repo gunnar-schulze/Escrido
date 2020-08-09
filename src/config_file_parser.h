@@ -151,6 +151,27 @@ inline size_t config_file_parser::ParseConfigFile( const std::string& sConfigFil
         escrido::sWDOutputPostfix = szTok;
       }
       else
+      if( strcmp( szFirstTok, "GENERATE_SEARCH_INDEX" ) == 0 )
+      {
+        if( strcmp( szTok, "YES" ) == 0 )
+          escrido::fSearchIndex = true;
+        else
+          escrido::fSearchIndex = false;
+      }
+      else
+      if( strcmp( szFirstTok, "SEARCH_INDEX_ENDCODING" ) == 0 )
+      {
+        if( strcmp( szTok, "JS" ) == 0 )
+          escrido::fSearchIdxEncode = escrido::search_index_encoding::JS;
+        else
+          escrido::fSearchIdxEncode = escrido::search_index_encoding::JSON;
+      }
+      else
+      if( strcmp( szFirstTok, "SEARCH_INDEX_FILE" ) == 0 )
+      {
+        escrido::sSeachIndexFile = ConvertTokString( szTok );
+      }
+      else
       if( strcmp( szFirstTok, "GENERATE_LATEX" ) == 0 )
       {
         if( strcmp( szTok, "YES" ) == 0 )

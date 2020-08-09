@@ -1,6 +1,6 @@
 /*# @_page_ setup Escrido Setup
 
-The basic concept behind Escrido is, that it reads one @ref escrido_file "configuration file", one or more @ref source_files "source files" and one or more @ref template_files "document template files" and returns a web document (as a set of HTML files) and/or a LaTeX document (multiple .tex files). 
+The basic concept behind Escrido is, that it reads one @ref escrido_file "configuration file", one or more @ref source_files "source files" and one or more @ref template_files "document template files" and returns a web document (as a set of HTML files) and/or a LaTeX document (multiple .tex files).
 
 @section escrido_file The Escrido Configuration File
 
@@ -27,6 +27,10 @@ There should be at least one HTML template file <em>default.html</em> that is ap
 Templates for LaTeX files work similarly but with slightly more complexity.
 
 The directory for all template files is given as option @code TEMPLATE_DIR @endcode in the @ref escrido_file "configuration file" or as argument @code -t @endcode in the command line calls.
+
+@section setup_on_page_search On-Page Search
+
+Escrido can create a <em>search index file</em> that can be used to add a custom JavaScript search on the site. To create this file, @code GENERATE_SEARCH_INDEX @endcode command in the @ref escrido_file "" (or the corresponding @code -si @endcode command line argument) must be set to 'YES' (for the command line argument: 'on'). An example of linking this search index file to a JavaScript search library is given for the libraries @link https://lunrjs.com/ "lunr" and @link https://fusejs.io/ "fuse.js": you can search this manual by either of the two with the search bar on the top right. File 'js/search.js' shows a possible implementation of that.
 
 
 

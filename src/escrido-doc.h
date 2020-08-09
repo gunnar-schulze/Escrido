@@ -104,6 +104,13 @@ namespace escrido
     POST_IDENT,
     TITLE
   };
+
+  /// Search index encoding.
+  enum class search_index_encoding
+  {
+    JSON,
+    JS
+  };
 }
 
 // -----------------------------------------------------------------------------
@@ -309,10 +316,13 @@ class escrido::CDocPage
     const std::string GetPageTypeID() const;
     const std::string& GetIdent() const;
     const std::string& GetTitle() const;
-    CContentUnit&      GetContentUnit();
+    const CContentUnit& GetContentUnit() const;
     const std::string  GetBrief() const;
     const std::string  GetNamespace() const;
     const std::vector<std::string> GetGroupNames() const;
+
+    // Methods for accessing selected unformatted content:
+    const std::string  GetPlainContentBrief() const;
 
     // Output method:
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
@@ -404,7 +414,7 @@ class escrido::CDocumentation
 {
   private:
 
-    std::vector <CDocPage*> paDocPageList; ///< List of all contained documentation pages.
+    std::vector <CDocPage*> paDocPageList; ///< List of all documentation pages contained.
 
     mutable bool fGroupOrdered;            ///< Flag whether a group ordering is available for the documentation pages.
     mutable CGroupTree oaGroupTree;        ///< Container for ordering of groups.
@@ -425,8 +435,17 @@ class escrido::CDocumentation
     void RemoveGroups( const std::vector<std::string>& saGroupBlackList_i );
 
     // Output methods:
-    void WriteHTMLDoc( const std::string& sTemplateDir_i, const std::string& sOutputDir_i, const std::string& sOutputPostfix_i, bool fShowInternal_i ) const;
-    void WriteLaTeXDoc( const std::string& sTemplateDir_i, const std::string& sOutputDir_i, bool fShowInternal_i ) const;
+    void WriteHTMLDoc( const std::string& sTemplateDir_i,
+                       const std::string& sOutputDir_i,
+                       const std::string& sOutputPostfix_i,
+                       bool fShowInternal_i ) const;
+    void WriteHTMLSearchIndex( const std::string& sOutputDir_i,
+                               const std::string& sOutputPath_i,
+                               const std::string& sOutputPostfix_i,
+                               const search_index_encoding fEncoding_i ) const;
+    void WriteLaTeXDoc( const std::string& sTemplateDir_i,
+                        const std::string& sOutputDir_i,
+                        bool fShowInternal_i ) const;
 
     // Debug output:
     void DebugOutput() const;
@@ -442,6 +461,7 @@ class escrido::CDocumentation
                                const CDocPage* pWritePage_i,
                                std::ostream& oOutStrm_i,
                                const SWriteInfo& oWriteInfo_i ) const;
+    std::string CleanAndJSONEscape( const std::string& sText_i ) const;
 
     void FillGroupTreeOrdered() const;
 };

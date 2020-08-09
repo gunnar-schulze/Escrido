@@ -66,11 +66,49 @@ wdo                  string
                                                  {escrido::sWDOutputDir = #1;}
 
 wdfe                 string
-  'Ending of web document output file. (default ".html" )'
+  'Ending of web document output file. (default ".html")'
                                                  {escrido::sWDOutputPostfix = #1;}
 -webdoc-file-ending  string
-  'Ending of web document output file. (default ".html" )'
+  'Ending of web document output file. (default ".html")'
                                                  {escrido::sWDOutputPostfix = #1;}
+
+si                   onoff
+  'Flag defining whether a search index list shall be generated. If this flag is set to "on",
+   Escrido will generate such file. (default "off")'
+                                                 {escrido::fSearchIndex = #1;}
+-search-index        onoff
+  'Flag defining whether a search index list shall be generated. If this flag is set to "on",
+   Escrido will generate such file. (default "off")'
+                                                 {escrido::fSearchIndex = #1;}
+
+sie                  string
+  'Encoding type of the search index file. Possible values are\n
+- JSON: stored as JSON array
+- JS: stored as JavaScript object "searchIndex". (default "JSON")'
+{
+  if( strcmp( #1, "JS" ) == 0 )
+    escrido::fSearchIdxEncode = escrido::search_index_encoding::JS;
+  else
+    escrido::fSearchIdxEncode = escrido::search_index_encoding::JSON;
+}
+
+-search-index-encoding   string
+  'Encoding type of the search index file. Possible values are\n
+- JSON: stored as JSON array
+- JS: stored as JavaScript object "searchIndex". (default "JSON")'
+{
+  if( strcmp( #1, "JS" ) == 0 )
+    escrido::fSearchIdxEncode = escrido::search_index_encoding::JS;
+  else
+    escrido::fSearchIdxEncode = escrido::search_index_encoding::JSON;
+}
+
+sif                  string
+  'File path of the search index list file relative to the HTML folder. (default "srchidx.json")'
+                                                 {escrido::sSeachIndexFile = #1;}
+-search-index-file   string
+  'File path of the search index list file relative to the HTML folder. (default "srchidx.json")'
+                                                 {escrido::sSeachIndexFile = #1;}
 
 ld                   onoff
   'Flag defining whether a LaTeX document shall be created. If this flag is set to "on",

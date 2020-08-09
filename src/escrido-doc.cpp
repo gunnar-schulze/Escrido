@@ -555,7 +555,7 @@ const std::string& escrido::CDocPage::GetTitle() const
 
 // .............................................................................
 
-escrido::CContentUnit& escrido::CDocPage::GetContentUnit()
+const escrido::CContentUnit& escrido::CDocPage::GetContentUnit() const
 {
   return oContUnit;
 }
@@ -598,6 +598,17 @@ const std::vector <std::string> escrido::CDocPage::GetGroupNames() const
   }
 
   return oResult;
+}
+
+
+// .............................................................................
+
+const std::string escrido::CDocPage::GetPlainContentBrief() const
+{
+  if( this->oContUnit.HasTagBlock( tag_type::BRIEF ) )
+    return this->oContUnit.GetFirstTagBlock( tag_type::BRIEF )->GetPlainContent();
+  else
+    return std::string();
 }
 
 // .............................................................................
@@ -1166,7 +1177,7 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
       {
         ReplacePlaceholder( "*escrido-metadata*", *pMainpage, &CDocPage::WriteHTMLMetaDataList, oWriteInfo, sTemplatePage );
 
-        CContentUnit* pMainContentUnit = &( pMainpage->GetContentUnit() );
+        const CContentUnit* pMainContentUnit = &( pMainpage->GetContentUnit() );
 
         if( pMainContentUnit->HasTagBlock( tag_type::AUTHOR ) )
           ReplacePlaceholder( "*escrido-mainauthor*", pMainContentUnit->GetFirstTagBlock( tag_type::AUTHOR )->GetPlainText(), sTemplatePage );
@@ -1212,6 +1223,81 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
 
 // .............................................................................
 
+void escrido::CDocumentation::WriteHTMLSearchIndex( const std::string& sOutputDir_i,
+                                                    const std::string& sOutputPath_i,
+                                                    const std::string& sOutputPostfix_i,
+                                                    const search_index_encoding fEncoding_i ) const
+{
+  // Generate combined output file name
+  std::string sCombined = sOutputDir_i + sOutputPath_i;
+
+  // Output
+  std::cout << "writing file '" << sOutputPath_i << "'" << std::endl;
+
+  // Open output file.
+  std::ofstream oOutFile( sCombined.c_str(), std::ofstream::out );
+
+  if( fEncoding_i == search_index_encoding::JS )
+    oOutFile << "const searchIndex = ";
+
+  // Write file opening (i.e. JSON array opening):
+  oOutFile << "[" << std::endl;
+
+  // Write index data for all pages
+  for( size_t p = 0; p < this->paDocPageList.size(); p++ )
+  {
+    // Get a reference to this page.
+    const CDocPage& oPage = *paDocPageList[p];
+
+    // Write opening curly bracket.
+    oOutFile << "   {" << std::endl;
+
+    // Write general page information
+    oOutFile << "      \"title\":\"" << oPage.GetTitle() << "\"," << std::endl;
+    oOutFile << "      \"brief\":\"" << oPage.GetPlainContentBrief() << "\"," << std::endl;
+    oOutFile << "      \"url\":\"" << oPage.GetURL( sOutputPostfix_i ) << "\"," << std::endl;
+
+    // For full content search: write content.
+    {
+      oOutFile << "      \"content\":\"";
+
+      // Write plain content in a string.
+      std::string sContent;
+      {
+        const CContentUnit& oContent = oPage.GetContentUnit();
+        for( size_t t = 0; t < oContent.GetTagBlockN(); ++t )
+        {
+          const CTagBlock& oTagBlock = oContent.GetTagBlock( t );
+          sContent += oTagBlock.GetPlainContent();
+        }
+
+        sContent = RemoveHTMLTags( sContent );
+      }
+
+      // Remove all HTML tags
+
+      // JSON escaping and closing double quotes
+      oOutFile << CleanAndJSONEscape( sContent ) << "\"" << std::endl;
+    }
+
+    // Write closing curly bracket.
+    if( p + 1 == this->paDocPageList.size() )
+      oOutFile << "   }" << std::endl;
+    else
+      oOutFile << "   }," << std::endl;
+  }
+
+  // Write file closing (i.e. JSON array closing):
+  oOutFile << "]";
+
+  if( fEncoding_i == search_index_encoding::JS )
+    oOutFile << ";";
+
+  oOutFile.close();
+}
+
+// .............................................................................
+
 void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
                                              const std::string& sOutputDir_i,
                                              bool fShowInternal_i ) const
@@ -1227,7 +1313,7 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
 
   // Find "mainpage".
   CPageMainpage* pMainpage = NULL;
-  CContentUnit* pMainContentUnit = NULL;
+  const CContentUnit* pMainContentUnit = NULL;
   {
     for( size_t p = 0; p < this->paDocPageList.size(); p++ )
       if( this->paDocPageList[p]->GetIdent() == "mainpage" )
@@ -1511,7 +1597,7 @@ void escrido::CDocumentation::WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
       if( pPage->GetPageTypeID() == sPageTypeID_i )
       {
         // Get brief description, if it exists.
-        std::string sBrief = pPage->GetBrief();
+        std::string sBrief = pPage->GetPlainContentBrief();
 
         // Write list item tag, either with or w/o brief description as title.
         {
@@ -1620,6 +1706,52 @@ void escrido::CDocumentation::FillGroupTreeOrdered() const
   oaGroupTree.Order( saOrderRefList );
 
   fGroupOrdered = true;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Creates a cleaned and JSON escaped string for the search index.
+// *****************************************************************************
+
+std::string escrido::CDocumentation::CleanAndJSONEscape( const std::string& sText_i ) const
+{
+  std::string sResult( sText_i );
+
+  for( size_t c = 0; c < sResult.size(); ++c )
+  {
+    switch( sResult[c] )
+    {
+      case '\r':
+      {
+        if( c + 1 < sResult.size() && sResult[c + 1] == '\n' )
+          sResult.replace( c, 2, 1, ' ' );
+        else
+          sResult.replace( c, 1, 1, ' ' );
+        break;
+      }
+
+      case '\n':
+        sResult.replace( c, 1, 1, ' ' );
+        break;
+
+      case '\t':
+        sResult.replace( c, 1, 1, ' ' );
+        break;
+
+      case '"':
+        sResult.insert( c++, 1, '\\' );
+        break;
+
+      case '\\':
+        sResult.insert( c++, 1, '\\' );
+        break;
+    }
+
+    // HIER WEITERMACHEN
+  }
+
+  return sResult;
 }
 
 // -----------------------------------------------------------------------------
@@ -1994,4 +2126,3 @@ void escrido::AdjustReplaceIndent( size_t nReplPos_i,
       break;
   }
 }
-

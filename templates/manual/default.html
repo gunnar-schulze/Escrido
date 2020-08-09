@@ -8,12 +8,31 @@
   <link rel="icon" href="favicon.ico" type="image/vnd.microsoft.icon">
   <link rel="stylesheet" type="text/css" href="css/style.css">
 
+  <!-- External search libraries -->
+  <script type="text/javascript" src="js/lunr/lunr.js"></script>
+  <script type="text/javascript" src="js/fuse/fuse.basic.js"></script>
+
+  <!-- Search index and JavaScript for searching -->
+  <script type="text/javascript" src="js/srchidx.js"></script>
+  <script type="text/javascript" src="js/search.js"></script>
+
 </head>
 
 <body>
 
   <header>
     <h1><a href="index.html">*escrido-maintitle*</a></h1>
+    <div id="searchField">
+
+      <label for="searchlib">Search library:</label>
+      <select id="searchlib">
+        <option value="lunr">lunr</option>
+        <option value="fuse">fuse.js</option>
+      </select><br>
+
+      <label for="searchInput">🔍</label>
+      <input type="text" id="searchInput" onchange="search(this.value);">
+    </div>
   </header>
 
   <main>
@@ -44,6 +63,12 @@
     </article>
 
   </main>
+
+  <div id="searchResultBox">
+    <div id="closeSearch" onclick="closeSearch();">🗙</div>
+    <h1>Search results for <span id="searchText"></span></h1>
+    <ul id="searchItems"></ul>
+  </div>
 
   <footer>
     &copy; *escrido-maincopyright*

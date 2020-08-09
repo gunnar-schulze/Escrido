@@ -254,6 +254,7 @@ namespace escrido
   std::string   HTMLEscape( const std::string& sText_i );
   std::string   LaTeXEscape( const std::string& sText_i );
   std::string   ConvertHTMLToLaTeX( const std::string& sText_i );
+  std::string   RemoveHTMLTags( const std::string& sText_i );
   bool          ReplaceIfMatch( std::string& sText_i, size_t& nPos_i, const char* szPattern_i, const char* szReplacement_i );
   bool          All( const std::string& sText_i, std::string& sAll_o );
   bool          FirstWord( const std::string& sText_i, std::string& sFirstWord_o );
@@ -320,6 +321,9 @@ class escrido::CContentChunk
     std::string GetPlainAllButFirstWord() const;
     std::string GetPlainFirstLine() const;
 
+    // Access of unformated text content
+    std::string GetPlainContent() const;
+
     // Append parsing content:
     void AppendChar( const char cChar_i );
 
@@ -377,6 +381,10 @@ class escrido::CTagBlock
     std::string GetPlainFirstWordOrQuote() const;
     std::string GetPlainTitleLine() const;
     std::string GetPlainTitleLineButFirstWord() const;
+
+    // Access of unformated text content
+    std::string GetPlainContent() const;
+    std::string GetPlainContentButFirstWord() const;
 
     // Content chunk navigation:
     const CContentChunk* GetNextContentChunk( const CContentChunk* pContentChunk ) const;
