@@ -23,8 +23,8 @@
 /// \mainpage   Escrido: a multi-language documentation generator.
 ///
 /// \author     Gunnar Schulze
-/// \date       2020-07-27
-/// \version    1.5.0
+/// \date       2020-08-17
+/// \version    1.6.1
 /// \copyright  2018 Gunnar Schulze
 // *****************************************************************************
 
@@ -56,7 +56,7 @@ namespace applicationInfo
 {
   const char szName[]        = "Escrido";
   const char szDescription[] = "Multi-language documentation generator.";
-  const char szVersion[]     = "1.6.0";
+  const char szVersion[]     = "1.6.1";
   const char szFirstDate[]   = "October 2015";
   const char szDate[]        = "August 2020";
   const char szAuthor[]      = "Gunnar Schulze";
