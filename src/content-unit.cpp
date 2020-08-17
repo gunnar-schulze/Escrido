@@ -23,6 +23,13 @@
 
 // -----------------------------------------------------------------------------
 
+escrido::SWriteInfo::SWriteInfo( bool fShowInternal_i ):
+  fShowInternal ( fShowInternal_i )
+{}
+
+// .............................................................................
+
+
 const escrido::SWriteInfo& escrido::SWriteInfo::operator++() const
 {
   nIndent += 2;
@@ -187,37 +194,6 @@ std::string escrido::CContentChunk::GetPlainFirstLine() const
   std::string sReturn;
   FirstLine( sContent, sReturn );
   return sReturn;
-}
-
-// .............................................................................
-
-// *****************************************************************************
-/// \brief      Returns the plain content text (i.e. without Escrido labels and
-///             commands).
-// *****************************************************************************
-
-std::string escrido::CContentChunk::GetPlainContent() const
-{
-  switch( fType )
-  {
-    case cont_chunk_type::NEW_LINE:
-      return "\n";
-
-    case cont_chunk_type::LINK:
-    case cont_chunk_type::REF:
-    {
-      std::string sText = this->GetPlainAllButFirstWord();
-      if( sText.empty() )
-        sText = " [ref] ";
-      else
-        sText = " " + this->GetPlainAllButFirstWord() + " ";
-
-      return sText;
-    }
-
-    default:
-      return sContent;
-  }
 }
 
 // .............................................................................
@@ -487,7 +463,7 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
   switch( fType )
   {
     case cont_chunk_type::HTML_TEXT:
-      oOutStrm_i << ConvertHTMLToLaTeX( sContent );
+      oOutStrm_i << ConvertHTML2LaTeX( sContent );
       break;
 
     case cont_chunk_type::PLAIN_TEXT:
@@ -584,12 +560,12 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
 
       std::string sText = this->GetPlainAllButFirstWord();
       if( !sText.empty() )
-        oOutStrm_i << ConvertHTMLToLaTeX( sText );
+        oOutStrm_i << ConvertHTML2LaTeX( sText );
       else
         if( fHasRef )
-          oOutStrm_i << ConvertHTMLToLaTeX( oWriteInfo_i.oRefTable.GetName( nRefIdx ) );
+          oOutStrm_i << ConvertHTML2LaTeX( oWriteInfo_i.oRefTable.GetName( nRefIdx ) );
         else
-          oOutStrm_i << ConvertHTMLToLaTeX( sContent );
+          oOutStrm_i << ConvertHTML2LaTeX( sContent );
 
       if( fHasRef )
         oOutStrm_i << "}";
@@ -651,7 +627,7 @@ bool escrido::CContentChunk::WriteLaTeXFirstWord( std::ostream& oOutStrm_i, cons
   switch( fType )
   {
     case cont_chunk_type::HTML_TEXT:
-      oOutStrm_i << ConvertHTMLToLaTeX( sFirstWord );
+      oOutStrm_i << ConvertHTML2LaTeX( sFirstWord );
       return true;
 
     case cont_chunk_type::PLAIN_TEXT:
@@ -686,7 +662,7 @@ bool escrido::CContentChunk::WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i
   switch( fType )
   {
     case cont_chunk_type::HTML_TEXT:
-      oOutStrm_i << ConvertHTMLToLaTeX( sAllButFirstWord );
+      oOutStrm_i << ConvertHTML2LaTeX( sAllButFirstWord );
       return true;
 
     case cont_chunk_type::PLAIN_TEXT:
@@ -722,7 +698,7 @@ bool escrido::CContentChunk::WriteLaTeXAllButFirstWordOrQuote( std::ostream& oOu
   switch( fType )
   {
     case cont_chunk_type::HTML_TEXT:
-      oOutStrm_i << ConvertHTMLToLaTeX( sAllButFirstWordOrQuote );
+      oOutStrm_i << ConvertHTML2LaTeX( sAllButFirstWordOrQuote );
       return true;
 
     case cont_chunk_type::PLAIN_TEXT:
@@ -992,64 +968,6 @@ std::string escrido::CTagBlock::GetPlainTitleLineButFirstWord() const
       continue;
 
     sReturn += oaChunkList[c].GetPlainText();
-  }
-
-  return sReturn;
-}
-
-// .............................................................................
-
-// *****************************************************************************
-/// \brief      Returns the plain content text (i.e. without Escrido labels and
-///             commands).
-// *****************************************************************************
-
-std::string escrido::CTagBlock::GetPlainContent() const
-{
-  std::string sReturn;
-
-  switch( this->fType )
-  {
-    case tag_type::SECTION:
-    case tag_type::SUBSECTION:
-    case tag_type::SUBSUBSECTION:
-    {
-      return this->GetPlainContentButFirstWord();
-    }
-
-    default:
-    {
-      for( size_t c = 0; c < oaChunkList.size(); c++ )
-        sReturn += oaChunkList[c].GetPlainContent();
-    }
-  }
-
-  return sReturn;
-}
-
-// .............................................................................
-
-// *****************************************************************************
-/// \brief      Returns the plain content text (i.e. without Escrido labels and
-///             commands) after the first word.
-// *****************************************************************************
-
-std::string escrido::CTagBlock::GetPlainContentButFirstWord() const
-{
-  std::string sReturn;
-
-  for( size_t c1 = 0; c1 < oaChunkList.size(); c1++ )
-  {
-    sReturn = oaChunkList[c1].GetPlainFirstWord();
-    if( !sReturn.empty() )
-    {
-      sReturn = oaChunkList[c1].GetPlainAllButFirstWord();
-
-      for( size_t c2 = c1 + 1; c2 < oaChunkList.size(); c2++ )
-        sReturn += oaChunkList[c2].GetPlainContent();
-
-      break;
-    }
   }
 
   return sReturn;
@@ -1913,7 +1831,7 @@ void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo&
       if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx ) )
       {
         oOutStrm_i << "\\hyperref[" << MakeIdentifier( this->GetPlainFirstWord() ) << "]{";
-        oOutStrm_i << ConvertHTMLToLaTeX( oWriteInfo_i.oRefTable.GetName( nRefIdx ) );
+        oOutStrm_i << ConvertHTML2LaTeX( oWriteInfo_i.oRefTable.GetName( nRefIdx ) );
         oOutStrm_i << "}%";
       }
       else
@@ -2826,9 +2744,9 @@ const escrido::CTagBlock* escrido::CContentUnit::GetNextTagBlock( const CTagBloc
 // .............................................................................
 
 // *****************************************************************************
-/// \brief      Writes the PARAGRAPH, the SECTION, the DETAILS and embedded
-///             EXAMPLE, IMAGE, NOTES, OUTPUT and REMARK tag blocks in a
-///             standardized way.
+/// \brief      Writes the "flowing text" tag blocks PARAGRAPH, SECTION,
+///             SUBSECTION, SUBSUBSECTION, DETAILS and embedded EXAMPLE, IMAGE,
+///             NOTES, OUTPUT and REMARK in a standardized way.
 ///
 /// \todo       TODO: Implement correct nesting of sections and subsections.
 // *****************************************************************************
@@ -3638,7 +3556,7 @@ std::string escrido::LaTeXEscape( const std::string& sText_i )
 ///             content and returns it.
 // *****************************************************************************
 
-std::string escrido::ConvertHTMLToLaTeX( const std::string& sText_i )
+std::string escrido::ConvertHTML2LaTeX( const std::string& sText_i )
 {
   std::string sTextCpy( sText_i );
   for( size_t nPos = 0; nPos < sTextCpy.size(); )
@@ -3698,25 +3616,102 @@ std::string escrido::ConvertHTMLToLaTeX( const std::string& sText_i )
 
 // -----------------------------------------------------------------------------
 
-std::string escrido::RemoveHTMLTags( const std::string& sText_i )
+// *****************************************************************************
+/// \brief      Converts a string containing HTML content into plain text and
+///             returns it.
+///
+/// \details    The following modifications are applied:
+///             - removing of HTML tags
+///             - removing front and end whitespaces
+///             - replacing multiple whitespaces by a single blank space
+///             - replacing of HTML entities
+// *****************************************************************************
+
+std::string escrido::ConvertHTML2ClearText( const std::string& sText_i )
 {
-  std::string sResult;
-  for( size_t c1 = 0; c1 < sText_i.size(); ++c1 )
+  // Remove HTML tags and create a text copy.
+  std::string sTextCpy;
+  for( size_t nPos = 0; nPos < sText_i.size(); ++nPos )
   {
-    if( sText_i[c1] == '<' )
+    if( sText_i[nPos] == '<' )
     {
-      size_t c2;
-      for( c2 = c1 + 1; c2 < sText_i.size(); ++c2 )
-        if( sText_i[c2] == '>' )
+      size_t nPos2;
+      for( nPos2 = nPos + 1; nPos2 < sText_i.size(); ++nPos2 )
+        if( sText_i[nPos2] == '>' )
           break;
 
-      c1 = c2;
+      nPos = nPos2;
     }
     else
-      sResult.push_back( sText_i[c1] );
+      sTextCpy.push_back( sText_i[nPos] );
   }
 
-  return sResult;
+  // Replace HTML entities:
+  for( size_t nPos = 0; nPos < sTextCpy.size(); )
+  {
+    if( ReplaceIfMatch( sTextCpy, nPos, "&nbsp;", " " ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&amp;", "&" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&gamma;", "gamma" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#42;", "*" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#124;", "|" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#47;", "/" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#64;", "@" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&lt;", "<" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&gt;", ">" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#8477;", "R" ) ) continue;
+
+    // Increase counter;
+    nPos++;
+  }
+
+  // Contract whitespaces
+  {
+    // Detect front whitespaces and determine begin of content.
+    size_t nBegin;
+    for( nBegin = 0; nBegin < sTextCpy.size(); ++nBegin )
+    {
+      char nChar = sTextCpy[nBegin];
+
+      if( !( nChar == ' ' || nChar == '\t' || nChar == '\r' || nChar == '\n' ) )
+        break;
+    }
+
+    // Contract all multiple whitespaces
+    {
+      std::string sTextCpy2;
+
+      for( size_t c1 = nBegin; c1 < sTextCpy.size(); ++c1 )
+      {
+        char nChar = sTextCpy[c1];
+
+        if( nChar == ' ' || nChar == '\t' || nChar == '\r' || nChar == '\n' )
+        {
+          sTextCpy2.push_back( ' ' );
+
+          size_t c2;
+          for( c2 = c1 + 1; c2 < sTextCpy.size(); ++c2 )
+          {
+            nChar = sTextCpy[c2];
+
+            if( !( nChar == ' ' || nChar == '\t' || nChar == '\r' || nChar == '\n' ) )
+              break;
+          }
+
+          c1 = c2 - 1;
+        }
+        else
+          sTextCpy2.push_back( nChar );
+      }
+
+      sTextCpy2.swap( sTextCpy );
+    }
+
+    // Eventually remove terminal whitespace.
+    if( !sTextCpy.empty() && sTextCpy.back() == ' ' )
+      sTextCpy.resize( sTextCpy.size() - 1 );
+  }
+
+  return sTextCpy;
 }
 
 // -----------------------------------------------------------------------------

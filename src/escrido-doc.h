@@ -321,8 +321,9 @@ class escrido::CDocPage
     const std::string  GetNamespace() const;
     const std::vector<std::string> GetGroupNames() const;
 
-    // Methods for accessing selected unformatted content:
-    const std::string  GetPlainContentBrief() const;
+    // Methods for accessing selected clear content:
+    const std::string GetClearTextBrief( const SWriteInfo& oWriteInfo_i ) const;
+    const std::string GetClearTextContent( const SWriteInfo& oWriteInfo_i ) const;
 
     // Output method:
     virtual const std::string GetURL( const std::string& sOutputPostfix_i ) const;
@@ -434,18 +435,23 @@ class escrido::CDocumentation
     void RemoveNamespaces( const std::vector<std::string>& saNSWhiteList_i );
     void RemoveGroups( const std::vector<std::string>& saGroupBlackList_i );
 
+    // Creation of reference table inside the write info object.
+    void CreateRefTable( const std::string& sOutputPostfix_i,
+                         SWriteInfo& oWriteInfo_io ) const;
+
     // Output methods:
     void WriteHTMLDoc( const std::string& sTemplateDir_i,
                        const std::string& sOutputDir_i,
                        const std::string& sOutputPostfix_i,
-                       bool fShowInternal_i ) const;
+                       const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLSearchIndex( const std::string& sOutputDir_i,
                                const std::string& sOutputPath_i,
                                const std::string& sOutputPostfix_i,
+                               const SWriteInfo& oWriteInfo_i,
                                const search_index_encoding fEncoding_i ) const;
     void WriteLaTeXDoc( const std::string& sTemplateDir_i,
                         const std::string& sOutputDir_i,
-                        bool fShowInternal_i ) const;
+                        const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
     void DebugOutput() const;

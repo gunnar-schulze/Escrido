@@ -240,17 +240,25 @@ int main( int argc, char* argv[] )
   if( !saExludeGroups.empty() )
     escrido::oDocumentation.RemoveGroups( saExludeGroups );
 
+  // Create write info container with the reference table
+  SWriteInfo oWriteInfo( fShowInternal );
+  escrido::oDocumentation.CreateRefTable( sWDOutputPostfix, oWriteInfo );
+
   // Output web document.
   if( fWDOutput )
   {
     std::cout << "Writing HTML document into '" << sWDOutputDir << "':" << std::endl
               << std::endl;
-    escrido::oDocumentation.WriteHTMLDoc( sTemplateDir, sWDOutputDir, sWDOutputPostfix, fShowInternal );
+    escrido::oDocumentation.WriteHTMLDoc( sTemplateDir,
+                                          sWDOutputDir,
+                                          sWDOutputPostfix,
+                                          oWriteInfo );
 
     if( fSearchIndex )
       escrido::oDocumentation.WriteHTMLSearchIndex( sWDOutputDir,
                                                     sSeachIndexFile,
                                                     sWDOutputPostfix,
+                                                    oWriteInfo,
                                                     fSearchIdxEncode );
 
     std::cout << std::endl;
@@ -261,7 +269,9 @@ int main( int argc, char* argv[] )
   {
     std::cout << "Writing LaTeX document into '" << sLOutputDir << "':" << std::endl
               << std::endl;
-    escrido::oDocumentation.WriteLaTeXDoc( sTemplateDir, sLOutputDir, fShowInternal );
+    escrido::oDocumentation.WriteLaTeXDoc( sTemplateDir,
+                                           sLOutputDir,
+                                           oWriteInfo );
     std::cout << std::endl;
   }
 
