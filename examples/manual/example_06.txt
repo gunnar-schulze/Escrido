@@ -1,6 +1,6 @@
 /*# @_page_ replacement_tags Escrido Replacement Tags
 
-<em>Replacement tags</em> are used inside @ref template_files "template files" to define where a part of the content of an Escrido document should go to. Each replacement tags starts and ends with an asterisk (&#42;) and contains the replacment tag name, e.g. '<b>&#42;escrido-title&#42;</b>'. If the respective value is not present within the Escrido content, the replacement tag will not be replaced.
+<em>Replacement tags</em> are used inside @ref template_files "template files" to define where a part of the content of an Escrido document should go. Each replacement tag starts and ends with an asterisk (&#42;) and contains the replacment tag name, e.g. '<b>&#42;escrido-title&#42;</b>'. If the respective value is not present within the Escrido content, the replacement tag will not be replaced.
 
 A replacement tag either creates <em>formatted</em> or <em>unformatted</em> output, depending on its type. Formatted output already contains a certain amount of HTML or LaTeX tags around the output that is required to "bring the content in shape" while unformatted output contains just a bare string (i.e. can be placed anywhere in the template).
 
@@ -50,6 +50,12 @@ The following replacement tags are currently defined:
 
   <b> &#42;escrido-toc* </b> | yes |
   A table of contents of the whole document (as navigation tool in HTML). @lb
+
+  <b> &#42;escrido-pagination-url-prev* </b> | no |
+  The URL to the page previous to the current one. @lb
+
+  <b> &#42;escrido-pagination-url-next* </b> | no |
+  The URL to the page next to the current one. @lb
 
   <b> &#42;escrido-brief* </b> | yes |
   The <em>brief description</em> of the current @ref tag_brief "&#64;brief" tag as a paragraph. @lb

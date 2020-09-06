@@ -1062,7 +1062,8 @@ void escrido::CRefPage::BuildPageTypeID()
 
 escrido::CDocumentation::CDocumentation() :
   fGroupOrdered ( false ),
-  oaGroupTree   ( this->paDocPageList )
+  oGroupTree    ( this->paDocPageList ),
+  fNavOrderList ( false )
 {}
 
 // .............................................................................
@@ -1290,6 +1291,8 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
       ReplacePlaceholder( "*escrido-groupname#*", pPage->GetGroupNames(), sTemplatePage );
       ReplacePlaceholder( "*escrido-title*", pPage->GetTitle(), sTemplatePage );
       ReplacePlaceholder( "*escrido-toc*", *this, &CDocumentation::WriteHTMLTableOfContent, pPage, oWriteInfo_i, sTemplatePage );
+      ReplacePlaceholder( "*escrido-pagination-url-prev*", *this, &CDocumentation::WriteHTMLPaginatorURLPrev, pPage, oWriteInfo_i, sTemplatePage );
+      ReplacePlaceholder( "*escrido-pagination-url-next*", *this, &CDocumentation::WriteHTMLPaginatorURLNext, pPage, oWriteInfo_i, sTemplatePage );
 
       ReplacePlaceholder( "*escrido-brief*", *pPage, &CDocPage::WriteHTMLTagBlock, tag_type::BRIEF, oWriteInfo_i, sTemplatePage );
       ReplacePlaceholder( "*escrido-return*", *pPage, &CDocPage::WriteHTMLTagBlock, tag_type::RETURN, oWriteInfo_i, sTemplatePage );
@@ -1435,13 +1438,13 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
 
       // Loop over group tree to write groups content
       size_t nLvl;
-      const CGroupNode* pGroup = this->oaGroupTree.FirstGroupNode( nLvl );
+      const CGroupNode* pGroup = this->oGroupTree.FirstGroupNode( nLvl );
       while( pGroup != NULL )
       {
         // Write group headline if
         // - groups are used at all
         // - this group contains any pages
-        if( ( this->oaGroupTree.MaxLvl() > 0 ) &&
+        if( ( this->oGroupTree.MaxLvl() > 0 ) &&
             !pGroup->naDocPageIdxList.empty() )
         {
           // Expand "*escrido-pages*" in order to add a group headline
@@ -1458,7 +1461,7 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
           else
           {
             // Get list of parent names of this group.
-            std::vector <std::string> asGroupNameList = this->oaGroupTree.GetGroupNames( pGroup );
+            std::vector <std::string> asGroupNameList = this->oGroupTree.GetGroupNames( pGroup );
 
             // Generate a combined name string from that.
             std::string sCombGroupName;
@@ -1537,7 +1540,7 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
         }
 
         // Get next group
-        pGroup = this->oaGroupTree.NextGroupNode( pGroup, nLvl );
+        pGroup = this->oGroupTree.NextGroupNode( pGroup, nLvl );
       }
 
       // Delete final "*escrido-pages*":
@@ -1561,6 +1564,14 @@ void escrido::CDocumentation::DebugOutput() const
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Writes the navigation table into a page.
+///
+/// \note       This method works in analogy to \ref FillGroupTreeOrdered().
+///             Any change of ordering the pages in one of the methods must be
+///             translated to the other.
+// *****************************************************************************
+
 void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePage_i,
                                                        std::ostream& oOutStrm_i,
                                                        const SWriteInfo& oWriteInfo_i ) const
@@ -1572,7 +1583,7 @@ void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePag
 
   // Loop over group tree:
   size_t nLvl;
-  const CGroupNode* pGroup = this->oaGroupTree.FirstGroupNode( nLvl );
+  const CGroupNode* pGroup = this->oGroupTree.FirstGroupNode( nLvl );
   while( pGroup != NULL )
   {
     // If group name is not empty: display it
@@ -1594,12 +1605,12 @@ void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePag
 
     // Populate a list of all user-defined page types that appear in this group.
     std::vector<std::string>saPageTypeList;
-    for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); p++ )
+    for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); ++p )
     {
       std::string sPageTypeID = paDocPageList[pGroup->naDocPageIdxList[p]]->GetPageTypeID();
 
       bool fExists = false;
-      for( size_t pt = 0; pt < saPageTypeList.size(); pt++ )
+      for( size_t pt = 0; pt < saPageTypeList.size(); ++pt )
         if( saPageTypeList[pt] == sPageTypeID )
         {
           fExists = true;
@@ -1611,12 +1622,12 @@ void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePag
     }
 
     // Write all pages of all other page types of this group.
-    for( size_t pt = 0; pt < saPageTypeList.size(); pt++ )
+    for( size_t pt = 0; pt < saPageTypeList.size(); ++pt )
       if( saPageTypeList[pt] != "mainpage" && saPageTypeList[pt] != "page" )
         WriteHTMLTOCPageType( *pGroup, saPageTypeList[pt], pWritePage_i, oOutStrm_i, oWriteInfo_i );
 
     // Get next group
-    pGroup = this->oaGroupTree.NextGroupNode( pGroup, nLvl );
+    pGroup = this->oGroupTree.NextGroupNode( pGroup, nLvl );
   }
 }
 
@@ -1632,7 +1643,7 @@ void escrido::CDocumentation::WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
   // literal form of the page type name.
   bool fPageExist = false;
   std::string sPageTypeLit;
-  for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); p++ )
+  for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); ++p )
     if( paDocPageList[oGroup_i.naDocPageIdxList[p]]->GetPageTypeID() == sPageTypeID_i )
     {
       // Get the literary form of the page type name.
@@ -1655,7 +1666,7 @@ void escrido::CDocumentation::WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
     ++oWriteInfo_i;
 
     // Loop over all pages of the group:
-    for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); p++ )
+    for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); ++p )
     {
       CDocPage* pPage = paDocPageList[oGroup_i.naDocPageIdxList[p]];
       if( pPage->GetPageTypeID() == sPageTypeID_i )
@@ -1705,14 +1716,80 @@ void escrido::CDocumentation::WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
 
 // .............................................................................
 
+void escrido::CDocumentation::WriteHTMLPaginatorURLPrev( const CDocPage* pWritePage_i,
+                                                          std::ostream& oOutStrm_i,
+                                                          const SWriteInfo& oWriteInfo_i ) const
+{
+  if( !fNavOrderList )
+    this->FillNavOrderList();
+
+  // Loop over all elements of the doc page nav order list.
+  for( size_t np = 0; np < anNavOrderPageIdxList.size(); ++np )
+  {
+    // Check if page is this page.
+    if( this->paDocPageList[anNavOrderPageIdxList[np]] == pWritePage_i )
+    {
+      // Get pointer to previous page.
+      // Take care of wrap-around at first element.
+      const CDocPage* pNextPage;
+      if( np == 0 )
+        pNextPage = this->paDocPageList[anNavOrderPageIdxList.back()];
+      else
+        pNextPage = this->paDocPageList[anNavOrderPageIdxList[np - 1]];
+
+      // Get reference index and output link url.
+      size_t nRefIdx;
+      if( oWriteInfo_i.oRefTable.GetRefIdx( pNextPage->GetIdent(), nRefIdx ) )
+      {
+        oOutStrm_i << oWriteInfo_i.oRefTable.GetLink( nRefIdx );
+      }
+    }
+  }
+}
+
+// .............................................................................
+
+void escrido::CDocumentation::WriteHTMLPaginatorURLNext( const CDocPage* pWritePage_i,
+                                                         std::ostream& oOutStrm_i,
+                                                         const SWriteInfo& oWriteInfo_i ) const
+{
+  if( !fNavOrderList )
+    this->FillNavOrderList();
+
+  // Loop over all elements of the doc page nav order list.
+  for( size_t np = 0; np < anNavOrderPageIdxList.size(); ++np )
+  {
+    // Check if page is this page.
+    if( this->paDocPageList[anNavOrderPageIdxList[np]] == pWritePage_i )
+    {
+      // Get pointer to next page.
+      // Take care of wrap-around after last element.
+      const CDocPage* pNextPage;
+      if( np + 1 < anNavOrderPageIdxList.size() )
+        pNextPage = this->paDocPageList[anNavOrderPageIdxList[np + 1]];
+      else
+        pNextPage = this->paDocPageList[anNavOrderPageIdxList[0]];
+
+      // Get reference index and output link url.
+      size_t nRefIdx;
+      if( oWriteInfo_i.oRefTable.GetRefIdx( pNextPage->GetIdent(), nRefIdx ) )
+      {
+        oOutStrm_i << oWriteInfo_i.oRefTable.GetLink( nRefIdx );
+      }
+    }
+  }
+}
+
+// .............................................................................
+
 // *****************************************************************************
-/// \brief      Fills the group tree oaGroupTree in an ordered form.
+/// \brief      Fills the group tree oGroupTree in an ordered form.
 // *****************************************************************************
 
 void escrido::CDocumentation::FillGroupTreeOrdered() const
 {
   // Step 1: create group tree and fill in all pages.
-  oaGroupTree.Update();
+  oGroupTree.Update();
 
   // Step 2: create a reference list from the @order tags of the main page.
   std::vector <std::string> saOrderRefList;
@@ -1767,9 +1844,78 @@ void escrido::CDocumentation::FillGroupTreeOrdered() const
 
   // Step 3: sort the group tree based on the reference list and alphanumeric
   //         order.
-  oaGroupTree.Order( saOrderRefList );
+  oGroupTree.Order( saOrderRefList );
 
   fGroupOrdered = true;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Fills anNavOrderPageIdxList, the list of indices to paDocPageList in
+///             the order as the pages appear in the navigation.
+///
+/// \note       This method works in analogy to \ref WriteHTMLTableOfContent().
+///             Any change of ordering the pages in one of the methods must be
+///             translated to the other.
+// *****************************************************************************
+
+void escrido::CDocumentation::FillNavOrderList() const
+{
+  // Make sure the group list is prepared.
+  if( !fGroupOrdered )
+    this->FillGroupTreeOrdered();
+
+  // Clear the page nav order list.
+  anNavOrderPageIdxList.clear();
+
+  // Loop over group tree:
+  size_t nLvl;
+  const CGroupNode* pGroup = this->oGroupTree.FirstGroupNode( nLvl );
+  while( pGroup != NULL )
+  {
+    // Create a list of all page types within this group.
+    // Start with "mainpage" and "page" type, like in WriteHTMLTableOfContent()
+    std::vector<std::string>saPageTypeList = { "mainpage", "page" };
+
+    // Populate the list with all user-defined page types that appear in this group.
+    for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); p++ )
+    {
+      std::string sPageTypeID = paDocPageList[pGroup->naDocPageIdxList[p]]->GetPageTypeID();
+
+      bool fExists = false;
+      for( size_t pt = 0; pt < saPageTypeList.size(); ++pt )
+        if( saPageTypeList[pt] == sPageTypeID )
+        {
+          fExists = true;
+          break;
+        }
+
+      if( !fExists )
+        saPageTypeList.push_back( sPageTypeID );
+    }
+
+    // Loop over the list of page types.
+    for( size_t pt = 0; pt < saPageTypeList.size(); ++pt )
+    {
+      const std::string& sPageTypeID = saPageTypeList[pt];
+
+      // Loop over all pages in the group
+      for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); ++p )
+      {
+        size_t nDocPageIdx = pGroup->naDocPageIdxList[p];
+
+        // If the page is in the current page type: add it to the order list.
+        if( paDocPageList[nDocPageIdx]->GetPageTypeID() == sPageTypeID )
+          anNavOrderPageIdxList.push_back( nDocPageIdx );
+      }
+    }
+
+    // Get next group
+    pGroup = this->oGroupTree.NextGroupNode( pGroup, nLvl );
+  }
+
+  fNavOrderList = true;
 }
 
 // .............................................................................

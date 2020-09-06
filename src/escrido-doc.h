@@ -418,7 +418,11 @@ class escrido::CDocumentation
     std::vector <CDocPage*> paDocPageList; ///< List of all documentation pages contained.
 
     mutable bool fGroupOrdered;            ///< Flag whether a group ordering is available for the documentation pages.
-    mutable CGroupTree oaGroupTree;        ///< Container for ordering of groups.
+    mutable CGroupTree oGroupTree;         ///< Container for ordering of groups.
+
+    mutable bool fNavOrderList;            ///< Flag whether a page ordering is available for the documentation pages.
+    mutable std::vector <size_t>
+      anNavOrderPageIdxList;               ///< List of indices of paDocPageList in equal order as for the navigation.
 
   public:
 
@@ -467,9 +471,17 @@ class escrido::CDocumentation
                                const CDocPage* pWritePage_i,
                                std::ostream& oOutStrm_i,
                                const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLPaginatorURLPrev( const CDocPage* pWritePage_i,
+                                     std::ostream& oOutStrm_i,
+                                     const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLPaginatorURLNext( const CDocPage* pWritePage_i,
+                                     std::ostream& oOutStrm_i,
+                                     const SWriteInfo& oWriteInfo_i ) const;
+
     std::string CleanAndJSONEscape( const std::string& sText_i ) const;
 
     void FillGroupTreeOrdered() const;
+    void FillNavOrderList() const;
 };
 
 
