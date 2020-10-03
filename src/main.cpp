@@ -23,8 +23,8 @@
 /// \mainpage   Escrido: a multi-language documentation generator.
 ///
 /// \author     Gunnar Schulze
-/// \date       2020-09-04
-/// \version    1.7.0
+/// \date       2020-10-03
+/// \version    1.7.1
 /// \copyright  2018 Gunnar Schulze
 // *****************************************************************************
 
@@ -56,9 +56,9 @@ namespace applicationInfo
 {
   const char szName[]        = "Escrido";
   const char szDescription[] = "Multi-language documentation generator.";
-  const char szVersion[]     = "1.7.0";
+  const char szVersion[]     = "1.7.1";
   const char szFirstDate[]   = "October 2015";
-  const char szDate[]        = "September 2020";
+  const char szDate[]        = "October 2020";
   const char szAuthor[]      = "Gunnar Schulze";
 }
 
@@ -247,7 +247,7 @@ int main( int argc, char* argv[] )
   // Output web document.
   if( fWDOutput )
   {
-    std::cout << "Writing HTML document into '" << sWDOutputDir << "':" << std::endl
+    std::cout << "Writing HTML document(s) into '" << sWDOutputDir << "':" << std::endl
               << std::endl;
     escrido::oDocumentation.WriteHTMLDoc( sTemplateDir,
                                           sWDOutputDir,
@@ -255,11 +255,17 @@ int main( int argc, char* argv[] )
                                           oWriteInfo );
 
     if( fSearchIndex )
+    {
+      std::cout << std::endl
+                << "Writing search index file into '" << sWDOutputDir << "':" << std::endl
+                << std::endl;
+
       escrido::oDocumentation.WriteHTMLSearchIndex( sWDOutputDir,
                                                     sSeachIndexFile,
                                                     sWDOutputPostfix,
                                                     oWriteInfo,
                                                     fSearchIdxEncode );
+    }
 
     std::cout << std::endl;
   }
