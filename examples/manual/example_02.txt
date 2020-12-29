@@ -18,6 +18,8 @@ The <em>source files</em> contain the content for the Escrido document. These ca
 
 The definition of which files shall be used as source files is given as command @code INCLUDE @endcode in the @ref escrido_file "configuration file" or as argument @code -I @endcode in the command line call.
 
+Examples for source files can be found inside <em>examples/manual/</em> and <em>examples/minimal/</em> in the @link https://github.com/gunnar-schulze/Escrido "Escrido repository".
+
 @section template_files Template Files
 
 So how is the output brought into shape? This is done by using <em>template files</em> for HTML or LaTeX output. A template file for HTML output is little more than a common HTML file that contains certain @ref replacement_tags "Escrido replacement tags" at the desired positions. These tags are then replaced by Escrido with the actual content from the source files in order to generate the output files. This procedure has the advantage that it is possible to bring the content into very different shape by using different template files and that the structurization can be done by using HTML only.

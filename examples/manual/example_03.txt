@@ -38,9 +38,12 @@ The table shows all page tags that are currently available:
 
 @endtable
 
-Inside the HTML documentation, each sections contained within one <em>page tag</em> 
-will be viewed in one HTML page and is represented by one entry inside the 
+Inside the HTML documentation, each sections contained within one <em>page tag</em>
+will be viewed in one HTML page and is represented by one entry inside the
 table of content / navigation bar.
+
+@par Example: @lb
+  &#64;_page_ page01 My new page
 
 @section block_tags Block Tags
 

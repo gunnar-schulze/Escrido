@@ -8,7 +8,7 @@
 ///             access (including wildcards).
 ///
 /// \author     Gunnar Schulze
-/// \version    2018-10-19
+/// \version    2020-12-29
 /// \date       2012
 /// \copyright  2016 Gunnar Schulze
 // *****************************************************************************
@@ -215,7 +215,7 @@ struct filesys::SFileInfo
 ///             operating systems.
 ///
 ///             A canonical path complies with the following rules:
-///             - \b slashes ('/') as directory seperators
+///             - \b slashes ('/') as directory separators
 ///             - \b no consecutive multiple slashes ("//")
 ///             - \b one leading slash '/' for an absolute path
 ///             - \b no trailing slash except the path represents the bare root
@@ -740,8 +740,8 @@ inline bool filesys::IsRelativePath( const char* szCanonPath_i )
 /// \details    This function is useful for concatenating a canonical relative
 ///             path to a canonical directory in a way as if the path is
 ///             relative to the directory. In a simple case this is just a
-///             string attachment. In more complex cases in wich the path
-///             contains double dots ('..') some or all parts of the diretory
+///             string attachment. In more complex cases in which the path
+///             contains double dots ('..') some or all parts of the directory
 ///             string are removed accordingly.
 ///
 /// \param[in]  szCanonDir_i
@@ -864,7 +864,7 @@ inline void filesys::ConcatPaths( const char* szCanonDir_i, const char* szCanonP
                   if( pDelim[1] == '.' && pDelim[2] == '.' )
                   {
                     // => Input directory has the form "*/.." and for canonical paths
-                    //    this means that is can only have any of the exact forms of
+                    //    this means that it can only have any of the exact forms of
                     //    "../..", "../../.." etc.
                     //    Directory and path can now be concatenated directly.
 
@@ -1607,7 +1607,7 @@ inline void filesys::oflstream::close()
 ///             list of accessible files or directories that exist on the drive.
 ///
 /// \details    The function checks whether files or directories that match the
-///             given (absolute or relative) path exists on the file system and
+///             given (absolute or relative) path exist on the file system and
 ///             whether they are accessible.
 ///
 /// \remark     The function is mainly used for expanding paths that include
@@ -1750,7 +1750,7 @@ inline bool filesys::GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, s
 
         // Open path section with POSIX "opendir()" function.
         bool fFirst = true;
-        if( pDir = opendir( oaFileInfo_o[s].sPath.c_str() ) )
+        if( ( pDir = opendir( oaFileInfo_o[s].sPath.c_str() ) ) )
         {
           // Loop over all files within the path section.
           // Use multithreading safe reenrent version of POSIX "readdir()".
@@ -1759,6 +1759,11 @@ inline bool filesys::GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, s
             // Break off if all items of the directory were read.
             if( pResult == NULL )
               break;
+
+            // Skip items "." and ".." that may occur from wildcard evaluation.
+            if( strcmp( oEntry.d_name, "." ) == 0 ||
+                strcmp( oEntry.d_name, ".." ) == 0 )
+              continue;
 
             // Distinguish between directory-like items and file-like items.
             // See http://man7.org/linux/man-pages/man3/readdir.3.html.
@@ -1820,7 +1825,7 @@ inline bool filesys::GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, s
                     sCheckPath += oEntry.d_name;
 
                     // Try opening the check path as directory.
-                    if( pCheckDir = opendir( sCheckPath.c_str() ) )
+                    if( ( pCheckDir = opendir( sCheckPath.c_str() ) ) )
                     {
                       fItemType = item_type::DIRECTORY;
                       closedir( pCheckDir );
@@ -2167,7 +2172,7 @@ inline void filesys::oflstream::close()
 ///             list of accessible files or directories that exist on the drive.
 ///
 /// \details    The function checks whether files or directories that match the
-///             given (absolute or relative) path exists on the file system and
+///             given (absolute or relative) path exist on the file system and
 ///             whether they are accessible.
 ///
 /// \remark     The function is mainly used for expanding paths that include
@@ -2359,13 +2364,17 @@ inline bool filesys::GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, s
         bool fFirst = true;
         if( ( hDir = FindFirstFile( oaFileInfo_o[s].sPath.c_str(), &oEntry ) ) != INVALID_HANDLE_VALUE )
         {
-
           // Remove "*" used for stimulating a directory search.
           oaFileInfo_o[s].sPath.pop_back();
 
           // Loop over all files within the path section.
           do
           {
+            // Skip items "." and ".." that may occur from wildcard evaluation.
+            if( strcmp( oEntry.cFileName, "." ) == 0 ||
+                strcmp( oEntry.cFileName, ".." ) == 0 )
+              continue;
+
             // Distinguish between directory-like items and file-like items.
             // See https://msdn.microsoft.com/en-us/library/windows/desktop/gg258117%28v=vs.85%29.aspx
             item_type fItemType;
@@ -2945,5 +2954,4 @@ echo "Multiple backslashes and trailing backslashes:"
 ./a.out WINDOWS "C:\\home\\\\\\"
 */
 
-// **** Ende Header ****
 #endif // FILESYS_READ_ONCE

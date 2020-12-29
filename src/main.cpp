@@ -178,13 +178,9 @@ int main( int argc, char* argv[] )
     // Get list of files defined by the include paths list.
     std::vector<filesys::SFileInfo> oaFileInfo;
     {
-      char* szIncludePath = new char[saIncludePaths[i].length() + 1];
-      strcpy( szIncludePath, saIncludePaths[i].c_str() );
-
-      if( filesys::GetCanonicalPath( szIncludePath, szIncludePath ) )
-        GetFilesInfo( szIncludePath, filesys::case_type::OS_CONVENTION, oaFileInfo );
-
-      delete[] szIncludePath;
+      std::string sCanonicalPath;
+      if( filesys::GetCanonicalPath( saIncludePaths[i].c_str(), sCanonicalPath ) )
+        GetFilesInfo( sCanonicalPath.c_str(), filesys::case_type::OS_CONVENTION, oaFileInfo );
     }
 
     // Walk every file of the result list.
