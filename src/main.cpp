@@ -23,8 +23,8 @@
 /// \mainpage   Escrido: a multi-language documentation generator.
 ///
 /// \author     Gunnar Schulze
-/// \date       2020-10-03
-/// \version    1.7.1
+/// \date       2020-12-29
+/// \version    1.7.2
 /// \copyright  2018 Gunnar Schulze
 // *****************************************************************************
 
