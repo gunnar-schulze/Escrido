@@ -76,14 +76,16 @@ namespace escrido
   std::vector <std::string> saIncludePaths;     ///< Include file names.
   std::vector <std::string> saNamespaces;       ///< List of namespaces the output shall be restricted to.
   std::vector <std::string> saExludeGroups;     ///< List of groups that shall be excluded from output.
+  std::vector <std::pair<std::string, std::string>>
+    asRelabel;                                  ///< List of fixed terms that shall be relabeled.
   std::string sTemplateDir = "./template/";     ///< Template directory name.
   bool fWDOutput = true;                        ///< Flag whether web document output shall be created.
   std::string sWDOutputDir = "./html/";         ///< Output directory name for web document files.
   std::string sWDOutputPostfix = ".html";       ///< Output postfix (file ending) of webdocument files.
   bool fLOutput = false;                        ///< Flag whether LaTeX output shall be created.
   std::string sLOutputDir = "./latex/";         ///< Output directory name for LaTeX document files.
-  bool fShowInternal = false;                   ///< Flag, whether 'internal' tag blocks shall be shown.
   bool fDebug   = false;                        ///< Output debug information.
+
   bool fSearchIndex = false;                    ///< Flag whether an index list for static search shall be generated.
   search_index_encoding fSearchIdxEncode
     = search_index_encoding::JSON;              ///< Search index encoding type.
@@ -237,7 +239,7 @@ int main( int argc, char* argv[] )
     escrido::oDocumentation.RemoveGroups( saExludeGroups );
 
   // Create write info container with the reference table
-  SWriteInfo oWriteInfo( fShowInternal );
+  SWriteInfo oWriteInfo( asRelabel );
   escrido::oDocumentation.CreateRefTable( sWDOutputPostfix, oWriteInfo );
 
   // Output web document.

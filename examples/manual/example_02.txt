@@ -4,7 +4,7 @@ The basic concept behind Escrido is, that it reads one @ref escrido_file "config
 
 @section escrido_file The Escrido Configuration File
 
-The <em>Escrido  configuration file</em> is a text file that contains all configuration options for generating the required output. It is typically named "escridofile" without any extension. Examples are the files <em>examples/manual/escridofile</em> and <em>examples/minimal/escridofile</em> inside the @link https://github.com/gunnar-schulze/Escrido "Escrido repository". Note that all options that can be written into the Escrido file can also be applied as <em>command line arguments</em> on calling the program (run @code >escrido --help @endcode for all command line arguments). If an option happens to be set in the configuration file as well as it is given as an argument of the command line call, the command line call argument has precendence.
+The <em>Escrido  configuration file</em> is a text file that contains all @ref config_file "configuration options" for generating the required output. It is typically named "escridofile" without any extension. Examples are the files <em>examples/manual/escridofile</em> and <em>examples/minimal/escridofile</em> inside the @link https://github.com/gunnar-schulze/Escrido "Escrido repository". Note that all options that can be written into the Escrido file can also be applied as <em>command line arguments</em> on calling the program (run @code >escrido --help @endcode for all command line arguments). If an option happens to be set in the configuration file as well as it is given as an argument of the command line call, the command line call argument has precendence.
 
 On calling Escrido, the configuration file is specified by the @code -f @endcode option:
 

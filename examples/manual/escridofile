@@ -40,6 +40,16 @@ NAMESPACE          =
 
 EXCLUDE_GROUPS     = Internal
 
+# This parameter can be used to replace certain fixed terms or expressions
+# that are used by default in the output documents by a different wording. For
+# that, a text pair is given with the first text representing the original
+# expression and the second one the replacement string.
+# This parameter can be used multiple times.
+#
+# Equals the "-rl" and "--relabel" command line options
+
+RELABEL = "Return value" "Returns"
+
 # -----------------------------------------------------------------------------
 # Web document output options
 # -----------------------------------------------------------------------------
@@ -66,8 +76,8 @@ WEBDOC_OUT_DIR     = "./manual/html/"
 WEBDOC_FILE_ENDING =
 
 # This parameter turns on the generation of a search index list that can be
-# used to implement a search functionality for the pages, e.g. in combination with
-# some external search library. Default is NO.
+# used to implement a search functionality for the pages, e.g. in
+# combination with some external search library. Default is NO.
 #
 # Equals the "-si" and "--search-index" command line options
 
@@ -107,8 +117,3 @@ GENERATE_LATEX     = YES
 # Equals the "-ldo" and "--latex-output-dir" command line options
 
 LATEX_OUT_DIR      = "./manual/latex/"
-
-
-
-
-

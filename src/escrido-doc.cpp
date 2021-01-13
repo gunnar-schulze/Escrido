@@ -708,7 +708,8 @@ const std::string escrido::CDocPage::GetURL( const std::string& sOutputPostfix_i
 /// \brief      Writes HTML output of meta data such as AUTHOR, DATE etc.
 // *****************************************************************************
 
-void escrido::CDocPage::WriteHTMLMetaDataList( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+void escrido::CDocPage::WriteHTMLMetaDataList( std::ostream& oOutStrm_i,
+                                               const SWriteInfo& oWriteInfo_i ) const
 {
   // Start description list.
   WriteHTMLTagLine( "<dl>", oOutStrm_i, oWriteInfo_i++ );
@@ -716,7 +717,10 @@ void escrido::CDocPage::WriteHTMLMetaDataList( std::ostream& oOutStrm_i, const S
   // Author:
   if( oContUnit.HasTagBlock( tag_type::AUTHOR ) )
   {
-    WriteHTMLTagLine( "<dt class=\"author\">Author</dt>", oOutStrm_i, oWriteInfo_i );
+    const std::string sTagLine = std::string( "<dt class=\"author\">" ) +
+                                 oWriteInfo_i.Label( "Author" ) + "</dt>";
+
+    WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
     WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
     oContUnit.GetFirstTagBlock( tag_type::AUTHOR )->WriteHTML( oOutStrm_i, oWriteInfo_i );
     WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
@@ -725,7 +729,10 @@ void escrido::CDocPage::WriteHTMLMetaDataList( std::ostream& oOutStrm_i, const S
   // Date:
   if( oContUnit.HasTagBlock( tag_type::DATE ) )
   {
-    WriteHTMLTagLine( "<dt class=\"date\">Date</dt>", oOutStrm_i, oWriteInfo_i );
+    const std::string sTagLine = std::string( "<dt class=\"date\">" ) +
+                                 oWriteInfo_i.Label( "Date" ) + "</dt>";
+
+    WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
     WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
     oContUnit.GetFirstTagBlock( tag_type::DATE )->WriteHTML( oOutStrm_i, oWriteInfo_i );
     WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
@@ -739,7 +746,10 @@ void escrido::CDocPage::WriteHTMLMetaDataList( std::ostream& oOutStrm_i, const S
   // Version:
   if( oContUnit.HasTagBlock( tag_type::VERSION ) )
   {
-    WriteHTMLTagLine( "<dt class=\"version\">Version</dt>", oOutStrm_i, oWriteInfo_i );
+    const std::string sTagLine = std::string( "<dt class=\"version\">" ) +
+                                 oWriteInfo_i.Label( "Version" ) + "</dt>";
+
+    WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
     WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
     oContUnit.GetFirstTagBlock( tag_type::VERSION )->WriteHTML( oOutStrm_i, oWriteInfo_i );
     WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
@@ -748,7 +758,10 @@ void escrido::CDocPage::WriteHTMLMetaDataList( std::ostream& oOutStrm_i, const S
   // Copyright:
   if( oContUnit.HasTagBlock( tag_type::COPYRIGHT ) )
   {
-    WriteHTMLTagLine( "<dt class=\"copyright\">Copyright</dt>", oOutStrm_i, oWriteInfo_i );
+    const std::string sTagLine = std::string( "<dt class=\"copyright\">" ) +
+                                 oWriteInfo_i.Label( "Copyright" ) + "</dt>";
+
+    WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
     WriteHTMLTagLine( "<dd>", oOutStrm_i, oWriteInfo_i++ );
     oContUnit.GetFirstTagBlock( tag_type::COPYRIGHT )->WriteHTML( oOutStrm_i, oWriteInfo_i );
     WriteHTMLTagLine( "</dd>", oOutStrm_i, --oWriteInfo_i );
@@ -1579,7 +1592,9 @@ void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePag
   if( !fGroupOrdered )
     this->FillGroupTreeOrdered();
 
-  WriteHTMLTagLine( "<h1>Contents</h1>", oOutStrm_i, oWriteInfo_i );
+  const std::string sTagLine = std::string( "<h1>" ) + oWriteInfo_i.Label( "Contents" ) + "</h1>";
+
+  WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
 
   // Loop over group tree:
   size_t nLvl;

@@ -72,6 +72,18 @@ wdfe                 string
   'Ending of web document output file. (default ".html")'
                                                  {escrido::sWDOutputPostfix = #1;}
 
+rl                   string string
+  'Replace a fixed term (e.g. "Signatures", "Return value" etc. ) given as first
+   argument by the custom term given as second argument in the output documents.
+   See the manual for a full list of possible arguments. (Multiple use is possible.)'
+                                                 {escrido::asRelabel.emplace_back( #1, #2 );}
+
+-relabel             string string
+  'Replace a fixed term (e.g. "Signatures", "Return value" etc. ) given as first
+   argument by the custom term given as second argument in the output documents.
+   See the manual for a full list of possible arguments. (Multiple use is possible.)'
+                                                 {escrido::asRelabel.emplace_back( #1, #2 );}
+
 si                   onoff
   'Flag defining whether a search index list shall be generated. If this flag is set to "on",
    Escrido will generate such file. (default "off")'
@@ -125,10 +137,5 @@ ldo                  string
 -latex-output-dir    string
   'Output directory for LaTeX document files. (default "./latex/")'
                                                  {escrido::sLOutputDir = #1;}
-
-it
-  'Show tags of type "internal"'                 {escrido::fShowInternal = true;}
--internal
-  'Show tags of type "internal"'                 {escrido::fShowInternal = true;}
 
 -debug               'Output debug information'  {escrido::fDebug = true;}

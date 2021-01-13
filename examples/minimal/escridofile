@@ -40,6 +40,16 @@ NAMESPACE          =
 
 EXCLUDE_GROUPS     = Internal
 
+# This parameter can be used to replace certain fixed terms or expressions
+# that are used by default in the output documents by a different wording. For
+# that, a text pair is given with the first text representing the original
+# expression and the second one the replacement string.
+# This parameter can be used multiple times.
+#
+# Equals the "-rl" and "--relabel" command line options
+
+# RELABEL = "Return value" "Returns"
+
 # -----------------------------------------------------------------------------
 # Web document output options
 # -----------------------------------------------------------------------------

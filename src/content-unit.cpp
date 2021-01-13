@@ -23,9 +23,20 @@
 
 // -----------------------------------------------------------------------------
 
-escrido::SWriteInfo::SWriteInfo( bool fShowInternal_i ):
-  fShowInternal ( fShowInternal_i )
+escrido::SWriteInfo::SWriteInfo( const std::vector <std::pair<std::string, std::string>>& oRelabelList_i ):
+  oRelabelList ( oRelabelList_i )
 {}
+
+// .............................................................................
+
+const char* escrido::SWriteInfo::Label( const char* szLabel_i ) const
+{
+  for( size_t l = 0; l < oRelabelList.size(); ++l )
+    if( oRelabelList[l].first == szLabel_i )
+      return oRelabelList[l].second.c_str();
+
+  return szLabel_i;
+}
 
 // .............................................................................
 
@@ -2772,7 +2783,9 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
           if( !fInDetails )
           {
             WriteHTMLTagLine( "<section class=\"tagblock details\">", oOutStrm_i, oWriteInfo_i++ );
-            WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Details</h2>" << std::endl;
+            WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>"
+                                                         << oWriteInfo_i.Label( "Details" )
+                                                         << "</h2>" << std::endl;
             fInDetails = true;
           }
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
@@ -2841,8 +2854,10 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 
         case tag_type::EXAMPLE:
         {
+          const std::string sTagLine = std::string( "<h4>" ) + oWriteInfo_i.Label( "Example" ) + "</h4>";
+
           WriteHTMLTagLine( "<div class=\"tagblock examples\">", oOutStrm_i, oWriteInfo_i++ );
-          WriteHTMLTagLine( "<h4>Example</h4>", oOutStrm_i, oWriteInfo_i );
+          WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<pre class=\"example\">";
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</pre>" << std::endl;
@@ -2863,8 +2878,10 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 
         case tag_type::NOTE:
         {
+          const std::string sTagLine = std::string( "<h4>" ) + oWriteInfo_i.Label( "Note" ) + "</h4>";
+
           WriteHTMLTagLine( "<div class=\"note\">", oOutStrm_i, oWriteInfo_i++ );
-          WriteHTMLTagLine( "<h4>Note</h4>", oOutStrm_i, oWriteInfo_i );
+          WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
           WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
           break;
@@ -2872,8 +2889,10 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 
         case tag_type::OUTPUT:
         {
+          const std::string sTagLine = std::string( "<h4>" ) + oWriteInfo_i.Label( "Note" ) + "</h4>";
+
           WriteHTMLTagLine( "<div class=\"output\">", oOutStrm_i, oWriteInfo_i++ );
-          WriteHTMLTagLine( "<h4>Output</h4>", oOutStrm_i, oWriteInfo_i );
+          WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
           WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<pre class=\"output\">";
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</pre>" << std::endl;
@@ -2883,8 +2902,10 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 
         case tag_type::REMARK:
         {
+          const std::string sTagLine = std::string( "<h4>" ) + oWriteInfo_i.Label( "Remark" ) + "</h4>";
+
           WriteHTMLTagLine( "<div class=\"remark\">", oOutStrm_i, oWriteInfo_i++ );
-          WriteHTMLTagLine( "<h4>Remark</h4>", oOutStrm_i, oWriteInfo_i );
+          WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
           oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
           WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
           break;
@@ -2934,7 +2955,9 @@ void escrido::CContentUnit::WriteHTMLTagBlock( tag_type fTagType_i,
 
       case tag_type::RETURN:
         WriteHTMLTagLine( "<section class=\"tagblock return\">", oOutStrm_i, oWriteInfo_i++ );
-        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Return value</h2>" << std::endl;
+        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>"
+                                                     << oWriteInfo_i.Label( "Return value" )
+                                                     << "</h2>" << std::endl;
         this->GetFirstTagBlock( tag_type::RETURN )->WriteHTML( oOutStrm_i, oWriteInfo_i );
         WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
         break;
@@ -3014,22 +3037,30 @@ void escrido::CContentUnit::WriteHTMLTagBlockList( tag_type fTagType_i,
     {
        case tag_type::ATTRIBUTE:
          WriteHTMLTagLine( "<section class=\"tagblock attributes\">", oOutStrm_i, oWriteInfo_i++ );
-         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Attributes</h2>" << std::endl;
+         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>"
+                                                      << oWriteInfo_i.Label( "Attributes" )
+                                                      << "</h2>" << std::endl;
          break;
 
        case tag_type::PARAM:
          WriteHTMLTagLine( "<section class=\"tagblock parameters\">", oOutStrm_i, oWriteInfo_i++ );
-         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Parameters</h2>" << std::endl;
+         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>"
+                                                      << oWriteInfo_i.Label( "Parameters" )
+                                                      << "</h2>" << std::endl;
          break;
 
        case tag_type::SEE:
          WriteHTMLTagLine( "<section class=\"tagblock see\">", oOutStrm_i, oWriteInfo_i++ );
-         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>See also</h2>" << std::endl;
+         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>"
+                                                      << oWriteInfo_i.Label( "See also" )
+                                                      << "</h2>" << std::endl;
          break;
 
        case tag_type::SIGNATURE:
          WriteHTMLTagLine( "<section class=\"tagblock signatures\">", oOutStrm_i, oWriteInfo_i++ );
-         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>Signatures</h2>" << std::endl;
+         WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>"
+                                                      << oWriteInfo_i.Label( "Signatures" )
+                                                      << "</h2>" << std::endl;
          break;
     }
 
@@ -3099,7 +3130,7 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
         {
           if( !fInDetails )
           {
-            oOutStrm_i << "\\tagblocksection{Details}%" << std::endl << std::endl;
+            oOutStrm_i << "\\tagblocksection{" << oWriteInfo_i.Label( "Details" ) << "}%" << std::endl << std::endl;
             fInDetails = true;
           }
 
@@ -3157,7 +3188,7 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
 
         case tag_type::EXAMPLE:
         {
-          oOutStrm_i << "\\verbatimtitle{Example}" << std::endl
+          oOutStrm_i << "\\verbatimtitle{" << oWriteInfo_i.Label( "Example" ) << "}" << std::endl
                      << "\\begin{lstlisting}" << std::endl
                      << oaBlockList[t].GetPlainText()
                      << "\\end{lstlisting}" << std::endl;
@@ -3187,7 +3218,7 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
 
         case tag_type::OUTPUT:
         {
-          oOutStrm_i << "\\verbatimtitle{Output}" << std::endl
+          oOutStrm_i << "\\verbatimtitle{" << oWriteInfo_i.Label( "Output" ) << "}" << std::endl
                      << "\\begin{lstlisting}" << std::endl
                      << oaBlockList[t].GetPlainText()
                      << "\\end{lstlisting}" << std::endl;
@@ -3241,7 +3272,9 @@ void escrido::CContentUnit::WriteLaTeXTagBlock( tag_type fTagType_i,
         break;
 
       case tag_type::RETURN:
-        oOutStrm_i << "\\tagblocksection{Return value}" << std::endl;
+        oOutStrm_i << "\\tagblocksection{"
+                   << oWriteInfo_i.Label( "Return value" )
+                   << "}" << std::endl;
         this->GetFirstTagBlock( tag_type::RETURN )->WriteLaTeX( oOutStrm_i, oWriteInfo_i );
         break;
     }
@@ -3319,19 +3352,19 @@ void escrido::CContentUnit::WriteLaTeXTagBlockList( tag_type fTagType_i,
     switch( fTagType_i )
     {
        case tag_type::ATTRIBUTE:
-         oOutStrm_i << "\\tagblocksection{Attributes}" << std::endl;
+         oOutStrm_i << "\\tagblocksection{" << oWriteInfo_i.Label( "Attributes" ) << "}" << std::endl;
          break;
 
        case tag_type::PARAM:
-         oOutStrm_i << "\\tagblocksection{Parameters}" << std::endl;
+         oOutStrm_i << "\\tagblocksection{" << oWriteInfo_i.Label( "Parameters" ) << "}" << std::endl;
          break;
 
        case tag_type::SEE:
-         oOutStrm_i << "\\tagblocksection{See also}" << std::endl;
+         oOutStrm_i << "\\tagblocksection{" << oWriteInfo_i.Label( "See also" ) << "}" << std::endl;
          break;
 
        case tag_type::SIGNATURE:
-         oOutStrm_i << "\\tagblocksection{Signatures}" << std::endl;
+         oOutStrm_i << "\\tagblocksection{" << oWriteInfo_i.Label( "Signatures" ) << "}" << std::endl;
          break;
     }
 
@@ -3419,6 +3452,18 @@ std::ostream& escrido::WriteHTMLIndents( std::ostream& oOutStrm_i, const SWriteI
   for( unsigned int i = 0; i < oWriteInfo_i.nIndent; i++ )
     oOutStrm_i << " ";
   return oOutStrm_i;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Writes an HTML line with the correct indentation and a following
+///             line break.
+// *****************************************************************************
+
+void escrido::WriteHTMLTagLine( const std::string& sTagText_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i )
+{
+  WriteHTMLTagLine( sTagText_i.c_str(), oOutStrm_i, oWriteInfo_i );
 }
 
 // -----------------------------------------------------------------------------

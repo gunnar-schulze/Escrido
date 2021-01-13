@@ -24,8 +24,8 @@
 namespace config_file_parser
 {
   size_t ParseConfigFile( const std::string& sConfigFile_i );
-  const std::string ConvertTokString( const char* szConvTok_i );
-  void AppendTokString( const char* szAppendTok_i, std::vector <std::string>& saStingList_o );
+  const std::string StripOption( std::string& sLine_i );
+  const std::string StripValue( std::string& sLine_i );
 }
 
 // -----------------------------------------------------------------------------
@@ -67,131 +67,115 @@ inline size_t config_file_parser::ParseConfigFile( const std::string& sConfigFil
     if( sLine[nPos] == '#' )
       continue;
 
-    // => All other lines must be of format "IDENTIFIER = value value value"
+    // => All other lines must be of format "OPTION = value value value"
 
-    // Create a C string for tokenization.
-    size_t nSize = sizeof( char ) * ( sLine.size() + 1 );
-    char* szLine = (char*) malloc( nSize );
-    if( szLine == NULL )
-      throw std::bad_alloc();
-    memcpy( szLine, sLine.data(), nSize );
+    // Strip OPTION
+    const std::string sOption = StripOption( sLine );
 
-    // Tokenize the line up to the third token (i.e. the first value).
-    // (Use of strtok() is ok since we do not run this code in parallel.)
-    bool fError = false;
-    char* szTok;
-    char* szFirstTok = strtok( szLine, " \t" );
-    if( szFirstTok == NULL )
-      fError = true;
+    // Compare against known option names
+    if( sOption == "TEMPLATE_DIR" )
+    {
+      std::string sDir = StripValue( sLine );
+      if( !sDir.empty() )
+        escrido::sTemplateDir = sDir;
+    }
+    else
+    if( sOption == "INCLUDE" )
+    {
+      escrido::saIncludePaths.clear();
+      std::string sPath = StripValue( sLine );
+      while( !sPath.empty() )
+      {
+        escrido::saIncludePaths.push_back( sPath );
+        sPath = StripValue( sLine );
+      }
+    }
+    else
+    if( sOption == "NAMESPACE" )
+    {
+      escrido::saNamespaces.clear();
+      std::string sNamespace = StripValue( sLine );
+      while( !sNamespace.empty() )
+      {
+        escrido::saNamespaces.push_back( sNamespace );
+        sNamespace = StripValue( sLine );
+      }
+    }
+    else
+    if( sOption == "EXCLUDE_GROUPS" )
+    {
+      escrido::saExludeGroups.clear();
+      std::string sGroup = StripValue( sLine );
+      while( !sGroup.empty() )
+      {
+        escrido::saExludeGroups.push_back( sGroup );
+        sGroup = StripValue( sLine );
+      }
+    }
+    else
+    if( sOption == "RELABEL" )
+    {
+      std::string sTerm = StripValue( sLine );
+      std::string sReplace = StripValue( sLine );
+      escrido::asRelabel.emplace_back( sTerm, sReplace );
+    }
+    else
+    if( sOption == "GENERATE_WEBDOC" )
+    {
+      escrido::fWDOutput = ( StripValue( sLine ) == "YES" );
+    }
+    else
+    if( sOption == "WEBDOC_OUT_DIR" )
+    {
+      std::string sDir = StripValue( sLine );
+      if( !sDir.empty() )
+        escrido::sWDOutputDir = sDir;
+    }
+    else
+    if( sOption == "WEBDOC_FILE_ENDING" )
+    {
+      std::string sEnding = StripValue( sLine );
+      if( !sEnding.empty() )
+        escrido::sWDOutputPostfix = sEnding;
+    }
+    else
+    if( sOption == "GENERATE_SEARCH_INDEX" )
+    {
+      escrido::fSearchIndex = ( StripValue( sLine ) == "YES" );
+    }
+    else
+    if( sOption == "SEARCH_INDEX_ENDCODING" )
+    {
+      if( StripValue( sLine ) == "JS" )
+        escrido::fSearchIdxEncode = escrido::search_index_encoding::JS;
+      else
+        escrido::fSearchIdxEncode = escrido::search_index_encoding::JSON;
+    }
+    else
+    if( sOption == "SEARCH_INDEX_FILE" )
+    {
+      std::string sFileName = StripValue( sLine );
+      if( !sFileName.empty() )
+        escrido::sSeachIndexFile = sFileName;
+    }
+    else
+    if( sOption == "GENERATE_LATEX" )
+    {
+      escrido::fLOutput = ( StripValue( sLine ) == "YES" );
+
+    }
+    else
+    if( sOption == "LATEX_OUT_DIR" )
+    {
+      std::string sDir = StripValue( sLine );
+      if( !sDir.empty() )
+        escrido::sLOutputDir = sDir;
+    }
     else
     {
-      szTok = strtok( NULL, " \t" );
-      if( szTok == NULL )
-        fError = true;
-      else
-        if( szTok[0] != '=' )
-          fError = true;
-        else
-          szTok = strtok( NULL, " \t" );
-    }
-
-    // Assign the parameter values.
-    if( !fError && szTok != NULL )
-    {
-      if( strcmp( szFirstTok, "TEMPLATE_DIR" ) == 0 )
-      {
-        escrido::sTemplateDir = ConvertTokString( szTok );
-      }
-      else
-      if( strcmp( szFirstTok, "INCLUDE" ) == 0 )
-      {
-        escrido::saIncludePaths.clear();
-        while( szTok != NULL )
-        {
-          AppendTokString( szTok, escrido::saIncludePaths );
-          szTok = strtok( NULL, " \t" );
-        }
-      }
-      else
-      if( strcmp( szFirstTok, "NAMESPACE" ) == 0 )
-      {
-        escrido::saNamespaces.clear();
-        while( szTok != NULL )
-        {
-          escrido::saNamespaces.push_back( szTok );
-          szTok = strtok( NULL, " \t" );
-        }
-      }
-      else
-      if( strcmp( szFirstTok, "EXCLUDE_GROUPS" ) == 0 )
-      {
-        escrido::saExludeGroups.clear();
-        while( szTok != NULL )
-        {
-          escrido::saExludeGroups.push_back( szTok );
-          szTok = strtok( NULL, " \t" );
-        }
-      }
-      else
-      if( strcmp( szFirstTok, "GENERATE_WEBDOC" ) == 0 )
-      {
-        if( strcmp( szTok, "YES" ) == 0 )
-          escrido::fWDOutput = true;
-        else
-          escrido::fWDOutput = false;
-      }
-      else
-      if( strcmp( szFirstTok, "WEBDOC_OUT_DIR" ) == 0 )
-      {
-        escrido::sWDOutputDir = ConvertTokString( szTok );
-      }
-      else
-      if( strcmp( szFirstTok, "WEBDOC_FILE_ENDING" ) == 0 )
-      {
-        escrido::sWDOutputPostfix = szTok;
-      }
-      else
-      if( strcmp( szFirstTok, "GENERATE_SEARCH_INDEX" ) == 0 )
-      {
-        if( strcmp( szTok, "YES" ) == 0 )
-          escrido::fSearchIndex = true;
-        else
-          escrido::fSearchIndex = false;
-      }
-      else
-      if( strcmp( szFirstTok, "SEARCH_INDEX_ENDCODING" ) == 0 )
-      {
-        if( strcmp( szTok, "JS" ) == 0 )
-          escrido::fSearchIdxEncode = escrido::search_index_encoding::JS;
-        else
-          escrido::fSearchIdxEncode = escrido::search_index_encoding::JSON;
-      }
-      else
-      if( strcmp( szFirstTok, "SEARCH_INDEX_FILE" ) == 0 )
-      {
-        escrido::sSeachIndexFile = ConvertTokString( szTok );
-      }
-      else
-      if( strcmp( szFirstTok, "GENERATE_LATEX" ) == 0 )
-      {
-        if( strcmp( szTok, "YES" ) == 0 )
-          escrido::fLOutput = true;
-        else
-          escrido::fLOutput = false;
-      }
-      else
-      if( strcmp( szFirstTok, "LATEX_OUT_DIR" ) == 0 )
-      {
-        escrido::sLOutputDir = ConvertTokString( szTok );
-      }
-
-    }
-
-    // Free line memory.
-    free( szLine );
-
-    if( fError )
+      // Unknown OPTION
       return nResult;
+    }
   }
 
   // Close file after reading.
@@ -202,66 +186,135 @@ inline size_t config_file_parser::ParseConfigFile( const std::string& sConfigFil
 
 // -----------------------------------------------------------------------------
 
-const std::string config_file_parser::ConvertTokString( const char* szConvTok_i )
-{
-  const char* pStart = szConvTok_i;
-  size_t nLen = strlen( szConvTok_i );
+// *****************************************************************************
+/// \brief      Removes the first non-whitespace word (expected to be the option
+///             name in a newly read line) and the folloing equation mark and
+///             removes these.
+///
+/// \return     The option name.
+// -----------------------------------------------------------------------------
 
-  // Strip single or double quotation marks if apparent at beginning and end.
-  if( nLen >= 2 )
+const std::string config_file_parser::StripOption( std::string& sLine_i )
+{
+  std::string sResult;
+
+  // Length of the line string.
+  const size_t nLen = sLine_i.length();
+
+  // Find start position of the option name: first non-whitespace character
+  size_t nStart;
+  for( nStart = 0; nStart < nLen; ++nStart )
+    if( sLine_i[nStart] != ' ' &&
+        sLine_i[nStart] != '\t' )
+      break;
+  if( nStart == nLen )
   {
-    if( *pStart == '"' )
-    {
-      if( *(pStart + nLen - 1 ) == '"' )
-      {
-        pStart++;
-        nLen -= 2;
-      }
-    }
-    else
-    if( *pStart == '\'' )
-    {
-      if( *(pStart + nLen - 1 ) == '\'' )
-      {
-        pStart++;
-        nLen -= 2;
-      }
-    }
+    sLine_i.clear();
+    return sResult;
   }
 
-  return std::string( pStart, 0, nLen );
+  // Find one-plue-the-end position of the option name: whitespace or equation mark
+  size_t nEnd;
+  for( nEnd = nStart; nEnd < nLen; ++nEnd )
+    if( sLine_i[nEnd] == ' ' ||
+        sLine_i[nEnd] == '\t' ||
+        sLine_i[nEnd] == '=' )
+      break;
+
+  // Copy option name
+  sResult = sLine_i.substr( nStart, nEnd - nStart );
+
+  // Search further until the equation mark is found.
+  for( nEnd; nEnd < nLen; ++nEnd )
+    if( sLine_i[nEnd] == '=' )
+    {
+      ++nEnd;
+      break;
+    }
+
+  // Remove content up to (and including) the equation mark
+  sLine_i.erase( 0, nEnd );
+
+  return sResult;
 }
 
 // -----------------------------------------------------------------------------
 
-void config_file_parser::AppendTokString( const char* szAppendTok_i, std::vector <std::string>& saStingList_o )
-{
-  const char* pStart = szAppendTok_i;
-  size_t nLen = strlen( szAppendTok_i );
+// *****************************************************************************
+/// \brief      Strips off the next value token.
+///
+/// \details    If the value is enclosed by quotation marks, these characters
+///             are removed.
+///
+/// \return     The next value token.
+// *****************************************************************************
 
-  // Strip single or double quotation marks if apparent at beginning and end.
-  if( nLen >= 2 )
+const std::string config_file_parser::StripValue( std::string& sLine_i )
+{
+  std::string sResult;
+
+  // Length of the line string.
+  const size_t nLineLen = sLine_i.length();
+
+  // Find start position of the value: first non-whitespace character
+  size_t nStart;
+  for( nStart = 0; nStart < nLineLen; ++nStart )
+    if( sLine_i[nStart] != ' ' &&
+        sLine_i[nStart] != '\t' )
+      break;
+  if( nStart == nLineLen )
   {
-    if( *pStart == '"' )
+    sLine_i.clear();
+    return sResult;
+  }
+
+  // Find one-plue-the-end position of the value
+  size_t nEnd;
+  size_t nValueLen;
+  {
+    // Check whether the value is encapsulated in quotation marks
+    const char cMark = sLine_i[nStart];
+    if( cMark == '"' || cMark == '\'' )
     {
-      if( *(pStart + nLen - 1 ) == '"' )
+      // => The value is encapsulated within quotation marks
+
+      // Shift start position by one.
+      ++nStart;
+      if( nStart == nLineLen )
       {
-        pStart++;
-        nLen -= 2;
+        sLine_i.clear();
+        return sResult;
       }
+
+      for( nEnd = nStart; nEnd < nLineLen; ++nEnd )
+        if( sLine_i[nEnd] == cMark )
+          break;
+
+      nValueLen = nEnd - nStart;
+
+      if( nEnd != nLineLen )
+        ++nEnd;
     }
     else
-    if( *pStart == '\'' )
     {
-      if( *(pStart + nLen - 1 ) == '\'' )
-      {
-        pStart++;
-        nLen -= 2;
-      }
+      // => The value is not encapsulated within quotation marks
+
+      for( nEnd = nStart; nEnd < nLineLen; ++nEnd )
+        if( sLine_i[nEnd] == ' ' ||
+            sLine_i[nEnd] == '\t'  )
+          break;
+
+      nValueLen = nEnd - nStart;
     }
   }
 
-  saStingList_o.emplace_back( pStart, 0, nLen );
+  // Copy value
+  sResult = sLine_i.substr( nStart, nValueLen );
+
+  // Remove value
+  sLine_i.erase( 0, nEnd );
+
+  return sResult;
 }
 
 #endif /* CONFIG_FILE_PARSER_DOC_READ_ONCE */

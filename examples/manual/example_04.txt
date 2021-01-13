@@ -166,8 +166,8 @@ that is then used as image caption.
 The <em>&#64;ingroup</em> command is used to mark the page as belonging to a
 specific <em>group</em> labeled by (group name). Elements of one group appear
 together in the navigation. Groups can be excluded from the documentation via
-the -xg or --exclude-groups command line argument or the EXCLUDE_GROUPS field
-in the escrido file.
+the -xg or --exclude-groups command line argument or the
+@ref config_option_excludegroups field in the escrido file.
 
 A page may belong to multiple groups. This is done by adding multiple &#64;ingroup
 tag lines. The order of the tag lines defines the nesting of the
@@ -205,8 +205,8 @@ Creates the main page of the documentation.
 @section tag_namespace &#64;namespace &lt;name&gt;
 
 Marks the respective page as belonging to a certain <em>namespace</em>.
-Namespaces can be used to produce selected output via the respective
-flag in the settings file.
+Namespaces can be used to produce selected output via the
+@ref config_option_namespace "respective flag" in the settings file.
 
 <HR>
 @section tag_note &#64;note { text }

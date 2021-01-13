@@ -250,6 +250,7 @@ namespace escrido
 namespace escrido
 {
   std::ostream& WriteHTMLIndents( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i );
+  void          WriteHTMLTagLine( const std::string& sTagText_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i );
   void          WriteHTMLTagLine( const char* szTagText_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i );
   std::string   HTMLEscape( const std::string& sText_i );
   std::string   LaTeXEscape( const std::string& sText_i );
@@ -278,12 +279,16 @@ namespace escrido
 struct escrido::SWriteInfo
 {
   CRefTable                  oRefTable;
-  const bool                 fShowInternal;
+  const std::vector <std::pair<std::string, std::string>>& oRelabelList;
   mutable const CTagBlock*   pTagBlock;
   mutable signed int         nIndent;
 
-  SWriteInfo( bool fShowInternal_i );
+  SWriteInfo( const std::vector <std::pair<std::string, std::string>>& oRelabelList_i );
 
+  // Default or custom term:
+  const char* Label( const char* szLabel_i ) const;
+
+  // Indentation tracking:
   const SWriteInfo& operator++() const;   // Prefix:  ++c
   const SWriteInfo operator++(int) const; // Postfix: c++
   const SWriteInfo& operator--() const;   // Prefix: --c
