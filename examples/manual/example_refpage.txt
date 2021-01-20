@@ -11,9 +11,12 @@
                 structure "MyStruct" could look like.
 
 @feature myfeature Feature 1
-                This text explains the first feature of type "myfeature".
+                Explanation of the first feature of custom feature type "myfeature".
 @feature myfeature Feature 2
-                This text explains the second feature of type "myfeature".
+                Explanation of the second feature of custom feature type "myfeature".
+
+@feature "other feature type" Feature Z
+                Feature of another custom type.
 
 @param          arg1
                 This text explains the first argument of the structure.

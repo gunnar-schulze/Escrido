@@ -266,6 +266,8 @@ namespace escrido
   std::string   MakeIdentifier( const std::string& sWord_i );
   bool          GetBlockTagType( const char* szTagName_i, tag_type& fTagType_o );
   bool          GetInlineTagType( const char* szTagName_i, tag_type& fTagType_o );
+  std::string   GetCamelCase( const std::string& sName_i );
+  std::string   GetSnakeCase( const std::string& sName_i );
   std::string   GetCapForm( const std::string& sName_i );
   std::string   GetCapPluralForm( const std::string& sName_i );
 }
@@ -465,19 +467,28 @@ class escrido::CContentUnit
     const CTagBlock* GetNextTagBlock( const CTagBlock* pLast_i, tag_type fTagType_i ) const;
 
     // Output method:
-//     void WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTagBlock( tag_type fTagType_i, const std::string& sIdentifier_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     void WriteLaTeXParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXTagBlock( tag_type fTagType_i, const std::string& sIdentifier_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
     void DebugOutput() const;
 
   private:
+
+    // Specific output methods:
+    void WriteHTMLFeatureType( const std::string& sTypeIdentifier_i,
+                               std::ostream& oOutStrm_i,
+                               const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXFeatureType( const std::string& sTypeIdentifier_i,
+                                std::ostream& oOutStrm_i,
+                                const SWriteInfo& oWriteInfo_i ) const;
 
     // Parsing state setting:
     void SetParseState( parse_state fParseState_i );

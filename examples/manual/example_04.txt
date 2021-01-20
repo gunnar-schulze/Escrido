@@ -136,7 +136,7 @@ It is read in <em>verbatim mode</em>.
 In the output document these examples are typically drawn in a monotype font and are
 eventually placed inside a special frame.
 
-An example can be finished by other block commands, e.g. by the @ref tag_par "&#64;par"
+An example can be ended by other block commands, e.g. by the @ref tag_par "&#64;par"
 or an @ref tag_output "&#64;output" tag.
 
 If an example block starts with a direct line break, this is not considered in the
@@ -145,11 +145,13 @@ output.
 <HR>
 @section tag_feature &#64;feature &lt;"feature-name"&gt; (feature title) { feature description }
 
-Add information about a specific <em>feature</em> to a reference page. This is
-similar to the @ref tag_attribute "&#64;attribute" or the
-@ref tag_param "&#64;param" tags but a feature can be used more generally. The type
-of the feature is defined by the user as <em>feature name</em>. It can be either a
-single word or a string extression in double quotes. Features
+Adds information about a specific custom-type <em>feature</em> to a reference page.
+This is a generalization of tags like @ref tag_attribute "&#64;attribute" or
+@ref tag_param "&#64;param". Like these, multiple <em>features</em> of the same
+type can be added that are presented in a common list in the output document.
+
+The type of the feature is defined by the user as <em>feature name</em>. This
+name can either be a single word or a string extression in double quotes. Features
 with equal name will appear grouped together in the documentation with the
 feature name as common title.
 

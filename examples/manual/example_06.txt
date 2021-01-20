@@ -6,6 +6,16 @@ A replacement tag either creates <em>formatted</em> or <em>unformatted</em> outp
 
 Some replacement tags allow to specify an <em>index</em>, like the '<b>&#42;escrido-groupname#&#42;</b>' tag. In the template, the number sign ('#') must be replaced by the desired index integer, e.g. &#42;escrido-groupname2&#42;.
 
+Similarly, some replacement tags can be specified by a textual <em>identifer</em>, as the '<b>&#42;escrido-feature-$&#42;</b>' tag. In this, the dollar sign ('$') represents a special identifier string as selector.
+
+@section parSectDet Running Page Content
+
+Most of the replacement tags replace one or a few specific elements only. This is good for placing them at will inside the HTML templates. However there may exist a certain amount of "running text" content on every page that cannot be simply organized by using the template system. For this, the <b>&#42;escrido-page-text*</b> replacement tag exists to insert this content as a whole. The inserted part contains all @ref tag_par "&#64;par", @ref tag_section "&#64;section", @ref tag_subsection "&#64;subsection", @ref tag_subsubsection "&#64;subsubsection" and  @ref tag_details "&#64;details" tags as well as included tags @ref tag_example "&#64;example", @ref tag_image "&#64;image", @ref tag_note "&#64;note", @ref tag_output "&#64;output" and @ref tag_remark "&#64;remark".
+
+The order for all these elements (that may occure multiple times within the document, e.g. if several images or code examples are included) is the original order as it appears in the Escrido sources. This allows to create manual pages with general text content.
+
+@section "" Replacement Tags
+
 The following replacement tags are currently defined:
 
 @table
@@ -36,7 +46,7 @@ The following replacement tags are currently defined:
   The <em>title</em> of the current @ref tag_mainpage "&#64;_mainpage_", @ref tag_page "&#64;_page_" or @ref tag_refpage "&#64;_refpage_" as a headline. @lb
 
   <b> &#42;escrido-page-text* </b> | yes |
-  The content of the current @ref tag_mainpage "&#64;_mainpage_", @ref tag_page "&#64;_page_" or @ref tag_refpage "&#64;_refpage_". This includes tags as @ref tag_details "&#64;details", @ref tag_par "&#64;par", @ref tag_section "&#64;section", @ref tag_subsection "&#64;subsection", @ref tag_subsubsection "&#64;subsubsection" and others. @lb
+  The content of the current @ref tag_mainpage "&#64;_mainpage_", @ref tag_page "&#64;_page_" or @ref tag_refpage "&#64;_refpage_". This includes tags as @ref tag_details "&#64;details", @ref tag_par "&#64;par", @ref tag_section "&#64;section", @ref tag_subsection "&#64;subsection", @ref tag_subsubsection "&#64;subsubsection" and others. (Also see description of @ref parSectDet "running page content".) @lb
 
   <b> &#42;escrido-type* </b> | no |
   The <em>code structure type</em> of the current @ref tag_refpage "&#64;_refpage_". @lb
@@ -76,7 +86,10 @@ The following replacement tags are currently defined:
   A section containing all content of the current @ref tag_signature "&#64;signature" tags. @lb
 
   <b> &#42;escrido-features* </b> | yes |
-  A section containing all content of the current @ref tag_feature "&#64;feature" tags.
+  A section containing all content of the current @ref tag_feature "&#64;feature" tags of multiple feature types. These are ordered alphabetically by the feature name. @lb
+
+  <b> &#42;escrido-feature-$* </b> | yes |
+  This section contains all @ref tag_feature "&#64;features" of one specific type. The type is selected by replacing the dollar symbol with the @link https://en.wikipedia.org/wiki/Camel_case "camel case'd" version of the respective feature's name (e.g. <em>&#42;escrido-feature-otherFeatureType*</em> for a feature with name <em>"Other Feature Type"</em>).
 
 @endtable
 
@@ -85,8 +98,6 @@ For LaTex templates, the following replacement tags are additionally defined:
 - <b> &#42;escrido_latex_packages* </b>
 - <b> &#42;escrido_latex_commands* </b>
 - <b> &#42;escrido-grouptitle* </b>
-
-
 
 
 

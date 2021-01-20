@@ -151,6 +151,13 @@ namespace escrido
                            const SWriteInfo& oWriteInfo_i,
                            std::string& sTemplateData_io );
   void ReplacePlaceholder( const char* szPlaceholder_i,
+                           const CDocPage& oPage_i,
+                           void (CDocPage::*WriteMethod_i)( tag_type, const std::string&, std::ostream&, const SWriteInfo& ) const,
+                           tag_type fTagType_i,
+                           const std::string& sIdentifier_i,
+                           const SWriteInfo& oWriteInfo_i,
+                           std::string& sTemplateData_io );
+  void ReplacePlaceholder( const char* szPlaceholder_i,
                            const CDocumentation& oDocumentation_i,
                            void (CDocumentation::*WriteMethod_i)( const CDocPage*, std::ostream&, const SWriteInfo& ) const,
                            const CDocPage* pPage_i,
@@ -320,6 +327,7 @@ class escrido::CDocPage
     const std::string  GetBrief() const;
     const std::string  GetNamespace() const;
     const std::vector<std::string> GetGroupNames() const;
+    const std::vector<std::string> GetFeatureNames() const;
 
     // Methods for accessing selected clear content:
     const std::string GetClearTextBrief( const SWriteInfo& oWriteInfo_i ) const;
@@ -332,11 +340,13 @@ class escrido::CDocPage
     void WriteHTMLHeadline( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteHTMLTagBlock( tag_type fTagType_i, const std::string& sIdentifier_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteHTMLTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     void WriteLaTeXHeadline( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteLaTeXTagBlock( tag_type fTagType_i, const std::string& sIdentifier_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Appending to reference table:
@@ -434,6 +444,9 @@ class escrido::CDocumentation
     void PushContentUnit( const CContentUnit& oContUnit_i );
     void NewDocPage( const char* szDocPageType_i );
     CDocPage* Back();
+
+    // Methods for accessing selected content:
+    const std::vector <std::string> GetFeatureNames() const;
 
     // Special methods:
     void RemoveNamespaces( const std::vector<std::string>& saNSWhiteList_i );

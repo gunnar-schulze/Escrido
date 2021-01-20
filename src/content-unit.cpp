@@ -29,6 +29,11 @@ escrido::SWriteInfo::SWriteInfo( const std::vector <std::pair<std::string, std::
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Returns the label text or a registered replacement, if this
+///             exists.
+// *****************************************************************************
+
 const char* escrido::SWriteInfo::Label( const char* szLabel_i ) const
 {
   for( size_t l = 0; l < oRelabelList.size(); ++l )
@@ -2968,6 +2973,57 @@ void escrido::CContentUnit::WriteHTMLTagBlock( tag_type fTagType_i,
 // .............................................................................
 
 // *****************************************************************************
+/// \brief      Writes a tag blocks of a certain type (available for special
+///             tag types only) identified by a certain identifier.
+///
+/// \details    This is for tag blocks of the following types only:
+///             - \ref tag_type::FEATURE
+///
+/// \param[in]  fTagType_i
+///             Type of tag blocks that is written.
+/// \param[in]  sIdentifier_i
+///             Identifier of the tag block that is written.
+/// \param[in]  oOutStrm_i
+///             Output stream into which the tag block is written.
+/// \param[in]  oWriteInfo_i
+///             Write-info structure with additional information.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteHTMLTagBlock( tag_type fTagType_i,
+                                               const std::string& sIdentifier_i,
+                                               std::ostream& oOutStrm_i,
+                                               const SWriteInfo& oWriteInfo_i ) const
+{
+  // Write tag block.
+  switch( fTagType_i )
+  {
+    case tag_type::FEATURE:
+    {
+      // Check if at least one feature tag block of the feature type as given by
+      // the identifier exists.
+      bool fIdentFeatExists = false;
+      for( size_t t = 0; t < oaBlockList.size(); t++ )
+        if( oaBlockList[t].GetTagType() == fTagType_i &&
+            oaBlockList[t].GetPlainFirstWordOrQuote() == sIdentifier_i )
+        {
+          fIdentFeatExists = true;
+          break;
+        }
+
+      if( fIdentFeatExists )
+      {
+        // Write HTML elements.
+        this->WriteHTMLFeatureType( sIdentifier_i, oOutStrm_i, oWriteInfo_i );
+      }
+
+      break;
+    }
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
 /// \brief      Writes a list of tag blocks of one type (available for special
 ///             tag types only).
 ///
@@ -3008,18 +3064,7 @@ void escrido::CContentUnit::WriteHTMLTagBlockList( tag_type fTagType_i,
       while( iFeatType != saFeatureTypeList.end() )
       {
         // Write HTML elements.
-        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<section class=\"tagblock features " << *iFeatType << "\">" << std::endl;
-        WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>" << GetCapForm( *iFeatType ) << "</h2>" << std::endl;
-        WriteHTMLTagLine( "<dl>", oOutStrm_i, oWriteInfo_i++ );
-
-        // Loop over all tag blocks.
-        for( size_t t = 0; t < oaBlockList.size(); t++ )
-          if( oaBlockList[t].GetTagType() == fTagType_i )
-            if( oaBlockList[t].GetPlainFirstWordOrQuote() == *iFeatType )
-              oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
-
-        WriteHTMLTagLine( "</dl>", oOutStrm_i, --oWriteInfo_i );
-        WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
+        this->WriteHTMLFeatureType( *iFeatType, oOutStrm_i, oWriteInfo_i );
 
         // Cycle to next feature type.
         std::list <std::string>::iterator iFeat = iFeatType;
@@ -3284,6 +3329,57 @@ void escrido::CContentUnit::WriteLaTeXTagBlock( tag_type fTagType_i,
 // .............................................................................
 
 // *****************************************************************************
+/// \brief      Writes a tag blocks of a certain type (available for special
+///             tag types only) identified by a certain identifier.
+///
+/// \details    This is for tag blocks of the following types only:
+///             - \ref tag_type::FEATURE
+///
+/// \param[in]  fTagType_i
+///             Type of tag blocks that is written.
+/// \param[in]  sIdentifier_i
+///             Identifier of the tag block that is written.
+/// \param[in]  oOutStrm_i
+///             Output stream into which the tag block is written.
+/// \param[in]  oWriteInfo_i
+///             Write-info structure with additional information.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteLaTeXTagBlock( tag_type fTagType_i,
+                                                const std::string& sIdentifier_i,
+                                                std::ostream& oOutStrm_i,
+                                                const SWriteInfo& oWriteInfo_i ) const
+{
+  // Write tag block.
+  switch( fTagType_i )
+  {
+    case tag_type::FEATURE:
+    {
+      // Check if at least one feature tag block of the feature type as given by
+      // the identifier exists.
+      bool fIdentFeatExists = false;
+      for( size_t t = 0; t < oaBlockList.size(); t++ )
+        if( oaBlockList[t].GetTagType() == fTagType_i &&
+            oaBlockList[t].GetPlainFirstWordOrQuote() == sIdentifier_i )
+        {
+          fIdentFeatExists = true;
+          break;
+        }
+
+      if( fIdentFeatExists )
+      {
+        // Write LaTeX elements
+        this->WriteLaTeXFeatureType( sIdentifier_i, oOutStrm_i, oWriteInfo_i );
+      }
+
+      break;
+    }
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
 /// \brief      Writes a list of tag blocks of one type (available for special
 ///             tag types only).
 ///
@@ -3323,19 +3419,8 @@ void escrido::CContentUnit::WriteLaTeXTagBlockList( tag_type fTagType_i,
       std::list <std::string>::iterator iFeatType = saFeatureTypeList.begin();
       while( iFeatType != saFeatureTypeList.end() )
       {
-        // Write tag block title line.
-        oOutStrm_i << "\\tagblocksection{" << GetCapForm( *iFeatType ) << "}" << std::endl;
-        oOutStrm_i << "\\begin{taglist}" << std::endl;
-        ++oWriteInfo_i;
-
-        // Loop over all tag blocks.
-        for( size_t t = 0; t < oaBlockList.size(); t++ )
-          if( oaBlockList[t].GetTagType() == fTagType_i )
-            if( oaBlockList[t].GetPlainFirstWordOrQuote() == *iFeatType )
-              oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
-
-        --oWriteInfo_i;
-        oOutStrm_i << "\\end{taglist}" << std::endl;
+        // Write LaTeX elements
+        this->WriteLaTeXFeatureType( *iFeatType, oOutStrm_i, oWriteInfo_i );
 
         // Cycle to next feature type.
         std::list <std::string>::iterator iFeat = iFeatType;
@@ -3423,6 +3508,57 @@ void escrido::CContentUnit::DebugOutput() const
   std::cout << std::endl;
   for( size_t b = 0; b <  this->oaBlockList.size(); b++ )
     this->oaBlockList[b].DebugOutput();
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the HTML content for a 'feature' tag group.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteHTMLFeatureType( const std::string& sTypeIdentifier_i,
+                                                  std::ostream& oOutStrm_i,
+                                                  const SWriteInfo& oWriteInfo_i ) const
+{
+  // Write HTML elements.
+  WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<section class=\"tagblock features "
+                                                  << GetCamelCase( sTypeIdentifier_i ) << "\">" << std::endl;
+  WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "<h2>" << GetCapForm( sTypeIdentifier_i ) << "</h2>" << std::endl;
+  WriteHTMLTagLine( "<dl>", oOutStrm_i, oWriteInfo_i++ );
+
+  // Loop over all tag blocks.
+  for( size_t t = 0; t < oaBlockList.size(); t++ )
+    if( oaBlockList[t].GetTagType() == tag_type::FEATURE )
+      if( oaBlockList[t].GetPlainFirstWordOrQuote() == sTypeIdentifier_i )
+        oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
+
+  WriteHTMLTagLine( "</dl>", oOutStrm_i, --oWriteInfo_i );
+  WriteHTMLTagLine( "</section>", oOutStrm_i, --oWriteInfo_i );
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the LaTeX content for a 'feature' tag group.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteLaTeXFeatureType( const std::string& sTypeIdentifier_i,
+                                                   std::ostream& oOutStrm_i,
+                                                   const SWriteInfo& oWriteInfo_i ) const
+{
+  // Write tag block title line.
+  oOutStrm_i << "\\tagblocksection{" << GetCapForm( sTypeIdentifier_i ) << "}" << std::endl;
+  oOutStrm_i << "\\begin{taglist}" << std::endl;
+  ++oWriteInfo_i;
+
+  // Loop over all tag blocks.
+  for( size_t t = 0; t < oaBlockList.size(); t++ )
+    if( oaBlockList[t].GetTagType() == tag_type::FEATURE )
+      if( oaBlockList[t].GetPlainFirstWordOrQuote() == sTypeIdentifier_i )
+        oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+
+  --oWriteInfo_i;
+  oOutStrm_i << "\\end{taglist}" << std::endl;
 }
 
 // .............................................................................
@@ -4077,6 +4213,107 @@ bool escrido::GetInlineTagType( const char* szTagName_i, tag_type& fTagType_o )
     }
 
   return false;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the camel case form of a given object's name.
+///
+/// \details    The whole term is returned in camel case (see
+///             https://en.wikipedia.org/wiki/Camel_case ).
+// *****************************************************************************
+
+std::string escrido::GetCamelCase( const std::string& sName_i )
+{
+  std::string sResult;
+
+  bool fStart = true;
+  bool fBetweenWords = true;
+
+  for( size_t c = 0; c < sName_i.length(); ++c )
+  {
+    if( sName_i[c] == ' ' || sName_i[c] == '\t' )
+    {
+      fBetweenWords = true;
+      continue;
+    }
+
+    if( fBetweenWords )
+    {
+      fBetweenWords = false;
+
+      if( fStart )
+      {
+        fStart = false;
+        sResult += tolower( sName_i[c] );
+      }
+      else
+        sResult += toupper( sName_i[c] );
+    }
+    else
+      sResult += tolower( sName_i[c] );
+  }
+
+  return sResult;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the snake case form of a given object's name.
+///
+/// \details    The whole term is returned in snake case (see
+///             https://en.wikipedia.org/wiki/Snake_case ).
+///             This means removing of front and end whitespaces, lowercase
+///             setting and replacing of internal whitespaces by <em>single</em>
+///             underscore characters ('_').
+// *****************************************************************************
+
+std::string escrido::GetSnakeCase( const std::string& sName_i )
+{
+  std::string sResult;
+
+  // Handle empty strings
+  if( sName_i.empty() )
+    return sResult;
+
+  // Identify front and end whitespaces.
+  size_t nStart, nEnd;
+  {
+    for( nStart = 0; nStart < sName_i.length(); ++nStart )
+    {
+      if( sName_i[nStart] != ' ' && sName_i[nStart] != '\t' )
+        break;
+    }
+
+    for( nEnd = sName_i.length() - 1; nEnd >= nStart; --nEnd )
+    {
+      if( sName_i[nEnd] != ' ' && sName_i[nEnd] != '\t' )
+        break;
+    }
+    ++nEnd;
+  }
+
+  // Replace inner whitespaces by underscores and lowercase letters
+  for( size_t c = nStart; c < nEnd; ++c )
+  {
+    if( sName_i[c] == ' ' || sName_i[c] == '\t' )
+    {
+      sResult += '_';
+
+      for( c = c + 1; c < nEnd; ++c )
+        if( sName_i[c] != ' ' && sName_i[c] != '\t' )
+        {
+          --c;
+          break;
+        }
+    }
+    else
+      sResult += tolower( sName_i[c] );
+  }
+
+  return sResult;
 }
 
 // -----------------------------------------------------------------------------
