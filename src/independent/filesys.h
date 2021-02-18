@@ -8,7 +8,7 @@
 ///             access (including wildcards).
 ///
 /// \author     Gunnar Schulze
-/// \version    2020-12-29
+/// \version    2021-02-18
 /// \date       2012
 /// \copyright  2016 Gunnar Schulze
 // *****************************************************************************
@@ -1761,8 +1761,9 @@ inline bool filesys::GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, s
               break;
 
             // Skip items "." and ".." that may occur from wildcard evaluation.
-            if( strcmp( oEntry.d_name, "." ) == 0 ||
-                strcmp( oEntry.d_name, ".." ) == 0 )
+            if( fWildcard &&
+                ( strcmp( oEntry.d_name, "." ) == 0 ||
+                  strcmp( oEntry.d_name, ".." ) == 0 ) )
               continue;
 
             // Distinguish between directory-like items and file-like items.
@@ -2371,8 +2372,9 @@ inline bool filesys::GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, s
           do
           {
             // Skip items "." and ".." that may occur from wildcard evaluation.
-            if( strcmp( oEntry.cFileName, "." ) == 0 ||
-                strcmp( oEntry.cFileName, ".." ) == 0 )
+            if( fWildcard &&
+                ( strcmp( oEntry.cFileName, "." ) == 0 ||
+                  strcmp( oEntry.cFileName, ".." ) == 0 ) )
               continue;
 
             // Distinguish between directory-like items and file-like items.
