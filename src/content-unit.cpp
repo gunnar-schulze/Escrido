@@ -2894,7 +2894,7 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
 
         case tag_type::OUTPUT:
         {
-          const std::string sTagLine = std::string( "<h4>" ) + oWriteInfo_i.Label( "Note" ) + "</h4>";
+          const std::string sTagLine = std::string( "<h4>" ) + oWriteInfo_i.Label( "Output" ) + "</h4>";
 
           WriteHTMLTagLine( "<div class=\"output\">", oOutStrm_i, oWriteInfo_i++ );
           WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
