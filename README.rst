@@ -3,8 +3,8 @@ Escrido
 =======
 
 :Authors: Gunnar Schulze
-:Date: 2021-02-18
-:Version: 1.8.1
+:Date: 2021-05-12
+:Version: 1.8.2
 :Contact: <gunnar.schulze@gmx.com>
 
 .. image:: logo/Escrido_logo_362x117.png
@@ -68,7 +68,7 @@ or for Windows::
 Is there a manual?
 ------------------
 
-Yes, and the manual is also one example for using Escrido. Its sources are in folder "examples/manual". To create the HTML version, compile Escrido first and call it by the following command::
+Yes, and the manual is also one example for using Escrido. Its sources are in folder "examples/manual". To create the HTML version, compile Escrido first and call it by the following command (out of the repository's root folder)::
 
   ./bin/escrido -f examples/manual/escridofile
 

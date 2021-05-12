@@ -58,6 +58,13 @@ inline size_t config_file_parser::ParseConfigFile( const std::string& sConfigFil
     std::getline( oFile, sLine );
     nResult++;
 
+    // Strip trailing whitespaces.
+    size_t nPosLastChar = sLine.find_last_not_of( " \t\r\n" );
+    if( nPosLastChar == std::string::npos )
+      continue;
+    else
+      sLine.resize( nPosLastChar + 1 );
+
     // Check against lines of pure whitespaces. Skip these.
     size_t nPos = sLine.find_first_not_of( " \t\r\n" );
     if( nPos == std::string::npos )
