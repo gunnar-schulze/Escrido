@@ -114,12 +114,6 @@ void escrido::CGroupNode::Order( const std::vector <CDocPage*>& apDocPageList_i,
       // For strings equal up to nMinLen use string length:
       return sLHS.size() < sRHS.size();
     };
-
-    SSortObj& operator=( const SSortObj& oRHS_i )
-    {
-      psTitle = oRHS_i.psTitle;
-      nIdx = oRHS_i.nIdx;
-    };
   };
 
   // Step 1: order doc pages inside by the @order tags.
