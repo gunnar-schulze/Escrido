@@ -647,8 +647,8 @@ const std::string escrido::CDocPage::GetClearTextBrief( const SWriteInfo& oWrite
 ///
 ///             The order of the content is the following: first come the
 ///             "flowing text" tag blocks (PARAGRAPH, SECTION, SUBSECTION,
-///             SUBSUBSECTION, DETAILS and the
-///             embedded EXAMPLE, IMAGE, NOTE, OUTPUT and REMARK tag blocks,
+///             SUBSUBSECTION, DETAILS and the embedded EXAMPLE, IMAGE,
+///             INTERNAL, NOTE, OUTPUT and REMARK tag blocks,
 ///             see @ref CContentUnit::WriteHTMLParSectDet()) in their original
 ///             order, followed by the other tag block in original order.
 // *****************************************************************************
@@ -800,13 +800,13 @@ void escrido::CDocPage::WriteHTMLHeadline( std::ostream& oOutStrm_i, const SWrit
 // .............................................................................
 
 // *****************************************************************************
-/// \brief      Writes HTML output of PARAGRAPH, SECTION and DETAILS paragraphs
-///             in the order they appear.
+/// \brief      Writes HTML output of PARAGRAPH, SECTION, SUBSECTION,
+///             SUBSUBSECTION, DETAILS and embedded EXAMPLE, IMAGE, INTERNAL,
+///             NOTES, OUTPUT and REMARK paragraphs in the order they appear.
 // *****************************************************************************
 
 void escrido::CDocPage::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
-  // PARAGRAPH, SECTION and DETAILS paragraphs:
   oContUnit.WriteHTMLParSectDet( oOutStrm_i, oWriteInfo_i );
 }
 
@@ -866,13 +866,13 @@ void escrido::CDocPage::WriteLaTeXHeadline( std::ostream& oOutStrm_i, const SWri
 // .............................................................................
 
 // *****************************************************************************
-/// \brief      Writes LaTeX output of PARAGRAPH, SECTION and DETAILS paragraphs
+/// \brief      Writes LaTeX output of PARAGRAPH, SECTION, DETAILS and embedded
+///             EXAMPLE, IMAGE, INTERNAL, NOTES, OUTPUT and REMARK paragraphs
 ///             in the order they appear.
 // *****************************************************************************
 
 void escrido::CDocPage::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
-  // PARAGRAPH, SECTION and DETAILS paragraphs:
   oContUnit.WriteLaTeXParSectDet( oOutStrm_i, oWriteInfo_i );
 }
 

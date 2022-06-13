@@ -182,8 +182,9 @@ group names via @ref replacement_tags "replacement tags".
 <HR>
 @section tag_internal &#64;internal
 
-Sections tagged with this command are meant for internal use and will appear only
-in the documentation when the respective flag in the settings file is set.
+Sections tagged with this command are meant for internal use. Their appearance
+in the documentation can be disabled by the -it or --internal-tags command line
+argument or the @ref config_option_internaltags field in the escrido file.
 
 <HR>
 @section tag_lb &#64;lb

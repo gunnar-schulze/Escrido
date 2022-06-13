@@ -120,6 +120,11 @@ inline size_t config_file_parser::ParseConfigFile( const std::string& sConfigFil
       }
     }
     else
+    if( sOption == "INTERNAL_TAGS" )
+    {
+      escrido::fInternalTags = ( StripValue( sLine ) != "NO" );
+    }
+    else
     if( sOption == "RELABEL" )
     {
       std::string sTerm = StripValue( sLine );
@@ -169,7 +174,6 @@ inline size_t config_file_parser::ParseConfigFile( const std::string& sConfigFil
     if( sOption == "GENERATE_LATEX" )
     {
       escrido::fLOutput = ( StripValue( sLine ) == "YES" );
-
     }
     else
     if( sOption == "LATEX_OUT_DIR" )

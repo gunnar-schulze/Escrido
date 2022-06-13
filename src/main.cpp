@@ -76,6 +76,7 @@ namespace escrido
   std::vector <std::string> saIncludePaths;     ///< Include file names.
   std::vector <std::string> saNamespaces;       ///< List of namespaces the output shall be restricted to.
   std::vector <std::string> saExludeGroups;     ///< List of groups that shall be excluded from output.
+  bool fInternalTags = true;                    ///< Flag whether internal tags are shown.
   std::vector <std::pair<std::string, std::string>>
     asRelabel;                                  ///< List of fixed terms that shall be relabeled.
   std::string sTemplateDir = "./template/";     ///< Template directory name.
@@ -241,6 +242,9 @@ int main( int argc, char* argv[] )
   // Create write info container with the reference table
   SWriteInfo oWriteInfo( asRelabel );
   escrido::oDocumentation.CreateRefTable( sWDOutputPostfix, oWriteInfo );
+
+  // Store more information into the write info
+  oWriteInfo.fInternalTags = fInternalTags;
 
   // Output web document.
   if( fWDOutput )

@@ -280,6 +280,14 @@ article nav div:hover{
   font-weight: bold;
 }
 
+.internal{
+  background-color: #f1f5ff;
+}
+
+.internal h4{
+  background-color: #cce6ff;
+}
+
 .note{
   background-color: #EFF9E1;
 }

@@ -282,6 +282,8 @@ struct escrido::SWriteInfo
 {
   CRefTable                  oRefTable;
   const std::vector <std::pair<std::string, std::string>>& oRelabelList;
+  bool                       fInternalTags;
+
   mutable const CTagBlock*   pTagBlock;
   mutable signed int         nIndent;
 

@@ -2762,7 +2762,7 @@ const escrido::CTagBlock* escrido::CContentUnit::GetNextTagBlock( const CTagBloc
 // *****************************************************************************
 /// \brief      Writes the "flowing text" tag blocks PARAGRAPH, SECTION,
 ///             SUBSECTION, SUBSUBSECTION, DETAILS and embedded EXAMPLE, IMAGE,
-///             NOTES, OUTPUT and REMARK in a standardized way.
+///             INTERNAL, NOTES, OUTPUT and REMARK in a standardized way.
 ///
 /// \todo       TODO: Implement correct nesting of sections and subsections.
 // *****************************************************************************
@@ -2878,6 +2878,20 @@ void escrido::CContentUnit::WriteHTMLParSectDet( std::ostream& oOutStrm_i, const
           oaBlockList[t].WriteHTMLAllButFirstWord( oOutStrm_i, oWriteInfo_i );
           oOutStrm_i << "</figcaption>" << std::endl;
           WriteHTMLTagLine( "</figure>", oOutStrm_i, --oWriteInfo_i );
+          break;
+        }
+
+        case tag_type::INTERNAL:
+        {
+          if( oWriteInfo_i.fInternalTags )
+          {
+            const std::string sTagLine = std::string( "<h4>" ) + oWriteInfo_i.Label( "Internal" ) + "</h4>";
+
+            WriteHTMLTagLine( "<div class=\"internal\">", oOutStrm_i, oWriteInfo_i++ );
+            WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
+            oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
+            WriteHTMLTagLine( "</div>", oOutStrm_i, --oWriteInfo_i );
+          }
           break;
         }
 
@@ -3150,7 +3164,7 @@ void escrido::CContentUnit::WriteHTMLTagBlockList( tag_type fTagType_i,
 
 // *****************************************************************************
 /// \brief      Writes the PARAGRAPH, the SECTION, the DETAILS and embedded
-///             EXAMPLE, IMAGE, NOTES, OUTPUT and REMARK tag blocks in a
+///             EXAMPLE, IMAGE, INTERNAL, NOTES, OUTPUT and REMARK tag blocks in a
 ///             standardized way.
 // *****************************************************************************
 
@@ -3250,6 +3264,17 @@ void escrido::CContentUnit::WriteLaTeXParSectDet( std::ostream& oOutStrm_i, cons
           oOutStrm_i << "}" << std::endl
                      << "  \\end{center}" << std::endl
                      << "\\end{minipage}" << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::INTERNAL:
+        {
+          if( oWriteInfo_i.fInternalTags )
+          {
+            oOutStrm_i << "\\begin{internal}" << std::endl;
+            oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+            oOutStrm_i << "\\end{internal}" << std::endl << std::endl;
+          }
           break;
         }
 

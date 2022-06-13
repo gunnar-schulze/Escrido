@@ -40,6 +40,11 @@ NAMESPACE          =
 
 EXCLUDE_GROUPS     = Internal
 
+# This parameter the appearance can be used to disable the appearance of
+# @internal tags in the documentation if set to 'NO'. Default is 'YES'.
+
+INTERNAL_TAGS      = NO
+
 # This parameter can be used to replace certain fixed terms or expressions
 # that are used by default in the output documents by a different wording. For
 # that, a text pair is given with the first text representing the original

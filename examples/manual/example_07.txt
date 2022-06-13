@@ -11,6 +11,7 @@ The following configuration options are available:
   @ref config_option_include             | -i, --include @lb
   @ref config_option_namespace           | -ns, --namespace @lb
   @ref config_option_excludegroups       | -xg, --exclude-groups @lb
+  @ref config_option_internaltags        | -it, --internal-tags @lb
   @ref config_option_relabel             | -rl, --relabel @lb
   <em>Web Document Output Options</em> @lb
   @ref config_option_generatewebdoc      | -wd, --webdoc @lb
@@ -55,8 +56,16 @@ NAMESPACE = algorithms math
 This parameter defines a list of @ref tag_ingroup "groups" that shall NOT appear in the documentation, i.e. it creates a versions of the documentation with these groups filtered out, e.g. for a group 'Internal'. If empty, all groups are included. Multiple values can be given seperated by blank spaces.
 
 @example
-GENERATE_WEBDOC = Internal
-@parameter
+EXCLUDE_GROUPS = Internal
+@par
+
+@subsection config_option_internaltags INTERNAL_TAGS
+
+This parameter defines whether the @ref tag_internal "&#64;internal" tags shall be visible in the output. If this flag is set to NO, the &#64;internal tags will be hidden. Default is YES.
+
+@example
+INTERNAL_TAGS = NO
+@par
 
 @subsection config_option_relabel RELABEL
 

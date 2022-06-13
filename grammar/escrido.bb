@@ -49,6 +49,13 @@ xg                   string
   'Exclude groups from output. (Multiple use is possible.)'
                                                  {escrido::saExludeGroups.push_back( #1 );}
 
+it                   onoff
+  'Add "internal" tags into output. (default: on)'
+                                                 {escrido::fInternalTags = #1;}
+-internal-tags       onoff
+  'Add "internal" tags into output. (default: on)'
+                                                 {escrido::fInternalTags = #1;}
+
 wd                   onoff
   'Flag defining whether a web document shall be created. If this flag is set to "on",
    Escrido will generate HTML output. (default "on")'
