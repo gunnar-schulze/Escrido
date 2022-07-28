@@ -219,7 +219,7 @@ void escrido::CGroupNode::Order( const std::vector <CDocPage*>& apDocPageList_i,
 
 escrido::CGroupTree::CGroupTree( const std::vector <CDocPage*>& apDocPageList_i ) :
   apDocPageList ( apDocPageList_i ),
-  oRoot         ( "" ),
+  oRoot         ( "Contents" ),
   nMaxLvl       ( 0 )
 {}
 
@@ -1684,15 +1684,20 @@ void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePag
   if( !fGroupOrdered )
     this->FillGroupTreeOrdered();
 
-  const std::string sTagLine = std::string( "<h1>" ) + oWriteInfo_i.Label( "Contents" ) + "</h1>";
-
-  WriteHTMLTagLine( sTagLine, oOutStrm_i, oWriteInfo_i );
-
   // Loop over group tree:
+  signed int nPrevLvl = -1;
   size_t nLvl;
   const CGroupNode* pGroup = this->oGroupTree.FirstGroupNode( nLvl );
   while( pGroup != NULL )
   {
+    // Closing tags of group div containers
+    if( (signed int) nLvl <= nPrevLvl )
+      for( int i = 0; i <= ( nPrevLvl - nLvl ); ++i )
+        WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "</div>" << std::endl;
+
+    // Opening tag of group div container
+    WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<div>" << std::endl;
+
     // If group name is not empty: display it
     if( !(pGroup->sGroupName.empty()) )
     {
@@ -1733,9 +1738,16 @@ void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePag
       if( saPageTypeList[pt] != "mainpage" && saPageTypeList[pt] != "page" )
         WriteHTMLTOCPageType( *pGroup, saPageTypeList[pt], pWritePage_i, oOutStrm_i, oWriteInfo_i );
 
+    // Store previous level
+    nPrevLvl = nLvl;
+
     // Get next group
     pGroup = this->oGroupTree.NextGroupNode( pGroup, nLvl );
   }
+
+  // Close remaining group div containers
+  for( int i = 0; i <= ( nPrevLvl - 0 ); ++i )
+    WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "</div>" << std::endl;
 }
 
 // .............................................................................
