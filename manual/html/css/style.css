@@ -51,6 +51,43 @@ nav {
   margin: 0 0 10px 10px;
 }
 
+/* Icon in front of expandable headers in navigation (expanded version)*/
+nav .expanded::before {
+  content: "\25BE";
+  color: #797;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+/* Icon in front of expandable headers in navigation (contracted version) */
+nav .contracted::before {
+  content: "\25B8";
+}
+
+/* Turn unexpanded lists in navigation invisible */
+nav li ul.invisible{
+  display: none;
+}
+
+/* Lowest level unordered lists are always shown */
+nav li>ul:first-child,
+nav h6+ul{
+  display: block !important;
+}
+
+/* Indent each navigation level a few pixels to the right */
+nav ul{
+  padding-left: 10px;
+}
+
+nav h2,
+nav h3,
+nav h4,
+nav h5
+{
+  cursor: pointer;
+}
+
 nav h1,
 nav h2,
 nav h3,
@@ -112,7 +149,7 @@ nav li a {
   display:block;
 }
 
-nav li.activepage a{
+nav li.activepage>a{
   border-left: 4px solid #BCE77C;
   padding-left: 5px;
 }

@@ -1684,19 +1684,63 @@ void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePag
   if( !fGroupOrdered )
     this->FillGroupTreeOrdered();
 
+  // Determine those groups containing the "write page".
+  std::vector <const CGroupNode*> apWritePageGroups;
+  {
+    // Loop over groups
+    signed int nPrevLvl = -1;
+    size_t nLvl;
+    const CGroupNode* pGroup = this->oGroupTree.FirstGroupNode( nLvl );
+    bool fFoundWritePage = false;
+    while( pGroup != NULL )
+    {
+      // Track group path
+      if( (signed int) nLvl <= nPrevLvl )
+        apWritePageGroups.erase( apWritePageGroups.end() - ( nPrevLvl - nLvl + 1 ),
+                                 apWritePageGroups.end() );
+      apWritePageGroups.push_back( pGroup );
+
+      // Check for write page
+      for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); ++p )
+        if( paDocPageList[pGroup->naDocPageIdxList[p]] == pWritePage_i )
+        {
+          fFoundWritePage = true;
+          break;
+        }
+
+      if( fFoundWritePage )
+        break;
+
+      // Store previous level
+      nPrevLvl = nLvl;
+
+      // Get next group
+      pGroup = this->oGroupTree.NextGroupNode( pGroup, nLvl );
+    }
+  }
+
   // Loop over group tree:
   signed int nPrevLvl = -1;
   size_t nLvl;
   const CGroupNode* pGroup = this->oGroupTree.FirstGroupNode( nLvl );
   while( pGroup != NULL )
   {
-    // Closing tags of group div containers
+    // Closing tags of group unordered list containers
     if( (signed int) nLvl <= nPrevLvl )
       for( int i = 0; i <= ( nPrevLvl - nLvl ); ++i )
-        WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "</div>" << std::endl;
+      {
+        WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "</ul>" << std::endl;
+        WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "</li>" << std::endl;
+      }
 
-    // Opening tag of group div container
-    WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<div>" << std::endl;
+    // Start list item
+    if( nLvl != 0 )
+    {
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<li";
+      if( pGroup == apWritePageGroups[nLvl] )
+        oOutStrm_i << " class=\"activepage\"";
+      oOutStrm_i << ">" << std::endl;
+    }
 
     // If group name is not empty: display it
     if( !(pGroup->sGroupName.empty()) )
@@ -1710,6 +1754,9 @@ void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePag
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) <<
         "<h" << nHeadingLvl << ">" << pGroup->sGroupName << "</h" << nHeadingLvl << ">" << std::endl;
     }
+
+    // Opening tag of group unordered list container
+    WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<ul>" << std::endl;
 
     // Write all pages of page types "mainpage" and "page" of this group.
     WriteHTMLTOCPageType( *pGroup, "mainpage", pWritePage_i, oOutStrm_i, oWriteInfo_i );
@@ -1746,11 +1793,21 @@ void escrido::CDocumentation::WriteHTMLTableOfContent( const CDocPage* pWritePag
   }
 
   // Close remaining group div containers
-  for( int i = 0; i <= ( nPrevLvl - 0 ); ++i )
-    WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "</div>" << std::endl;
+  for( int i = 0; i <= nPrevLvl; ++i )
+  {
+    WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "</ul>" << std::endl;
+
+    if( i != nPrevLvl )
+      WriteHTMLIndents( oOutStrm_i, --oWriteInfo_i ) << "</li>" << std::endl;
+  }
 }
 
 // .............................................................................
+
+// *****************************************************************************
+/// @brief      Writes all pages of a certain type of one group into the table
+///             of contents.
+// *****************************************************************************
 
 void escrido::CDocumentation::WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
                                                     const std::string& sPageTypeID_i,
@@ -1763,19 +1820,42 @@ void escrido::CDocumentation::WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
   bool fPageExist = false;
   std::string sPageTypeLit;
   for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); ++p )
-    if( paDocPageList[oGroup_i.naDocPageIdxList[p]]->GetPageTypeID() == sPageTypeID_i )
+  {
+    const CDocPage* pPage = paDocPageList[oGroup_i.naDocPageIdxList[p]];
+
+    if( pPage->GetPageTypeID() == sPageTypeID_i )
     {
       // Get the literary form of the page type name.
-      sPageTypeLit = paDocPageList[oGroup_i.naDocPageIdxList[p]]->GetPageTypeLit();
+      sPageTypeLit = pPage->GetPageTypeLit();
 
       // Note that at least one page exists.
       fPageExist = true;
       break;
     }
+  }
 
   // Show list of pages if at least one page of that type exists.
   if( fPageExist )
   {
+    // Check whether these pages contain the "write page"
+    bool fWritePage = false;
+    for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); ++p )
+    {
+      const CDocPage* pPage = paDocPageList[oGroup_i.naDocPageIdxList[p]];
+
+      if( pPage->GetPageTypeID() == sPageTypeID_i )
+        if( pPage == pWritePage_i )
+        {
+          fWritePage = true;
+          break;
+        }
+    }
+
+    WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "<li";
+    if( fWritePage )
+      oOutStrm_i << " class=\"activepage\"";
+    oOutStrm_i << ">" << std::endl;
+
     // For all but "page" and "mainpage": write a headline.
     if( sPageTypeID_i != "page" &&
         sPageTypeID_i != "mainpage" )
@@ -1788,6 +1868,7 @@ void escrido::CDocumentation::WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
     for( size_t p = 0; p < oGroup_i.naDocPageIdxList.size(); ++p )
     {
       CDocPage* pPage = paDocPageList[oGroup_i.naDocPageIdxList[p]];
+
       if( pPage->GetPageTypeID() == sPageTypeID_i )
       {
         // Get brief description, if it exists.
@@ -1830,6 +1911,7 @@ void escrido::CDocumentation::WriteHTMLTOCPageType( const CGroupNode& oGroup_i,
     }
 
     WriteHTMLTagLine( "</ul>", oOutStrm_i, --oWriteInfo_i );
+    WriteHTMLTagLine( "</li>", oOutStrm_i, --oWriteInfo_i );
   }
 }
 

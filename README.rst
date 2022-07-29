@@ -50,7 +50,7 @@ or (for Windows)::
 Static compiling
 ----------------
 
-If you wish for compiling statically (i.e. to not avoid shipping .dll files), add a modification of the linker arguments to make::
+If you wish for compiling statically (i.e. to avoid shipping .dll files), add a modification of the linker arguments to make::
 
  make LINKFLAGS="-std=c++11 -static -pthread -static-libgcc -static-libstdc++"
 
