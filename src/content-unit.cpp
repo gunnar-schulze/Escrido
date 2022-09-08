@@ -2127,17 +2127,18 @@ void escrido::CTagBlock::AppendCharDefault( const char cChar_i )
   cont_chunk_type fTextChunkType;
   switch( fType )
   {
+    // Block tags that accept plain text only:
     case tag_type::EXAMPLE:
-      fTextChunkType = cont_chunk_type::PLAIN_TEXT;
-      break;
-
     case tag_type::OUTPUT:
+    case tag_type::SIGNATURE:
       fTextChunkType = cont_chunk_type::PLAIN_TEXT;
       break;
 
-    // All other tag blocks accept HTML text:
+    // Other tag blocks:
     default:
 
+      // Inline tag tag_type::VERBATIM accepts plain text,
+      // all other tags accept HTML text
       if( !faWriteMode.empty() &&
           faWriteMode.back() == tag_block_write_mode::VERBATIM )
         fTextChunkType = cont_chunk_type::PLAIN_TEXT;
@@ -2557,9 +2558,9 @@ void escrido::CContentUnit::AppendTag( const char* szTagName_i )
   }
   else
   {
-    // => Non-verbatim block.
+    // => Not inside block or not inside verbatim type.
 
-    // Special case: verbatim write mode.
+    // Special case: write mode of inline tag tag_type::VERBATIM.
     if( oaBlockList.back().GetWriteMode() == tag_block_write_mode::VERBATIM )
     {
       // Only relevant tag in verbatim mode is the @endverbatim inline tag.
