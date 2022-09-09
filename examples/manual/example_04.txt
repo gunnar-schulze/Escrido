@@ -9,50 +9,52 @@ currently available:
  @ref tag_author "&#64;author" |
  @ref tag_brief "&#64;brief" @lb
 
- @ref_tag_code "&#64;code" |
- @ref tag_copyright "&#64;copyright" |
- @ref tag_date "&#64;date" @lb
+ @ref tag_code "&#64;c" |
+ @ref tag_code "&#64;code" |
+ @ref tag_copyright "&#64;copyright" @lb
 
+ @ref tag_date "&#64;date" |
  @ref tag_details "&#64;details" |
- @ref_tag_endcode "&#64;endcode" |
- @ref tag_endtable "&#64;endtable" @lb
+ @ref tag_endcode "&#64;ec" @lb
 
- @ref tag_endverbatim "&#64;endverbatim" |
+ @ref tag_endcode "&#64;endcode" |
+ @ref tag_endtable "&#64;endtable" |
+ @ref tag_endverbatim "&#64;endverbatim" @lb
+
  @ref tag_example "&#64;example" |
- @ref tag_feature "&#64;feature" @lb
+ @ref tag_feature "&#64;feature" |
+ @ref tag_image "&#64;image" @lb
 
- @ref tag_image "&#64;image" |
  @ref tag_ingroup "&#64;ingroup" |
- @ref tag_internal "&#64;internal" @lb
+ @ref tag_internal "&#64;internal" |
+ @ref tag_lb "&#64;lb" @lb
 
- @ref tag_lb "&#64;lb" |
  @ref tag_link "&#64;link" |
- @ref tag_mainpage "&#64;_mainpage_" @lb
+ @ref tag_mainpage "&#64;_mainpage_" |
+ @ref tag_namespace "&#64;namespace" @lb
 
- @ref tag_namespace "&#64;namespace" |
  @ref tag_note "&#64;note" |
- @ref tag_order "&#64;order" @lb
+ @ref tag_order "&#64;order" |
+ @ref tag_output "&#64;output" @lb
 
- @ref tag_output "&#64;output" |
  @ref tag_page "&#64;_page_" |
- @ref tag_par "&#64;par" @lb
+ @ref tag_par "&#64;par" |
+ @ref tag_param "&#64;param" @lb
 
- @ref tag_param "&#64;param" |
  @ref tag_refpage "&#64;_refpage_" |
- @ref tag_ref "&#64;ref" @lb
+ @ref tag_ref "&#64;ref" |
+ @ref tag_remark "&#64;remark" @lb
 
- @ref tag_remark "&#64;remark" |
  @ref tag_return "&#64;return" |
- @ref tag_see "&#64;see" @lb
+ @ref tag_see "&#64;see" |
+ @ref tag_section "&#64;section" @lb
 
- @ref tag_section "&#64;section" |
  @ref tag_signature "&#64;signature" |
- @ref tag_subsection "&#64;subsection" @lb
+ @ref tag_subsection "&#64;subsection" |
+ @ref tag_subsubsection "&#64;subsubsection" @lb
 
- @ref tag_subsubsection "&#64;subsubsection" |
  @ref tag_table "&#64;table" |
- @ref tag_verbatim "&#64;verbatim" @lb
-
+ @ref tag_verbatim "&#64;verbatim" |
  @ref tag_version "&#64;version"
 
 @endtable
@@ -87,10 +89,12 @@ places where there is too little space for a complete description.
 Therefore it should be short but meaningful.
 
 <HR>
-@section tag_code &#64;code { text }
+@section tag_code &#64;c { text } <br> &#64;code { text }
 
 Text between the &#64;code and the @ref tag_endcode "&#64;endcode" tags
 is drawn in "code style" what is typically a monotype font.
+
+&#64;c is an alias for &#64;code.
 
 <HR>
 @section tag_copyright &#64;copyright { copyright description }
@@ -112,10 +116,12 @@ details section may appear multiple times and multiple details sections will
 be put together in the output document.
 
 <HR>
-@section tag_endcode &#64;endcode
+@section tag_endcode &#64;ec { text } <br> &#64;endcode
 
 Text between the @ref tag_code "&#64;code" and the &#64;endcode tags
 is drawn in "code style" what is typically a monotype font.
+
+&#64;ec is an alias for &#64;endcode.
 
 <HR>
 @section tag_endtable &#64;endtable

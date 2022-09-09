@@ -228,10 +228,12 @@ namespace escrido
     { tag_type::VERSION,       "version" } };
 
   // Inline tag types:
-  const unsigned int nInlineTagTypeN = 10;
+  const unsigned int nInlineTagTypeN = 12;
   const escrido::STagType oaInlineTagTypeList[nInlineTagTypeN] = {
     { tag_type::CODE,         "code" },
+    { tag_type::CODE,         "c" },
     { tag_type::END_CODE,     "endcode" },
+    { tag_type::END_CODE,     "ec" },
     { tag_type::LINK,         "link" },
     { tag_type::LINE_BREAK,   "lb" },
     { tag_type::REF,          "ref" },
