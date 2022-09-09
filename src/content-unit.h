@@ -144,15 +144,17 @@ enum class tag_block_write_mode : unsigned char
   VERBATIM
 };
 
-// Flag states for controlled appending of a one-word name followed by an
+// Flag states for controlled appending of a one-word identifier followed by an
 // optional text in quotation marks to a content chunk
-// (e.g. @ref <name> ["(text)"]):
-enum class append_name_text_mode
+// (e.g. @ref <identifier> ["(text)"]):
+enum class append_ident_text_mode
 {
   OFF,
-  INIT,
-  NAME,
-  AFTER_NAME,
+  INIT_IDENT,
+  INIT_URI,
+  IDENT,           // Identifier (alphanumeric characters and '_')
+  URI,             // Uniform Resource Identifier
+  AFTER_IDENT_URI,
   TEXT
 };
 
@@ -368,7 +370,7 @@ class escrido::CTagBlock
 
     // Parsing states and flags:
     std::vector <tag_block_write_mode> faWriteMode; ///< Internal write mode stack (e.g. text mode, table mode, unordered list mode).
-    append_name_text_mode fAppNameTextMode;         ///< Parsing state flag for appending a name and and optional text to the latest content chunk.
+    append_ident_text_mode fAppIdentTextMode;       ///< Parsing state flag for appending an identifier and and optional text to the latest content chunk.
     verbatim_start_mode   fVerbatimStartMode;       ///< Parsing state flag for verbatim tag block types.
     bool fNewLine;                                  ///< Parsing state flag stating whether there has been a newline recently.
 

@@ -319,10 +319,12 @@ void escrido::CContentChunk::WriteHTML( std::ostream& oOutStrm_i, const SWriteIn
       if( !sText.empty() )
         oOutStrm_i << sText;
       else
+      {
         if( fHasRef )
-          oOutStrm_i << oWriteInfo_i.oRefTable.GetName( nRefIdx );
+          oOutStrm_i << oWriteInfo_i.oRefTable.GetText( nRefIdx );
         else
           oOutStrm_i << sContent;
+      }
 
       if( fHasRef )
         oOutStrm_i << "</a>";
@@ -579,7 +581,7 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
         oOutStrm_i << ConvertHTML2LaTeX( sText );
       else
         if( fHasRef )
-          oOutStrm_i << ConvertHTML2LaTeX( oWriteInfo_i.oRefTable.GetName( nRefIdx ) );
+          oOutStrm_i << ConvertHTML2LaTeX( oWriteInfo_i.oRefTable.GetText( nRefIdx ) );
         else
           oOutStrm_i << ConvertHTML2LaTeX( sContent );
 
@@ -742,7 +744,7 @@ void escrido::CContentChunk::DebugOutput() const
 
 escrido::CTagBlock::CTagBlock():
   fType              ( tag_type::PARAGRAPH ),
-  fAppNameTextMode   ( append_name_text_mode::OFF ),
+  fAppIdentTextMode  ( append_ident_text_mode::OFF ),
   fVerbatimStartMode ( verbatim_start_mode::OFF ),
   fNewLine           ( true )
 {}
@@ -751,7 +753,7 @@ escrido::CTagBlock::CTagBlock():
 
 escrido::CTagBlock::CTagBlock( tag_type fType_i ):
   fType              ( fType_i ),
-  fAppNameTextMode   ( append_name_text_mode::OFF ),
+  fAppIdentTextMode  ( append_ident_text_mode::OFF ),
   fVerbatimStartMode ( verbatim_start_mode::OFF ),
   fNewLine           ( true )
 {
@@ -1020,74 +1022,142 @@ void escrido::CTagBlock::AppendChar( const char cChar_i )
   if( fVerbatimStartMode == verbatim_start_mode::INIT )
     fVerbatimStartMode = verbatim_start_mode::OFF;
 
-  // Step 1: "append a name and a text" mode:
-  switch( this->fAppNameTextMode )
+  // Step 1: "append an identifier and a text" mode:
+  switch( this->fAppIdentTextMode )
   {
-    case append_name_text_mode::INIT:
+    case append_ident_text_mode::INIT_IDENT:
     {
       // Skip white spaces, switch to appending state.
       if( cChar_i != ' ' )
       {
-        // Switch "append a name and a text" mode to "NAME".
-        this->fAppNameTextMode = append_name_text_mode::NAME;
+        // Switch "append an identifier and a text" mode to "IDENT".
+        this->fAppIdentTextMode = append_ident_text_mode::IDENT;
 
-        // Append the character to the latest chunk that accepts the name and/or text.
+        // Append the character to the latest chunk that accepts the identifier and/or text.
         // Note: the chunk list cannot be empty at that point since otherwise
-        // the "append a name and a text" mode would be OFF.
+        // the "append an identifier and a text" mode would be OFF.
         oaChunkList.back().AppendChar( cChar_i );
       }
       return;
     }
 
-    case append_name_text_mode::NAME:
+    case append_ident_text_mode::INIT_URI:
     {
+      // Skip white spaces, switch to appending state.
       if( cChar_i != ' ' )
       {
+        // Switch "append an identifier and a text" mode to "URI".
+        this->fAppIdentTextMode = append_ident_text_mode::URI;
+
+        // Append the character to the latest chunk that accepts the identifier and/or text.
+        // Note: the chunk list cannot be empty at that point since otherwise
+        // the "append an identifier and a text" mode would be OFF.
+        oaChunkList.back().AppendChar( cChar_i );
+      }
+      return;
+    }
+
+    case append_ident_text_mode::IDENT:
+    {
+      // Check if character belongs to identifier [a-zA-Z]([a-zA-Z0-9_])+
+      if( strchr( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", cChar_i ) != NULL )
+      {
+        // => Character belongs to identifier.
+
         // Append character to the latest chunk.
-        // Note: see above.
         oaChunkList.back().AppendChar( cChar_i );
       }
       else
       {
-        // Switch "append a name and a text" mode to "AFTER_NAME"
-        this->fAppNameTextMode = append_name_text_mode::AFTER_NAME;
+        // => Character does not belong to identifier. End of identifier reached.
+
+        if( cChar_i == ' ' )
+        {
+          // => Blank space character.
+
+          // Switch "append an identifier and a text" mode to "AFTER_IDENT_URI"
+          this->fAppIdentTextMode = append_ident_text_mode::AFTER_IDENT_URI;
+        }
+        else
+        {
+          // => Non-blank character.
+          //    Break off "append an identifier and a text" mode
+
+          // Switch "append an identifier and a text" mode to "OFF"
+          this->fAppIdentTextMode = append_ident_text_mode::OFF;
+
+          // Add the character in the default way.
+          AppendCharDefault( cChar_i );
+        }
       }
       return;
     }
 
-    case append_name_text_mode::AFTER_NAME:
+    case append_ident_text_mode::URI:
+    {
+      if( cChar_i != ' ' )
+      {
+        // => Character belongs to uri.
+
+        // Append character to the latest chunk.
+        oaChunkList.back().AppendChar( cChar_i );
+      }
+      else
+      {
+        // => Blank space character. End of uri reached.
+
+        // Switch "append an identifier and a text" mode to "AFTER_IDENT_URI"
+        this->fAppIdentTextMode = append_ident_text_mode::AFTER_IDENT_URI;
+      }
+      return;
+    }
+
+    case append_ident_text_mode::AFTER_IDENT_URI:
     {
       if( cChar_i != ' ' )
         if( cChar_i == '"' )
         {
+          // => Alternative text follows.
+
           // Append one blank space to the latest chunk.
-          // Note: see above.
           oaChunkList.back().AppendChar( ' ' );
 
-          // Switch "append a name and a text" mode to "TEXT".
-          this->fAppNameTextMode = append_name_text_mode::TEXT;
-          return;
+          // Switch "append an identifier and a text" mode to "TEXT".
+          this->fAppIdentTextMode = append_ident_text_mode::TEXT;
         }
         else
         {
-          // Switch "append a name and a text" mode to "OFF"
-          this->fAppNameTextMode = append_name_text_mode::OFF;
-          break;
+          // => No alternative text follows.
+          //    Break off "append an identifier and a text" mode
+
+          // Switch "append an identifier and a text" mode to "OFF"
+          this->fAppIdentTextMode = append_ident_text_mode::OFF;
+
+          // Add a blank space in the default way.
+          AppendCharDefault( ' ' );
+
+          // Add the character in the default way.
+          AppendCharDefault( cChar_i );
         }
+      return;
     }
 
-    case append_name_text_mode::TEXT:
+    case append_ident_text_mode::TEXT:
     {
-      if( cChar_i == '"' )
+      if( cChar_i != '"' )
       {
-        // Switch "append a name and a text" mode to "OFF"
-        this->fAppNameTextMode = append_name_text_mode::OFF;
+        // => Character belongs to text.
+
+        // Append character to the latest chunk.
+        oaChunkList.back().AppendChar( cChar_i );
       }
       else
       {
-        // Append character to the latest chunk.
-        // Note: see above.
-        oaChunkList.back().AppendChar( cChar_i );
+        // => End of text.
+        //    Break off "append an identifier and a text" mode
+
+        // Switch "append an identifier and a text" mode to "OFF"
+        this->fAppIdentTextMode = append_ident_text_mode::OFF;
       }
       return;
     }
@@ -1204,7 +1274,7 @@ void escrido::CTagBlock::AppendChar( const char cChar_i )
     }
   }
 
-  // Default behavior: add character to the latest text chunk.
+  // Default behavior: add character in the default way.
   AppendCharDefault( cChar_i );
 }
 
@@ -1265,7 +1335,7 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
       }
 
       this->oaChunkList.emplace_back( cont_chunk_type::LINK );
-      this->fAppNameTextMode = append_name_text_mode::INIT;
+      this->fAppIdentTextMode = append_ident_text_mode::INIT_URI;
       break;
     }
 
@@ -1328,7 +1398,7 @@ void escrido::CTagBlock::AppendInlineTag( tag_type fTagType_i )
       }
 
       this->oaChunkList.emplace_back( cont_chunk_type::REF );
-      this->fAppNameTextMode = append_name_text_mode::INIT;
+      this->fAppIdentTextMode = append_ident_text_mode::INIT_IDENT;
       break;
     }
 
@@ -1573,7 +1643,7 @@ void escrido::CTagBlock::WriteHTML( std::ostream& oOutStrm_i, const SWriteInfo& 
         if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx ) )
         {
           oOutStrm_i << "<a href=\"" + oWriteInfo_i.oRefTable.GetLink( nRefIdx ) + "\">";
-          oOutStrm_i << oWriteInfo_i.oRefTable.GetName( nRefIdx );
+          oOutStrm_i << oWriteInfo_i.oRefTable.GetText( nRefIdx );
           oOutStrm_i << "</a>";
         }
         else
@@ -1847,7 +1917,7 @@ void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo&
       if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx ) )
       {
         oOutStrm_i << "\\hyperref[" << MakeIdentifier( this->GetPlainFirstWord() ) << "]{";
-        oOutStrm_i << ConvertHTML2LaTeX( oWriteInfo_i.oRefTable.GetName( nRefIdx ) );
+        oOutStrm_i << ConvertHTML2LaTeX( oWriteInfo_i.oRefTable.GetText( nRefIdx ) );
         oOutStrm_i << "}%";
       }
       else

@@ -21,10 +21,10 @@
 
 escrido::CRef::CRef( const std::string& sIdent_i,
                      const std::string& sLink_i,
-                     const std::string& sName_i ) :
+                     const std::string& sText_i ) :
   sIdent ( sIdent_i ),
   sLink  ( sLink_i ),
-  sName  ( sName_i )
+  sText  ( sText_i )
 {}
 
 // -----------------------------------------------------------------------------
@@ -48,9 +48,9 @@ void escrido::CRefTable::AppendRef( const std::string& sIdent_i,
 
 void escrido::CRefTable::AppendRef( const std::string& sIdent_i,
                                     const std::string& sLink_i,
-                                    const std::string& sName_i )
+                                    const std::string& sText_i )
 {
-  oaRefList.emplace_back( sIdent_i, sLink_i, sName_i );
+  oaRefList.emplace_back( sIdent_i, sLink_i, sText_i );
 }
 
 // .............................................................................
@@ -93,10 +93,10 @@ std::string escrido::CRefTable::GetLink( size_t nRefIdx_i ) const
 
 // .............................................................................
 
-const std::string& escrido::CRefTable::GetName( size_t nRefIdx_i ) const
+const std::string& escrido::CRefTable::GetText( size_t nRefIdx_i ) const
 {
   if( nRefIdx_i < oaRefList.size() )
-    return oaRefList[nRefIdx_i].sName;
+    return oaRefList[nRefIdx_i].sText;
   else
     return std::string();
 }

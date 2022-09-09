@@ -14,7 +14,7 @@ The class of <em>page tags</em> are tags that start a new <em>page</em>
 section, like a chapter in a document or a subpage of a website.
 Page tags differ from other tags by the fact that their names start and end
 with an underscore sign, e.g. '&#64;_page_'. Page tags may expect
-<em>type specifiers</em>, <em>identifier names</em> and <em>titles</em>
+<em>type specifiers</em>, <em>identifiers</em> and <em>titles</em>
 following the tag. The identifiers are used for referencing
 to the page (see @ref tag_ref "&#64;ref") while the titles are displayed
 as page titles in the output documents.

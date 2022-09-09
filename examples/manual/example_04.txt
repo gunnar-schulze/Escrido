@@ -116,7 +116,7 @@ details section may appear multiple times and multiple details sections will
 be put together in the output document.
 
 <HR>
-@section tag_endcode &#64;ec { text } <br> &#64;endcode
+@section tag_endcode &#64;ec <br> &#64;endcode
 
 Text between the @ref tag_code "&#64;code" and the &#64;endcode tags
 is drawn in "code style" what is typically a monotype font.
@@ -227,11 +227,13 @@ typically used to express warnings of different kinds.
 <HR>
 @section tag_order &#64;order [&lt;name&gt; &lt;name&gt; ...]
 
-This tag is used to define an order for selected pages of the document. The &#64;order command
-takes a list of <em>group names</em> or <em>page names</em> as argument (seperated by commas).
-The order of this list is then applied to the groups and pages. &#64;order commands can
-be used multiple times and they get combined in the order of their appearance. Only
-&#64;order commands in the main page are processed.
+This tag is used to define an order for selected pages of the document.
+The &#64;order command takes a list of <em>group names</em> or
+<em>page identifier</em> as argument (seperated by commas).
+The order of this list is then applied to the groups and pages.
+&#64;order commands can be used multiple times and they get combined in the
+order of their appearance. Only &#64;order commands in the main page are
+processed.
 
 <HR>
 @section tag_output &#64;output { output text }
@@ -248,13 +250,12 @@ If an output block starts with a direct line break, this is not considered in th
 output.
 
 <HR>
-@section tag_page &#64;_page_ &lt;name&gt; (title)
+@section tag_page &#64;_page_ &lt;identifier&gt; (title)
 
-Creates a new pure page with the given title. The <em>name</em> is used as
-identifier of the page and can be used for referencing the page (see
-@ref tag_ref "&#64;ref" tag). A page represents a single unit of content inside
-the whole document like one subpage in a web document or one chapter in a LaTeX
-document.
+Creates a new pure page with the given title. The <em>identifier</em> of the
+page can be used for referencing the page (see @ref tag_ref "&#64;ref" tag).
+A page represents a single unit of content inside the whole document like one
+subpage in a web document or one chapter in a LaTeX document.
 
 <HR>
 @section tag_par &#64;par
@@ -270,20 +271,20 @@ Adds a new <em>parameter</em> section plus description to a code
 structure on an reference page (see @ref tag_refpage "&#64;refpage").
 
 <HR>
-@section tag_refpage &#64;_refpage_ "code structure type" &lt;name&gt; (title)
+@section tag_refpage &#64;_refpage_ "code structure type" &lt;identifier&gt; (title)
 
 Creates a new <em>reference page</em> for a certain type of code structure
 like e.g. a function, an operator, a data types etc. The type of structure can
 be defined freely  and is given as <em>code structure type</em> in the tag call.
-The <em>name</em> is used for external references to the page (see
+The <em>identifier</em> is used for external references to the page (see
 @ref tag_ref "&#64;ref").
 
 <HR>
-@section tag_ref &#64;ref &lt;name&gt; ["(text)"]
+@section tag_ref &#64;ref &lt;identifier&gt; ["(text)"]
 
 This tag inserts a reference to another page or section of the document. In a web
 document, the reference is realized as a link. The optional text is shown instead
-of the reference title (or, if this cannot be found, the indentifier name) if
+of the reference title (or, if this cannot be found, the indentifier) if
 present.
 
 <HR>
@@ -300,21 +301,21 @@ Adds a <em>return</em> section to the current reference page. A <em>return</em>
 section describes the return value of a code structure.
 
 <HR>
-@section tag_see &#64;see { name }
+@section tag_see &#64;see { identifier }
 
 Adds a <em>see</em> section to the current page. A <em>see</em> section
 contains references to other pages or sections that are connected to this page
 in some way. Multiple <em>see</em> tags are grouped together in one <em>see</em>
 section.
 
-If the referenced page or section cannot be found, the identifier name
+If the referenced page or section cannot be found, the identifier
 is shown in the <em>see</em> section as static text.
 
 <HR>
-@section tag_section &#64;section &lt;section-name&gt; (section title)
+@section tag_section &#64;section &lt;section-identifier&gt; (section title)
 
 Adds a <em>section</em> to the current document page.
-The section name is a unique identifier used for referencing to the section (see
+The section identifier is a unique identifier used for referencing to the section (see
 @ref tag_ref "&#64;ref" tag). The section title is displayed as title of the section.
 
 <HR>
@@ -326,13 +327,13 @@ Adds a <em>signature</em> section to the current reference page. A
 function, a class method etc.) is used in the code.
 
 <HR>
-@section tag_subsection &#64;subsection &lt;subsection-name&gt; (subsection title)
+@section tag_subsection &#64;subsection &lt;subsection-identifier&gt; (subsection title)
 
 Adds a <em>subsection</em> to the current document page. A subsection works like a
 @ref tag_section "section" but contains a heading with one level lower.
 
 <HR>
-@section tag_subsubsection &#64;subsubsection &lt;subsubsection-name&gt; (subsubsection title)
+@section tag_subsubsection &#64;subsubsection &lt;subsubsection-identifier&gt; (subsubsection title)
 
 Adds a <em>subsubsection</em> to the current document page. A subsubsection works like a
 @ref tag_section "subsection" but contains a heading with one level lower.
