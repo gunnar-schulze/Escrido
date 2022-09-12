@@ -1173,6 +1173,7 @@ void escrido::CTagBlock::AppendChar( const char cChar_i )
       // Treat as normal character in verbatim tag block types:
       if( fType ==  tag_type::EXAMPLE ||
           fType ==  tag_type::OUTPUT ||
+          fType ==  tag_type::SIGNATURE ||
           ( !faWriteMode.empty() &&
             faWriteMode.back() == tag_block_write_mode::VERBATIM ) )
         break;
@@ -1535,12 +1536,26 @@ void escrido::CTagBlock::AppendNewLine()
     case tag_type::OUTPUT:
       this->oaChunkList.emplace_back( cont_chunk_type::NEW_LINE );
       break;
+
+    case tag_type::SIGNATURE:
+      this->oaChunkList.emplace_back( cont_chunk_type::DELIM_TITLE_LINE );
+      break;
   }
 
   // => All other line breaks are dumped.
 }
 
 // .............................................................................
+
+// *****************************************************************************
+/// \brief      Called on adding "double new line", i.e. a newline that follows
+///             another.
+///
+/// \details    "Double new lines" does in general not mean simply two new lines
+///             but one new line after a previous one.
+///
+///             A "double new line" represents a new paragraph.
+// *****************************************************************************
 
 void escrido::CTagBlock::AppendDoubleNewLine()
 {
@@ -2446,7 +2461,6 @@ void escrido::CContentUnit::AppendLineBreak()
           else
           {
             // => Single new line.
-
             oaBlockList.back().AppendNewLine();
           }
         }
@@ -3206,7 +3220,6 @@ void escrido::CContentUnit::WriteHTMLTagBlockList( tag_type fTagType_i,
         for( size_t t = 0; t < oaBlockList.size(); t++ )
           if( oaBlockList[t].GetTagType() == fTagType_i )
             oaBlockList[t].WriteHTML( oOutStrm_i, oWriteInfo_i );
-
         WriteHTMLTagLine( "</ul>", oOutStrm_i, --oWriteInfo_i );
         break;
       }

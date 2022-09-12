@@ -105,15 +105,18 @@ The following inline tags are available:
 
 @table
 
+ @ref_tag_code "&#64;c" |
  @ref_tag_code "&#64;code" |
+ @ref_tag_endcode "&#64;ec" @lb
+
  @ref_tag_endcode "&#64;endcode" |
- @ref tag_lb "&#64;lb" @lb
+ @ref tag_lb "&#64;lb" |
+ @ref tag_link "&#64;link" @lb
 
- @ref tag_link "&#64;link" |
  @ref tag_ref "&#64;ref" |
- @ref tag_table "&#64;table" @lb
+ @ref tag_table "&#64;table" |
+ @ref tag_endtable "&#64;endtable" @lb
 
- @ref tag_endtable "&#64;endtable" |
  @ref tag_verbatim "&#64;verbatim" |
  @ref tag_endverbatim "&#64;endverbatim"
 
