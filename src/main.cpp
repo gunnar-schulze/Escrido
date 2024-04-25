@@ -13,27 +13,6 @@
 ///
 // *****************************************************************************
 
-// -----------------------------------------------------------------------------
-
-// DOCUMENTATION
-
-// -----------------------------------------------------------------------------
-
-// *****************************************************************************
-/// \mainpage   Escrido: a multi-language documentation generator.
-///
-/// \author     Gunnar Schulze
-/// \date       2022-09-12
-/// \version    1.10.0
-/// \copyright  2018 Gunnar Schulze
-// *****************************************************************************
-
-// -----------------------------------------------------------------------------
-
-// INCLUSIONS
-
-// -----------------------------------------------------------------------------
-
 #include <vector>
 #include <string>
 #include <iostream>         // cin, cout, cerr, endl
@@ -56,9 +35,9 @@ namespace applicationInfo
 {
   const char szName[]        = "Escrido";
   const char szDescription[] = "Multi-language documentation generator.";
-  const char szVersion[]     = "1.10.0";
+  const char szVersion[]     = "1.11.0";
   const char szFirstDate[]   = "October 2015";
-  const char szDate[]        = "September 2022";
+  const char szDate[]        = "April 2024";
   const char szAuthor[]      = "Gunnar Schulze";
 }
 
