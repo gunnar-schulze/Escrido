@@ -254,6 +254,15 @@ article figure{
   padding:5px 0;
 }
 
+article figure img{
+max-width: 100%;
+}
+
+article figure figcaption p:first-of-type::before {
+  font-weight: bold;
+  content: "Figure: ";
+}
+
 article img{
 max-width: 100%;
 }
