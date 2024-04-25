@@ -577,6 +577,32 @@ const std::string escrido::CDocPage::GetNamespace() const
 
 // .............................................................................
 
+const std::vector <std::string> escrido::CDocPage::GetLabelNames() const
+{
+  std::vector <std::string> asResult;
+  std::vector <std::string> asTokens;
+  std::string sLine;
+
+  if( this->oContUnit.HasTagBlock( tag_type::LABEL ) )
+  {
+    const CTagBlock* oTagBlock = this->oContUnit.GetFirstTagBlock( tag_type::LABEL );
+    sLine = oTagBlock->GetPlainTitleLine();
+    if( Tokenize( sLine, ",", asTokens ) )
+      asResult.insert( asResult.end(), asTokens.begin(), asTokens.end() );
+
+    while( ( oTagBlock = this->oContUnit.GetNextTagBlock( oTagBlock, tag_type::LABEL ) ) != NULL )
+    {
+      sLine = oTagBlock->GetPlainTitleLine();
+      if( Tokenize( sLine, ",", asTokens ) )
+        asResult.insert( asResult.end(), asTokens.begin(), asTokens.end() );
+    }
+  }
+
+  return asResult;
+}
+
+// .............................................................................
+
 const std::vector <std::string> escrido::CDocPage::GetGroupNames() const
 {
   std::vector <std::string> oResult;
@@ -1390,6 +1416,15 @@ void escrido::CDocumentation::WriteHTMLDoc( const std::string& sTemplateDir_i,
       ReplacePlaceholder( "*escrido-see*", *pPage, &CDocPage::WriteHTMLTagBlockList, tag_type::SEE, oWriteInfo_i, sTemplatePage );
       ReplacePlaceholder( "*escrido-signatures*", *pPage, &CDocPage::WriteHTMLTagBlockList, tag_type::SIGNATURE, oWriteInfo_i, sTemplatePage );
       ReplacePlaceholder( "*escrido-features*", *pPage, &CDocPage::WriteHTMLTagBlockList, tag_type::FEATURE, oWriteInfo_i, sTemplatePage );
+
+      // HTML code for labels
+      std::string sHTMLLabels;
+      {
+        std::vector<std::string> asLabelList = pPage->GetLabelNames();
+        for( size_t l = 0; l < asLabelList.size(); ++l )
+          sHTMLLabels += "<span class=\"label " + GetCamelCase( asLabelList[l] ) + "\">" + asLabelList[l] + "</span>";
+      }
+      ReplacePlaceholder( "*escrido-labels*", sHTMLLabels, sTemplatePage );
 
       // Construct and replace specific 'features' placeholder:
       for( size_t f = 0; f < aoFeatureNames.size(); ++f )
@@ -2288,8 +2323,20 @@ void escrido::WriteOutput( const std::string& sFileName_i,
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-/// \brief      Exchanges a placeholder inside a to-be-modified string by a
-///             string out of a list of strings.
+/// \brief      Exchanges a placeholder with index inside a to-be-modified
+///             string by a string out of a list of strings.
+///
+/// \details    This replacement type is specified for placeholder with an index
+///             wildcard (hash sign '#'). The user (creator of template) may
+///             omit this position or put an index integer into it.
+///
+///             If the wildcard is omitted in the template, the placeholder is
+///             replaced by the first element of group sTemplateData_io, if this
+///             exist, or kept empty otherwise.
+///
+///             If the wildcard provied in the template has an index value, the
+///             respective element out of asReplacementList_i is placed instead
+///             of the placeholder.
 // *****************************************************************************
 
 void escrido::ReplacePlaceholder( const char* szPlaceholder_i,

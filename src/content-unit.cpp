@@ -4055,6 +4055,83 @@ bool escrido::All( const std::string& sText_i, std::string& sAll_o )
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
+/// \brief      Returns the group of characters that forms the text after the
+///             first quote and the following blank spaces of a string.
+///
+/// \param[in]  sText_i
+///             The input text.
+/// \param[out] sAllButFirstQuote_o
+///             The text after the first quote (w/o quotation marks) or an
+///             empty string, if no first quote exists.
+///
+/// \return     true, if a first quote exists, false otherwise.
+// *****************************************************************************
+
+bool escrido::AllButFirstQuote( const std::string& sText_i, std::string& sAllButFirstQuote_o )
+{
+  sAllButFirstQuote_o.clear();
+
+  size_t nBegin = sText_i.find_first_not_of( ' ' );
+  if( nBegin != std::string::npos )
+  {
+    if( sText_i[nBegin] == '"' )
+    {
+      nBegin = sText_i.find_first_of( '"', nBegin + 1 );
+      if( nBegin != std::string::npos )
+      {
+        nBegin = sText_i.find_first_not_of( ' ', nBegin + 1 );
+        if( nBegin != std::string::npos )
+          sAllButFirstQuote_o = sText_i.substr( nBegin );
+
+        return true;
+      }
+    }
+    else
+      sAllButFirstQuote_o = sText_i.substr( nBegin );
+  }
+
+  return false;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the group of characters that forms the text after the
+///             first word and the following blank spaces of a string.
+///
+/// \param[in]  sText_i
+///             The input text.
+/// \param[out] sAllButFirstWord_o
+///             The text after the first word (w/o leading blank spaces) or an
+///             empty string, if no first word exists.
+///
+/// \return     true, if a first word exists, false otherwise.
+// *****************************************************************************
+
+bool escrido::AllButFirstWord( const std::string& sText_i, std::string& sAllButFirstWord_o )
+{
+  sAllButFirstWord_o.clear();
+
+  size_t nBegin = sText_i.find_first_not_of( ' ' );
+  if( nBegin != std::string::npos )
+  {
+    nBegin = sText_i.find_first_of( ' ', nBegin );
+    if( nBegin != std::string::npos )
+    {
+      nBegin = sText_i.find_first_not_of( ' ', nBegin );
+      if( nBegin != std::string::npos )
+        sAllButFirstWord_o = sText_i.substr( nBegin );
+    }
+
+    return true;
+  }
+  else
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
 /// \brief      Returns the first word (i.e. the first group of non-blank space
 ///             characters) of a string.
 ///
@@ -4175,78 +4252,52 @@ bool escrido::FirstLine( const std::string& sText_i, std::string& sFirstLine_o )
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-/// \brief      Returns the group of characters that forms the text after the
-///             first word and the following blank spaces of a string.
+/// \brief      Tokenizes a string.
 ///
 /// \param[in]  sText_i
 ///             The input text.
-/// \param[out] sAllButFirstWord_o
-///             The text after the first word (w/o leading blank spaces) or an
-///             empty string, if no first word exists.
+/// \param[in]  sDelim_i
+///             The deliminator string.
+/// \param[out] asTokens_o
+///             The list of tokens (w/o leading and ending blank spaces).
 ///
-/// \return     true, if a first word exists, false otherwise.
+/// \return     true, if one or more tokens were found, false otherwise.
 // *****************************************************************************
 
-bool escrido::AllButFirstWord( const std::string& sText_i, std::string& sAllButFirstWord_o )
+bool escrido::Tokenize( const std::string& sText_i,
+                        const std::string& sDelim_i,
+                        std::vector<std::string>& asTokens_o )
 {
-  sAllButFirstWord_o.clear();
+  asTokens_o.clear();
 
-  size_t nBegin = sText_i.find_first_not_of( ' ' );
-  if( nBegin != std::string::npos )
+  const size_t nTextLen = sText_i.length();
+  const char cBlank = ' ';
+  size_t nBegin = 0;
+  size_t nEnd, nTokBegin, nTokEnd;
+  while( true )
   {
-    nBegin = sText_i.find_first_of( ' ', nBegin );
-    if( nBegin != std::string::npos )
+    // Get end position of token (including blank spaces)
+    nEnd = sText_i.find( sDelim_i, nBegin );
+    if( nEnd == std::string::npos )
+      nEnd = nTextLen;
+
+    // Reduce token by front and end blank spaces
+    nTokBegin = sText_i.find_first_not_of( &cBlank, nBegin, nEnd - nBegin );
+    if( nTokBegin != std::string::npos )
     {
-      nBegin = sText_i.find_first_not_of( ' ', nBegin );
-      if( nBegin != std::string::npos )
-        sAllButFirstWord_o = sText_i.substr( nBegin );
+      nTokEnd = sText_i.find_last_not_of( &cBlank, nEnd - 1, nEnd - nTokBegin ) + 1;
+
+      // Add token (w/o front and end blank spaces )
+      asTokens_o.push_back( sText_i.substr( nTokBegin, nTokEnd - nTokBegin ) );
     }
 
-    return true;
-  }
-  else
-    return false;
-}
-
-// -----------------------------------------------------------------------------
-
-// *****************************************************************************
-/// \brief      Returns the group of characters that forms the text after the
-///             first quote and the following blank spaces of a string.
-///
-/// \param[in]  sText_i
-///             The input text.
-/// \param[out] sAllButFirstQuote_o
-///             The text after the first quote (w/o quotation marks) or an
-///             empty string, if no first quote exists.
-///
-/// \return     true, if a first quote exists, false otherwise.
-// *****************************************************************************
-
-bool escrido::AllButFirstQuote( const std::string& sText_i, std::string& sAllButFirstQuote_o )
-{
-  sAllButFirstQuote_o.clear();
-
-  size_t nBegin = sText_i.find_first_not_of( ' ' );
-  if( nBegin != std::string::npos )
-  {
-    if( sText_i[nBegin] == '"' )
-    {
-      nBegin = sText_i.find_first_of( '"', nBegin + 1 );
-      if( nBegin != std::string::npos )
-      {
-        nBegin = sText_i.find_first_not_of( ' ', nBegin + 1 );
-        if( nBegin != std::string::npos )
-          sAllButFirstQuote_o = sText_i.substr( nBegin );
-
-        return true;
-      }
-    }
+    if( nEnd == nTextLen )
+      break;
     else
-      sAllButFirstQuote_o = sText_i.substr( nBegin );
+      nBegin = nEnd + 1;
   }
 
-  return false;
+  return !asTokens_o.empty();
 }
 
 // -----------------------------------------------------------------------------
@@ -4342,7 +4393,7 @@ std::string escrido::GetCamelCase( const std::string& sName_i )
 
   for( size_t c = 0; c < sName_i.length(); ++c )
   {
-    if( sName_i[c] == ' ' || sName_i[c] == '\t' )
+    if( strchr( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", sName_i[c] ) == NULL )
     {
       fBetweenWords = true;
       continue;

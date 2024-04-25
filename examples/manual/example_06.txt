@@ -51,6 +51,9 @@ The following replacement tags are currently defined:
   <b> &#42;escrido-type* </b> | no |
   The <em>code structure type</em> of the current @ref tag_refpage "&#64;_refpage_". @lb
 
+  <b> &#42;escrido-labels* </b> | no |
+  The <em>labels</em> defined by the @ref tag_label "&#64;label" tags of the current @ref tag_refpage "&#64;_refpage_". @lb
+
   <b> &#42;escrido-groupname* </b><br>
   <b> &#42;escrido-groupname#* </b><br>| no |
   A <em>group name</em> defined by @ref tag_ingroup "&#64;ingroup" of the current @ref tag_page "&#64;_page_" or @ref tag_refpage "&#64;_refpage_". If no index integer is given, the name of the first group will be inserted, otherwise the name of the group with the respective index.@lb

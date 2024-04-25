@@ -304,6 +304,21 @@ article nav div:hover{
   background-color:#eee;
 }
 
+article .label{
+  background-color: #BCE77C;
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin: 0 2px;
+  font-size: 0.9em;
+  color: #333;
+}
+
+/* Example of additional styling for a specific label */
+.label.myLabelNo1 {
+    background-color: #ff0;
+    color: #000;
+}
+
 .signatures ul
 {
   list-style-type:decimal;

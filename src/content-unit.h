@@ -109,6 +109,7 @@ enum class tag_type
   IMAGE,
   INGROUP,
   INTERNAL,
+  LABEL,
   LINE_BREAK,
   NAMESPACE,
   NOTE,
@@ -201,7 +202,7 @@ namespace escrido
   };
 
   // Block tag types:
-  const unsigned int nBlockTagTypeN = 25;
+  const unsigned int nBlockTagTypeN = 26;
   const escrido::STagType oaBlockTagTypeList[nBlockTagTypeN] = {
     { tag_type::ATTRIBUTE,     "attribute" },
     { tag_type::AUTHOR,        "author" },
@@ -214,6 +215,7 @@ namespace escrido
     { tag_type::IMAGE,         "image" },
     { tag_type::INGROUP,       "ingroup" },
     { tag_type::INTERNAL,      "internal" },
+    { tag_type::LABEL,         "label" },
     { tag_type::NAMESPACE,     "namespace" },
     { tag_type::NOTE,          "note" },
     { tag_type::ORDER,         "order" },
@@ -262,11 +264,12 @@ namespace escrido
   std::string   ConvertHTML2ClearText( const std::string& sText_i );
   bool          ReplaceIfMatch( std::string& sText_i, size_t& nPos_i, const char* szPattern_i, const char* szReplacement_i );
   bool          All( const std::string& sText_i, std::string& sAll_o );
+  bool          AllButFirstQuote( const std::string& sText_i, std::string& sAllButFirstQuote_o );
+  bool          AllButFirstWord( const std::string& sText_i, std::string& sAllButFirstWord_o );
   bool          FirstWord( const std::string& sText_i, std::string& sFirstWord_o );
   bool          FirstQuote( const std::string& sText_i, std::string& sFirstQuote_o );
   bool          FirstLine( const std::string& sText_i, std::string& sFirstLine_o );
-  bool          AllButFirstWord( const std::string& sText_i, std::string& sAllButFirstWord_o );
-  bool          AllButFirstQuote( const std::string& sText_i, std::string& sAllButFirstQuote_o );
+  bool          Tokenize( const std::string& sText_i, const std::string& sDelim_i, std::vector<std::string>& asTokens_o );
   std::string   MakeIdentifier( const std::string& sWord_i );
   bool          GetBlockTagType( const char* szTagName_i, tag_type& fTagType_o );
   bool          GetInlineTagType( const char* szTagName_i, tag_type& fTagType_o );

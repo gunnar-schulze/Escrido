@@ -27,34 +27,36 @@ currently available:
 
  @ref tag_ingroup "&#64;ingroup" |
  @ref tag_internal "&#64;internal" |
- @ref tag_lb "&#64;lb" @lb
+ @ref tag_label "&#64;label" @lb
 
+ @ref tag_lb "&#64;lb" |
  @ref tag_link "&#64;link" |
- @ref tag_mainpage "&#64;_mainpage_" |
- @ref tag_namespace "&#64;namespace" @lb
+ @ref tag_mainpage "&#64;_mainpage_" @lb
 
+ @ref tag_namespace "&#64;namespace" |
  @ref tag_note "&#64;note" |
- @ref tag_order "&#64;order" |
- @ref tag_output "&#64;output" @lb
+ @ref tag_order "&#64;order" @lb
 
+ @ref tag_output "&#64;output" |
  @ref tag_page "&#64;_page_" |
- @ref tag_par "&#64;par" |
- @ref tag_param "&#64;param" @lb
+ @ref tag_par "&#64;par" @lb
 
+ @ref tag_param "&#64;param" |
  @ref tag_refpage "&#64;_refpage_" |
- @ref tag_ref "&#64;ref" |
- @ref tag_remark "&#64;remark" @lb
+ @ref tag_ref "&#64;ref" @lb
 
+ @ref tag_remark "&#64;remark" |
  @ref tag_return "&#64;return" |
- @ref tag_see "&#64;see" |
- @ref tag_section "&#64;section" @lb
+ @ref tag_see "&#64;see" @lb
 
+ @ref tag_section "&#64;section" |
  @ref tag_signature "&#64;signature" |
- @ref tag_subsection "&#64;subsection" |
- @ref tag_subsubsection "&#64;subsubsection" @lb
+ @ref tag_subsection "&#64;subsection" @lb
 
+ @ref tag_subsubsection "&#64;subsubsection" |
  @ref tag_table "&#64;table" |
- @ref tag_verbatim "&#64;verbatim" |
+ @ref tag_verbatim "&#64;verbatim" @lb
+
  @ref tag_version "&#64;version"
 
 @endtable
@@ -191,6 +193,16 @@ group names via @ref replacement_tags "replacement tags".
 Sections tagged with this command are meant for internal use. Their appearance
 in the documentation can be disabled by the -it or --internal-tags command line
 argument or the @ref config_option_internaltags field in the escrido file.
+
+<HR>
+@section tag_label &#64;label (label list)
+
+The <em>&#64;label</em> command is used to add one or more labels to a reference
+page. The labels shall be given separated by commas. Multiple &#64;label tags
+can be used.
+
+A @ref replacement_tags "replacement tag" exist to place the list of labels into
+the output documents.
 
 <HR>
 @section tag_lb &#64;lb

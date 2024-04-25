@@ -25,6 +25,8 @@
 
 @return         This text explains the return value of the structure.
 
+@label          My Label No. 1, label2
+
 @attribute      style
                 This text explains about an attribute of the structure.
 

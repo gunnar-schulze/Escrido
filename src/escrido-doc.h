@@ -326,6 +326,7 @@ class escrido::CDocPage
     const CContentUnit& GetContentUnit() const;
     const std::string  GetBrief() const;
     const std::string  GetNamespace() const;
+    const std::vector<std::string> GetLabelNames() const;
     const std::vector<std::string> GetGroupNames() const;
     const std::vector<std::string> GetFeatureNames() const;
 
