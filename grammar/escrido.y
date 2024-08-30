@@ -6,7 +6,7 @@
 /* ----------------------------------------------------------------- */
 
 /* Turn on verbose error output. */
-%error-verbose
+%define parse.error verbose
 
 /* Section of code that will appears early in the output file. */
 %{
