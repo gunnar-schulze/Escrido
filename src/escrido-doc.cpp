@@ -96,7 +96,7 @@ void escrido::CGroupNode::Order( const std::vector <CDocPage*>& apDocPageList_i,
     {};
 
     // Alphanumeric comparison
-    bool operator<( const SSortObj& oRHS_i )
+    bool operator<( const SSortObj& oRHS_i ) const
     {
       const std::string& sLHS = *this->psTitle;
       const std::string& sRHS = *oRHS_i.psTitle;
