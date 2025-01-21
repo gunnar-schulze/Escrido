@@ -20,12 +20,16 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
-% Additional symbols:
-\usepackage{textcomp}
-% Extended color support:
-\usepackage{xcolor}
 % Boxes with frames and colors:
 \usepackage{framed}
+% Additional symbols:
+\usepackage{textcomp}
+% Styling titles (for styling \tagblocksubsubsection)
+\usepackage{titlesec}
+% Extended color support:
+\usepackage{xcolor}
+% Use T1 encoding
+\usepackage[T1]{fontenc}
 
 % -----------------------------------------------------------------
 
@@ -88,7 +92,11 @@
   % Line breaks
   % -----------
   breaklines=true,
-  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{purple}\hookrightarrow\space}}
+  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{purple}\hookrightarrow\space}},
+  % ---------------------------
+  % Special characters handling
+  % ---------------------------
+  literate={°}{{\textdegree}}1
 }
 
 % -----------------------------------------------------------------

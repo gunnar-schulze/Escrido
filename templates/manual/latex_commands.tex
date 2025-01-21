@@ -19,9 +19,20 @@
 % Headline of subsubsection tag blocks (@subsection)
 \newcommand{\tagblocksubsubsection}[1]{\paragraph{#1}}
 
+% Customize the appearance of \tagblocksubsubsection
+\titleformat{\tagblocksubsubsection}
+  {\normalfont\normalsize\bfseries}{\thetagblocksubsubsection}{1em}{}
+\titlespacing*{\tagblocksubsubsection}
+  {0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+% Counter for \tagblocksubsubsection
+\newcounter{tagblocksubsubsection}[subsubsection]
+\renewcommand\thetagblocksubsubsection{\thesubsubsection.\arabic{tagblocksubsubsection}}
+
 % Verbatim blocks (@example, @output etc.):
 \newcommand{\verbatimtitle}[1]{\noindent\textbf{\footnotesize #1}}
-\newcommand{\code}[1]{\lstinline[breaklines=false,columns=fixed,basewidth=0.50em]^#1^}
+%\newcommand{\code}[1]{\lstinline[breaklines=false,columns=fixed,basewidth=0.50em]@#1@}
+\newcommand{\code}[1]{\texttt{#1}}
 
 % @note blocks:
 \definecolor{notecolorhead}{HTML}{BCE77C}
@@ -41,13 +52,20 @@
   \noindent\colorbox{remarkcolorhead}{\begin{minipage}{\textwidth}\textbf{Remark:}\end{minipage}} }
 { \end{shaded*} }
 
+% @internal blocks:
+\newenvironment{internal}
+{\noindent\textbf{Internal:}}
+{}
+
 % Lists of certain tag types (@attribute, @param, @signature etc.)
 \newenvironment{taglist}
 { \tabulary{\textwidth}{lL} }
 { \endtabulary }
 % Single item of tag type list (@attribute, @param, @signature etc.):
-\newcommand{\taglistitemline}[1]{ \parbox{\textwidth}{\textbf{#1}} \\ }           % Items consisting of single line (@signature etc.)
-\newcommand{\taglistitemexprtext}[2]{ \textbf{#1} & #2 \\ }  % Items consisting of an inital expression followed by some text (@param etc.)
+% Items consisting of single line (@signature etc.):
+\newcommand{\taglistitemline}[1]{ \parbox{\textwidth}{\textbf{#1}} \\ }
+% Items consisting of an inital expression followed by some text (@param etc.):
+\newcommand{\taglistitemexprtext}[2]{ \textbf{#1} & #2 \\ }
 
 % Maxwidth definition for images:
 \makeatletter

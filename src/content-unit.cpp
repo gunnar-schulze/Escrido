@@ -603,9 +603,9 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
       std::string sHREF = this->GetPlainFirstWord();
       if( !sHREF.empty() )
       {
-        oOutStrm_i << "\\url{" << sHREF << "}";
+        oOutStrm_i << "\\url{" << ConvertHTML2LaTeX( sHREF ) << "}";
 
-        std::string sText = this->GetPlainAllButFirstWord();
+        std::string sText = ConvertHTML2LaTeX( this->GetPlainAllButFirstWord() );
         if( !sText.empty() )
           oOutStrm_i << "{"<< sText << "}";
       }
@@ -3778,6 +3778,10 @@ std::string escrido::LaTeXEscape( const std::string& sText_i )
   {
     switch( sText_i[c] )
     {
+      case '\\':
+        sReturn += "\\\\";
+        break;
+
       case '$':
         sReturn += "\\$";
         break;
@@ -3814,6 +3818,10 @@ std::string escrido::LaTeXEscape( const std::string& sText_i )
         sReturn += "\\#";
         break;
 
+      case '^':
+        sReturn += "{\\textasciicircum}"; //"\\^";
+        break;
+
       // Symbol '´':
       // (use numeric form to be cross-architecture compatible)
       case '\xB4':
@@ -3828,6 +3836,14 @@ std::string escrido::LaTeXEscape( const std::string& sText_i )
 
       case '|':
         sReturn += "{\\textbar}";
+        break;
+
+      case '<':
+        sReturn += "{\\textless}";
+        break;
+
+      case '>':
+        sReturn += "{\\textgreater}";
         break;
 
       default:
@@ -3882,6 +3898,7 @@ std::string escrido::ConvertHTML2LaTeX( const std::string& sText_i )
     if( ReplaceIfMatch( sTextCpy, nPos, "--", "-{}-" ) ) continue;
 
     // Characters:
+    if( ReplaceIfMatch( sTextCpy, nPos, "\\", "\\\\" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "$", "\\$" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "%", "\\%" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "_", "\\_" ) ) continue;
@@ -3891,6 +3908,7 @@ std::string escrido::ConvertHTML2LaTeX( const std::string& sText_i )
     if( ReplaceIfMatch( sTextCpy, nPos, "]", "{]}" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "&", "\\&" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "#", "\\#" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "^", "{\\textasciicircum}" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "´", "'" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "°", "{\\textdegree}" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "|", "{\\textbar}" ) ) continue;

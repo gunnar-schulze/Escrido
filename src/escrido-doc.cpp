@@ -885,7 +885,7 @@ void escrido::CDocPage::WriteHTMLTagBlockList( tag_type fTagType_i,
 
 void escrido::CDocPage::WriteLaTeXHeadline( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
 {
-  WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\pageheadline{" << sTitle << "}" << std::endl;
+  WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\pageheadline{" << LaTeXEscape( sTitle ) << "}" << std::endl;
   WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\label{" << sIdent << "}" << std::endl;
 }
 
@@ -1505,6 +1505,10 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
                                              const std::string& sOutputDir_i,
                                              const SWriteInfo& oWriteInfo_i ) const
 {
+ // Make sure the group list is prepared.
+  if( !fGroupOrdered )
+    this->FillGroupTreeOrdered();
+
   // Reset indentation in write info.
   oWriteInfo_i.nIndent = 0;
 

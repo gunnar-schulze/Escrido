@@ -57,6 +57,16 @@ If you wish for compiling statically (i.e. to avoid shipping .dll files), add a 
 Compiling issues
 ----------------
 
+1. Problems on re-building
+..........................
+
+The makefile is currently not capable of tracking all changes correctly. In case of an error during repeated compiling, clear build objects first::
+
+  make clear
+
+2. Version problems of "lex"
+............................
+
 One common problem during compiling is an error that occurs in files "precomp.h", "precomp.l", "mcomp.h" and "mcomp.l" and that is caused by a different version of the lexical scanner tool "lex". If you encounter this issue, try the "lex compatibility mode" for compiling by calling make as follows::
 
  make ARG="-D LEX_COMPAT_MODE"
