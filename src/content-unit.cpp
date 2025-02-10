@@ -607,7 +607,7 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
 
         std::string sText = ConvertHTML2LaTeX( this->GetPlainAllButFirstWord() );
         if( !sText.empty() )
-          oOutStrm_i << "{"<< sText << "}";
+          oOutStrm_i << "{"<< ConvertHTML2LaTeX( sText ) << "}";
       }
       break;
     }

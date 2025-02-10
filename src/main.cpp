@@ -148,6 +148,11 @@ int main( int argc, char* argv[] )
         std::cerr << "Error in line " << nErrLine << " of config file \"" << sConfigFile << "\"" << std::endl;
       return 1;
     }
+
+    // Read command line command a second time. This is to eventually overwrite
+    // settings from within the configuration file in order to give command line
+    // arguments a higher precedence.
+    argscan::InterpArgs( argc, argv, szArgScanError );
   }
 
   // Read files and parse them.
