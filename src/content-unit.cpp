@@ -574,7 +574,7 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
       size_t nRefIdx;
       bool fHasRef = oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx );
       if( fHasRef )
-        oOutStrm_i << "\\hyperref[" << MakeIdentifier( this->GetPlainFirstWord() ) << "]{";
+        oOutStrm_i << "\\robusthyperref{" << MakeIdentifier( this->GetPlainFirstWord() ) << "}{";
 
       std::string sText = this->GetPlainAllButFirstWord();
       if( !sText.empty() )
@@ -1908,7 +1908,7 @@ void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo&
     case tag_type::FEATURE:
     {
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitem{";
-      WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+      WriteLaTeXTitleLineButFirstWordOrQuote( oOutStrm_i, oWriteInfo_i );
       oOutStrm_i << "}";
       WriteLaTeXAllButTitleLine( oOutStrm_i, oWriteInfo_i );
       oOutStrm_i << "%" << std::endl;
@@ -1931,7 +1931,7 @@ void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo&
       size_t nRefIdx;
       if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx ) )
       {
-        oOutStrm_i << "\\hyperref[" << MakeIdentifier( this->GetPlainFirstWord() ) << "]{";
+        oOutStrm_i << "\\robusthyperref{" << MakeIdentifier( this->GetPlainFirstWord() ) << "}{";
         oOutStrm_i << ConvertHTML2LaTeX( oWriteInfo_i.oRefTable.GetText( nRefIdx ) );
         oOutStrm_i << "}%";
       }

@@ -58,13 +58,13 @@
 
 % Lists of types with emphasized tag names (@attribute,@feature, @param, etc.)
 \newlist{taglist}{description}{1}
-\setlist[taglist]{labelwidth=4cm, leftmargin=5cm, style=nextline, font=\bfseries}
+\setlist[taglist]{style=nextline, font=\bfseries}
 % Single item of tag type list (@attribute, @param, etc.):
 \newcommand{\taglistitem}[1]{\item[#1]}
 
 % List of signatures (@signature)
 \newlist{signaturelist}{enumerate}{1}
-\setlist[signaturelist]{label=\arabic*., labelwidth=4cm, leftmargin=1cm, style=nextline, font=\bfseries}
+\setlist[signaturelist]{label=\arabic*., leftmargin=1cm, style=nextline, font=\bfseries}
 % Single item of signature list (signature):
 \newcommand{\signaturelistitem}{\item \texttt}
 
@@ -72,3 +72,6 @@
 \makeatletter
 \def\maxwidth#1{\ifdim\Gin@nat@width>#1 #1\else\Gin@nat@width\fi}
 \makeatother
+
+% Robust hyperref command
+\DeclareRobustCommand{\robusthyperref}[2]{\hyperref[#1]{#2}}
