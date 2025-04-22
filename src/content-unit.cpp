@@ -1897,31 +1897,31 @@ void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo&
   {
     case tag_type::ATTRIBUTE:
     {
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitemexprtext{";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitem{";
       WriteLaTeXFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "}{";
+      oOutStrm_i << "}";
       WriteLaTeXAllButFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "}%" << std::endl;
+      oOutStrm_i << "%" << std::endl;
       break;
     }
 
     case tag_type::FEATURE:
     {
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitemexprtext{";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitem{";
       WriteLaTeXTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "}{";
+      oOutStrm_i << "}";
       WriteLaTeXAllButTitleLine( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "}%" << std::endl;
+      oOutStrm_i << "%" << std::endl;
       break;
     }
 
     case tag_type::PARAM:
     {
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitemexprtext{";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitem{";
       WriteLaTeXFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "}{";
+      oOutStrm_i << "}";
       WriteLaTeXAllButFirstWord( oOutStrm_i, oWriteInfo_i );
-      oOutStrm_i << "}%" << std::endl;
+      oOutStrm_i << "%" << std::endl;
       break;
     }
 
@@ -1943,7 +1943,7 @@ void escrido::CTagBlock::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteInfo&
 
     case tag_type::SIGNATURE:
     {
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\taglistitemline{";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\signaturelistitem{";
       WriteLaTeXTitleLine( oOutStrm_i, oWriteInfo_i );
       oOutStrm_i << "}%" << std::endl;
       break;
@@ -3577,6 +3577,22 @@ void escrido::CContentUnit::WriteLaTeXTagBlockList( tag_type fTagType_i,
 
         --oWriteInfo_i;
         oOutStrm_i << "\\end{itemize}" << std::endl;
+
+        break;
+      }
+
+      case tag_type::SIGNATURE:
+      {
+        oOutStrm_i << "\\begin{signaturelist}" << std::endl;
+        ++oWriteInfo_i;
+
+        // Write all tag blocks of the specified type.
+        for( size_t t = 0; t < oaBlockList.size(); t++ )
+          if( oaBlockList[t].GetTagType() == fTagType_i )
+            oaBlockList[t].WriteLaTeX( oOutStrm_i, oWriteInfo_i );
+
+        --oWriteInfo_i;
+        oOutStrm_i << "\\end{signaturelist}" << std::endl;
 
         break;
       }

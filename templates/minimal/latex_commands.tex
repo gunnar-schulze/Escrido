@@ -18,7 +18,7 @@
 
 % Verbatim blocks (@example, @output etc.):
 \newcommand{\verbatimtitle}[1]{\textbf{#1}}
-\newcommand{\code}[1]{\lstinline[breaklines=false,columns=fixed,basewidth=0.50em]^#1^}
+\newcommand{\code}[1]{{\ttfamily #1}}
 
 % @note type blocks:
 \newenvironment{note}
@@ -30,13 +30,19 @@
 { \textbf{Remark:} }
 {}
 
-% Lists of certain tag types (@attribute, @param, @signature etc.)
+% Lists of types with emphasized tag names (@attribute,@feature, @param, etc.)
 \newenvironment{taglist}
-{ \tabulary{\textwidth}{lL} }
-{ \endtabulary }
-% Single item of tag type list (@attribute, @param, @signature etc.):
-\newcommand{\taglistitemline}[1]{ #1 \\ }           % Items consisting of single line (@signature etc.)
-\newcommand{\taglistitemexprtext}[2]{ #1 & #2 \\ }  % Items consisting of an inital expression followed by some text (@param etc.)
+{ \begin{description}}
+{ \end{description}}
+% Single item of tag type list (@attribute, @param, etc.):
+\newcommand{\taglistitem}[1]{\item[#1]}
+
+% List of signatures (@signature)
+\newenvironment{signaturelist}
+{ \begin{enumerate}}
+{ \end{enumerate}}
+% Single item of signature list (signature):
+\newcommand{\signaturelistitem}{\item \texttt}
 
 % Maxwidth definition for images:
 \makeatletter

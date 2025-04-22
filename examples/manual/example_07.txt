@@ -20,7 +20,7 @@ The following configuration options are available:
   @ref config_option_generatesearchindex | -si, --search-index @lb
   @ref config_option_searchindexencoding | -sie, --search-index-encoding @lb
   @ref config_option_searchindexfile     | -sif, --search-index-file @lb
-  <em>LaTeX Document Output Options @lb
+  <em>LaTeX Document Output Options</em> @lb
   @ref config_option_generatelatex       | -ld, --latex @lb
   @ref config_option_latexoutdir         | -ldo, --latex-output-dir
 @endtable
