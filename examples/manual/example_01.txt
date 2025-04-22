@@ -4,8 +4,8 @@ Everything outside the Escrido markup deliminators is ignored.
 
 /*# @_mainpage_ Escrido Short Manual
  *  @author     Gunnar Schulze
- *  @date       2025-01-21
- *  @version    1.11.1
+ *  @date       2025-04-22
+ *  @version    1.11.2
  *  @copyright  2018 Gunnar Schulze
  *  @brief      Manual to the Escrido multi-language documentation generator.
  *
