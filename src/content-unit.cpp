@@ -555,7 +555,7 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
     case cont_chunk_type::START_UL:
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "\\noindent\\parbox{\\textwidth}{%" << std::endl;
       WriteHTMLIndents( oOutStrm_i, oWriteInfo_i++ ) << "\\begin{itemize}" << std::endl;
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\item";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\item ";
       break;
 
     case cont_chunk_type::END_UL:
@@ -566,7 +566,7 @@ void escrido::CContentChunk::WriteLaTeX( std::ostream& oOutStrm_i, const SWriteI
 
     case cont_chunk_type::UL_ITEM:
       oOutStrm_i << std::endl;
-      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\item";
+      WriteHTMLIndents( oOutStrm_i, oWriteInfo_i ) << "\\item ";
       break;
 
     case cont_chunk_type::REF:
