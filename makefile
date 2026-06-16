@@ -38,6 +38,23 @@ ARG :=
 # This needs to be changed for targeting different OSs:
 OSDEF := -D FILESYS_UNIX
 
+# macOS overrides (must come after the baseline variable definitions above):
+# - Apple 'yacc' is an Xcode shim requiring full Xcode; use Homebrew bison (>= 2.5
+#   required for %define parse.error verbose) in yacc-compatibility mode instead.
+# - Apple flex uses size_t for the YY_INPUT result parameter instead of int; define
+#   LEX_COMPAT_MODE to select the matching typedef in grammar/escrido.l.
+# - __gnu_cxx::stdio_filebuf is a GCC/libstdc++ extension unavailable in clang/libc++;
+#   filesys.h includes a compatibility shim (gnu_ext_stdio_filebuf.h) on __APPLE__.
+ifeq ($(shell uname -s),Darwin)
+    HOMEBREW_BISON := $(shell ls /opt/homebrew/opt/bison/bin/bison 2>/dev/null || ls /usr/local/opt/bison/bin/bison 2>/dev/null)
+    ifneq ($(HOMEBREW_BISON),)
+        YACC := $(HOMEBREW_BISON) -y
+    else
+        YACC := bison -y
+    endif
+    OSDEF := -D FILESYS_UNIX -D LEX_COMPAT_MODE
+endif
+
 # ===========
 # Directories
 # ===========
