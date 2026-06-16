@@ -948,7 +948,14 @@ inline void filesys::ConcatPaths( const char* szCanonDir_i, const char* szCanonP
 // iflstream, oflstream: locking input/output streams on files:
 #include <cstdio>               // FILE*, fopen()
 #include <fcntl.h>              // flock, fcntl()
-#include <ext/stdio_filebuf.h>  // __gnu_cxx::stdio_filebuf
+// macOS fix: __gnu_cxx::stdio_filebuf is a GCC/libstdc++ extension; it is not
+// available in clang/libc++.  The shim provides a compatible implementation that
+// wraps an existing file descriptor using read()/write() without owning the fd.
+#ifdef __APPLE__
+#  include "gnu_ext_stdio_filebuf.h"  // compatibility shim for clang/libc++
+#else
+#  include <ext/stdio_filebuf.h>      // __gnu_cxx::stdio_filebuf (GCC/libstdc++)
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -1021,7 +1028,9 @@ class filesys::iflstream : public std::istream
 // *****************************************************************************
 
 inline filesys::iflstream::iflstream() :
-  pFileBuf ( NULL )
+  std::istream ( nullptr ), // macOS fix: libc++ basic_istream has no default ctor; must pass nullptr explicitly
+  pFile        ( NULL ),
+  pFileBuf     ( NULL )
 {}
 
 // .............................................................................
@@ -1054,7 +1063,9 @@ inline filesys::iflstream::iflstream() :
 inline filesys::iflstream::iflstream( const char* szFilePath_i,
                                       lock_action fAction_i,
                                       std::ios_base::openmode fOpenMode_i ) :
-  pFileBuf ( NULL )
+  std::istream ( nullptr ), // macOS fix: see default constructor
+  pFile        ( NULL ),
+  pFileBuf     ( NULL )
 {
   // Call open():
   this->open( szFilePath_i, fAction_i, fOpenMode_i );
@@ -1157,7 +1168,7 @@ inline void filesys::iflstream::open( const char* szFilePath_i,
   // See e.g. https://linux.die.net/man/2/fcntl
   {
     // Prepare lock info structure.
-    flock oLock;
+    struct flock oLock; // macOS fix: 'flock' is hidden by the flock() function declared in <sys/fcntl.h>; 'struct' tag required
     oLock.l_type = F_RDLCK;
     oLock.l_whence = SEEK_SET;
     oLock.l_start = 0;
@@ -1259,14 +1270,14 @@ inline void filesys::iflstream::close()
     // See e.g. https://linux.die.net/man/2/fcntl
     {
       // Prepare lock info structure.
-      flock oLock;
+      struct flock oLock; // macOS fix: 'flock' is hidden by the flock() function declared in <sys/fcntl.h>; 'struct' tag required
       oLock.l_type = F_UNLCK;
       oLock.l_whence = SEEK_SET;
       oLock.l_start = 0;
       oLock.l_len = 0;
 
       // Unlock the file.
-      fcntl( fileno( pFileBuf->file() ), F_SETLK, &oLock );
+      fcntl( fileno( pFile ), F_SETLK, &oLock ); // macOS fix: was pFileBuf->file() (GCC-only method); pFile holds the same fd
     }
 
     // Delete the file buffer. Set its pointer back to NULL.
@@ -1339,7 +1350,9 @@ class filesys::oflstream : public std::ostream
 // *****************************************************************************
 
 inline filesys::oflstream::oflstream() :
-  pFileBuf ( NULL )
+  std::ostream ( nullptr ), // macOS fix: libc++ basic_ostream has no default ctor; must pass nullptr explicitly
+  pFile        ( NULL ),
+  pFileBuf     ( NULL )
 {}
 
 // .............................................................................
@@ -1370,7 +1383,9 @@ inline filesys::oflstream::oflstream() :
 inline filesys::oflstream::oflstream( const char* szFilePath_i,
                                       lock_action fAction_i,
                                       std::ios_base::openmode fOpenMode_i ) :
-  pFileBuf ( NULL )
+  std::ostream ( nullptr ), // macOS fix: see default constructor
+  pFile        ( NULL ),
+  pFileBuf     ( NULL )
 {
   // Call open():
   this->open( szFilePath_i, fAction_i, fOpenMode_i );
@@ -1473,7 +1488,7 @@ inline void filesys::oflstream::open( const char* szFilePath_i,
   // See e.g. https://linux.die.net/man/2/fcntl
   {
     // Prepare lock info structure.
-    flock oLock;
+    struct flock oLock; // macOS fix: 'flock' is hidden by the flock() function declared in <sys/fcntl.h>; 'struct' tag required
     oLock.l_type = F_WRLCK;
     oLock.l_whence = SEEK_SET;
     oLock.l_start = 0;
@@ -1575,14 +1590,14 @@ inline void filesys::oflstream::close()
     // See e.g. https://linux.die.net/man/2/fcntl
     {
       // Prepare lock info structure.
-      flock oLock;
+      struct flock oLock; // macOS fix: 'flock' is hidden by the flock() function declared in <sys/fcntl.h>; 'struct' tag required
       oLock.l_type = F_UNLCK;
       oLock.l_whence = SEEK_SET;
       oLock.l_start = 0;
       oLock.l_len = 0;
 
       // Unlock the file.
-      fcntl( fileno( pFileBuf->file() ), F_SETLK, &oLock );
+      fcntl( fileno( pFile ), F_SETLK, &oLock ); // macOS fix: was pFileBuf->file() (GCC-only method); pFile holds the same fd
     }
 
     // Delete the file buffer. Set its pointer back to NULL.
