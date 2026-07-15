@@ -8,9 +8,8 @@
 ///             access (including wildcards).
 ///
 /// \author     Gunnar Schulze
-/// \version    2021-02-18
-/// \date       2012
-/// \copyright  2016 Gunnar Schulze
+/// \version    2026-07-15
+/// \date       2012 Gunnar Schulze
 // *****************************************************************************
 
 // *****************************************************************************
@@ -42,11 +41,13 @@
 
 // -----------------------------------------------------------------------------
 
+#include <iostream>          // std::ios_base::openmode
 #include <cstdlib>           // malloc
 #include <cstring>
 #include <string>
 #include <vector>
 #include <new>               // std::bad_alloc
+#include <limits.h>          // PATH_MAX
 
 // -----------------------------------------------------------------------------
 
@@ -84,6 +85,17 @@ namespace filesys
 
 // -----------------------------------------------------------------------------
 
+// OPERATING SYSTEM SETTING
+
+// -----------------------------------------------------------------------------
+
+// Check whether one of the required operation system flags is set
+#if !defined(FILESYS_UNIX) && !defined(FILESYS_WINDOWS) && !defined(FILESYS_MAC_OS)
+#  error "Platform not provided! Define either FILESYS_UNIX, FILESYS_WINDOWS or FILESYS_MAC_OS."
+#endif
+
+// -----------------------------------------------------------------------------
+
 // MACROS
 
 // -----------------------------------------------------------------------------
@@ -93,7 +105,7 @@ namespace filesys
   /// Operating systems depending format type of paths.
   enum os : unsigned char
   {
-    THIS,      ///< This build's operating system (see OPERATING SYSTEM SETTING).
+    BUILD_OS,  ///< The build's operating system (see OPERATING SYSTEM SETTING).
     UNIX,      ///< Unix, Mac OS X.
     WINDOWS    ///< DOS/Windows.
   };
@@ -138,44 +150,43 @@ namespace filesys
 
 // -----------------------------------------------------------------------------
 
-// OPERATING SYSTEM SETTING
-
-// -----------------------------------------------------------------------------
-
-// Precompiler switch for setting the operating system.
-// One of these should be set on compiling:
-//#define FILESYS_UNIX
-//#define FILESYS_WINDOWS
-
-// -----------------------------------------------------------------------------
-
 // FUNCTIONS OVERVIEW
 
 // -----------------------------------------------------------------------------
 
 namespace filesys
 {
-  // Path names: converting from and to canonical form:
-  bool GetCanonicalPath( const char* szInPath_i, char* szCanonPath_o, os fOSType_i = os::THIS );
-  bool GetCanonicalPath( const char* szInPath_i, std::string& sCanonPath_o, os fOSType_i = os::THIS );
+  /// @name Path names: converting from and to canonical form
+  /// @{
+  bool GetCanonicalPath( const char* szInPath_i, char* szCanonPath_o, os fOSType_i = os::BUILD_OS );
+  bool GetCanonicalPath( const char* szInPath_i, std::string& sCanonPath_o, os fOSType_i = os::BUILD_OS );
   bool IsCanonicalPath( const char* szPath_i );
-  bool GetOSFormatedPath( const char* szCanonInPath_i, char* szOutPath_o, os fOSType_i = os::THIS );
-  bool GetOSFormatedPath( const char* szCanonInPath_i, std::string& sOutPath_o, os fOSType_i = os::THIS );
+  bool GetOSFormatedPath( const char* szCanonInPath_i, char* szOutPath_o, os fOSType_i = os::BUILD_OS );
+  bool GetOSFormatedPath( const char* szCanonInPath_i, std::string& sOutPath_o, os fOSType_i = os::BUILD_OS );
+  /// @}
 
-  // Canonical paths: checks and manipulation:
+  /// @name Canonical paths: checks and manipulation
+  /// @{
   bool IsRelativePath( const char* szCanonPath_i );
   void ConcatPaths( const char* szCanonDir_i, const char* szCanonPath_i, char* szCanonOutPath_o );
   void ConcatPaths( const char* szCanonDir_i, const char* szCanonPath_i, std::string& sCanonOutPath_o );
+  /// @}
 
-  // Accessing files and directories on the drive:
+  /// @name Accessing files and directories on the drive
+  /// @{
   bool GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, std::vector<SFileInfo>& oaFileInfo_o );
   bool GetFilesInfo( const char* szCanonPath_i, case_type fCaseType_i, std::vector<SFileInfo>& oaFileInfo_o );
+  bool GetCurrDir( char* szCanonCurrDirPath_o );
+  bool GetCurrDir( std::string& sCanonCurrDirPath_o );
+  /// @}
 
-  // Helper functions:
+  /// @name Helper functions
+  /// @{
   char* strtoupper( char* szString_i );
   int   strtouppercmp( const char* szString1_i, const char* szString2_i );
   int   strglobcmp( const char* szString1_i, const char* szString2_i );
   int   strtoupperglobcmp( const char* szString1_i, const char* szString2_i );
+  /// @}
 
   void OpenModeConvert( std::ios_base::openmode fOpenMode_i, char* szMode_o );
 }
@@ -245,9 +256,9 @@ struct filesys::SFileInfo
 /// \param[in]  fOSType_i
 ///             Defines the operating system convention of szInPath_i. Allowed
 ///             values are:
-///             - os::THIS    : this compile's operating system conventions
-///             - os::UNIX    : Unix or Mac OS X path conventions
-///             - os::WINDOWS : DOS/Windows path conventions
+///             - os::BUILD_OS : this compile's operating system conventions
+///             - os::UNIX     : Unix or Mac OS path conventions
+///             - os::WINDOWS  : DOS/Windows path conventions
 ///
 /// \return     'true' if the input string was a valid path (with respect to the
 ///             the specific operation system) that got converted, 'false'
@@ -257,8 +268,8 @@ struct filesys::SFileInfo
 inline bool filesys::GetCanonicalPath( const char* szInPath_i, char* szCanonPath_o, os fOSType_i )
 {
   // Eventually reset OS type.
-  if( fOSType_i == os::THIS )
-#ifdef FILESYS_UNIX
+  if( fOSType_i == os::BUILD_OS )
+#if defined(FILESYS_UNIX) || defined(FILESYS_MAC_OS)
     fOSType_i = os::UNIX;
 #endif
 #ifdef FILESYS_WINDOWS
@@ -558,8 +569,8 @@ inline bool filesys::GetCanonicalPath( const char* szInPath_i, std::string& sCan
 /// \param[in]  fOSType_i
 ///             Defines the operating system convention of szOutPath_o. Allowed
 ///             values are:
-///             - os::THIS    : this compile's operating system conventions
-///             - os::UNIX    : Unix or Mac OS X path conventions
+///             - os::BUILD_OS    : this compile's operating system conventions
+///             - os::UNIX    : Unix or Mac OS path conventions
 ///             - os::WINDOWS : DOS/Windows path conventions
 ///
 /// \return     'true' if the input string could validly be converted,
@@ -569,8 +580,8 @@ inline bool filesys::GetCanonicalPath( const char* szInPath_i, std::string& sCan
 inline bool filesys::GetOSFormatedPath( const char* szCanonInPath_i, char* szOutPath_o, os fOSType_i )
 {
   // Eventually reset OS type.
-  if( fOSType_i == os::THIS )
-#ifdef FILESYS_UNIX
+  if( fOSType_i == os::BUILD_OS )
+#if defined(FILESYS_UNIX) || defined(FILESYS_MAC_OS)
     fOSType_i = os::UNIX;
 #endif
 #ifdef FILESYS_WINDOWS
@@ -925,13 +936,134 @@ inline void filesys::ConcatPaths( const char* szCanonDir_i, const char* szCanonP
   free( sBuf );
 }
 
-// *****************************************************************************
-// *                                                                           *
-// *                            UNIX IMPLEMENTATION                            *
-// *                                                                           *
-// *****************************************************************************
+// ┌───────────────────────────────────────────────────────────────────────────┒
+// │                                                                           ┃
+// │                      MAC-OS SPECIFIC IMPLEMENTATION                       ┃
+// │                                                                           ┃
+// ┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-#ifdef FILESYS_UNIX
+#ifdef FILESYS_MAC_OS
+
+#include <streambuf>
+#include <ios>
+#include <unistd.h>
+
+// Compatibility shim for macOS:
+// __gnu_cxx::stdio_filebuf<CharT> is a GCC extension that is not supported
+// by clang/libc++ (macOS). This secion provides a reimplementation. GCC's
+// original wraps an existing file descriptor in a std::basic_streambuf without
+// taking ownership of the fd. This version replicates that contract using
+// read()/write() system calls.
+
+namespace __gnu_cxx
+{
+  template <typename CharT, typename Traits = std::char_traits<CharT>>
+    class stdio_filebuf : public std::basic_streambuf<CharT, Traits>
+  {
+    private:
+
+    int _fd;
+    bool _open;
+    std::ios_base::openmode _mode;
+    static constexpr std::size_t BUFSZ = 8192;
+    char_type _rbuf[BUFSZ];
+    char_type _wbuf[BUFSZ];
+
+    public:
+
+    using char_type   = CharT;
+    using traits_type = Traits;
+    using int_type    = typename Traits::int_type;
+
+    stdio_filebuf() :
+      _fd( -1 ),
+      _open( false ),
+      _mode( std::ios_base::in )
+    {};
+
+    stdio_filebuf( int fd, std::ios_base::openmode mode ) :
+      _fd( fd ),
+      _open( fd >= 0 ),
+      _mode( mode )
+    {
+      if( _open )
+      {
+        if( mode & std::ios_base::in )
+          this->setg( _rbuf, _rbuf + BUFSZ, _rbuf + BUFSZ );
+
+        if( mode & std::ios_base::out )
+          this->setp( _wbuf, _wbuf + BUFSZ );
+      }
+    };
+
+    ~stdio_filebuf()
+    {
+      // Flush but do NOT close the fd — the caller owns it.
+      if( _open && (_mode & std::ios_base::out ) )
+        this->sync();
+    };
+
+    bool is_open() const
+    {
+      return _open;
+    };
+
+    protected:
+
+    int_type underflow() override
+    {
+      if( !( _mode & std::ios_base::in ) || _fd < 0 )
+        return traits_type::eof();
+
+      ssize_t n = ::read( _fd, _rbuf, BUFSZ );
+      if( n <= 0 )
+        return traits_type::eof();
+
+      this->setg( _rbuf, _rbuf, _rbuf + n );
+
+      return traits_type::to_int_type( *this->gptr() );
+    }
+
+    int sync() override
+    {
+      if( !( _mode & std::ios_base::out ) || _fd < 0 )
+        return 0;
+
+      std::ptrdiff_t n = this->pptr() - this->pbase();
+      if( n > 0 && ::write( _fd, this->pbase(), static_cast<size_t>( n ) ) < 0 )
+        return -1;
+
+      this->setp( _wbuf, _wbuf + BUFSZ );
+
+      return 0;
+    };
+
+    int_type overflow( int_type c ) override
+    {
+      if( this->sync() < 0 )
+        return traits_type::eof();
+
+      if( !traits_type::eq_int_type( c, traits_type::eof() ) )
+      {
+        *this->pptr() = traits_type::to_char_type( c );
+        this->pbump( 1 );
+      }
+
+      return traits_type::not_eof(c);
+    }
+  };
+
+} // namespace __gnu_cxx
+
+#endif
+
+// ┌───────────────────────────────────────────────────────────────────────────┒
+// │                                                                           ┃
+// │                      UNIX AND MAC-OS IMPLEMENTATION                       ┃
+// │                                                                           ┃
+// ┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+#if defined(FILESYS_UNIX) || defined(FILESYS_MAC_OS)
 
 // -----------------------------------------------------------------------------
 
@@ -944,17 +1076,14 @@ inline void filesys::ConcatPaths( const char* szCanonDir_i, const char* szCanonP
 #include <dirent.h>     // POSIX directories
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>     // getcwd()
 
 // iflstream, oflstream: locking input/output streams on files:
 #include <cstdio>               // FILE*, fopen()
 #include <fcntl.h>              // flock, fcntl()
-// macOS fix: __gnu_cxx::stdio_filebuf is a GCC/libstdc++ extension; it is not
-// available in clang/libc++.  The shim provides a compatible implementation that
-// wraps an existing file descriptor using read()/write() without owning the fd.
-#ifdef __APPLE__
-#  include "gnu_ext_stdio_filebuf.h"  // compatibility shim for clang/libc++
-#else
-#  include <ext/stdio_filebuf.h>      // __gnu_cxx::stdio_filebuf (GCC/libstdc++)
+
+#ifdef FILESYS_UNIX
+#  include <ext/stdio_filebuf.h>  // __gnu_cxx::stdio_filebuf (GCC/libstdc++)
 #endif
 
 // -----------------------------------------------------------------------------
@@ -1028,8 +1157,7 @@ class filesys::iflstream : public std::istream
 // *****************************************************************************
 
 inline filesys::iflstream::iflstream() :
-  std::istream ( nullptr ), // macOS fix: libc++ basic_istream has no default ctor; must pass nullptr explicitly
-  pFile        ( NULL ),
+  std::istream ( nullptr ),
   pFileBuf     ( NULL )
 {}
 
@@ -1055,7 +1183,7 @@ inline filesys::iflstream::iflstream() :
 ///             - lock_action::WAIT:   waits until the lock to the file can be
 ///                                    set.
 ///             - lock_action::RETURN: returns immediately with the file not
-///                                    beeing opened.
+///                                    being opened.
 /// \param[in]  fOpenMode_i
 ///             Open mode flag as used in std::ifstream.
 // *****************************************************************************
@@ -1063,8 +1191,7 @@ inline filesys::iflstream::iflstream() :
 inline filesys::iflstream::iflstream( const char* szFilePath_i,
                                       lock_action fAction_i,
                                       std::ios_base::openmode fOpenMode_i ) :
-  std::istream ( nullptr ), // macOS fix: see default constructor
-  pFile        ( NULL ),
+  std::istream ( nullptr ),
   pFileBuf     ( NULL )
 {
   // Call open():
@@ -1121,7 +1248,7 @@ inline filesys::iflstream::~iflstream()
 ///             lock cannot be acquired because a concurring lock is set by
 ///             another application:
 ///             - lock_action::WAIT:   waits until the lock to the file can be set.
-///             - lock_action::RETURN: returns immediately with the file not beeing opened.
+///             - lock_action::RETURN: returns immediately with the file not being opened.
 /// \param[in]  fOpenMode_i
 ///             Open mode flag as used in std::ifstream.
 ///
@@ -1135,7 +1262,7 @@ inline void filesys::iflstream::open( const char* szFilePath_i,
                                       std::ios_base::openmode fOpenMode_i )
 {
   // Check if the stream is already associated with a file and eventually fail
-  // (as if std::ifstream::open() would do on beeing alread opened).
+  // (as if std::ifstream::open() would do on being alread opened).
   if( pFileBuf != NULL )
   {
     // Set failbit as in std::ifstream::open().
@@ -1168,7 +1295,8 @@ inline void filesys::iflstream::open( const char* szFilePath_i,
   // See e.g. https://linux.die.net/man/2/fcntl
   {
     // Prepare lock info structure.
-    struct flock oLock; // macOS fix: 'flock' is hidden by the flock() function declared in <sys/fcntl.h>; 'struct' tag required
+    // (Explicitly state 'struct' for macOS compatibility.)
+    struct flock oLock;
     oLock.l_type = F_RDLCK;
     oLock.l_whence = SEEK_SET;
     oLock.l_start = 0;
@@ -1270,14 +1398,15 @@ inline void filesys::iflstream::close()
     // See e.g. https://linux.die.net/man/2/fcntl
     {
       // Prepare lock info structure.
-      struct flock oLock; // macOS fix: 'flock' is hidden by the flock() function declared in <sys/fcntl.h>; 'struct' tag required
+      // (Explicitly state 'struct' for macOS compatibility.)
+      struct flock oLock;
       oLock.l_type = F_UNLCK;
       oLock.l_whence = SEEK_SET;
       oLock.l_start = 0;
       oLock.l_len = 0;
 
       // Unlock the file.
-      fcntl( fileno( pFile ), F_SETLK, &oLock ); // macOS fix: was pFileBuf->file() (GCC-only method); pFile holds the same fd
+      fcntl( fileno( pFileBuf->file() ), F_SETLK, &oLock );
     }
 
     // Delete the file buffer. Set its pointer back to NULL.
@@ -1346,12 +1475,13 @@ class filesys::oflstream : public std::ostream
 // *****************************************************************************
 /// \brief      Default constructor.
 ///
+/// \note
+///
 /// \details    Constructs an oflstream object that is not associated with any file.
 // *****************************************************************************
 
 inline filesys::oflstream::oflstream() :
-  std::ostream ( nullptr ), // macOS fix: libc++ basic_ostream has no default ctor; must pass nullptr explicitly
-  pFile        ( NULL ),
+  std::ostream ( nullptr ),
   pFileBuf     ( NULL )
 {}
 
@@ -1375,7 +1505,7 @@ inline filesys::oflstream::oflstream() :
 ///             lock cannot be acquired because a concurring lock is set by
 ///             another application:
 ///             - lock_action::WAIT:   waits until the lock to the file can be set.
-///             - lock_action::RETURN: returns immediately with the file not beeing opened.
+///             - lock_action::RETURN: returns immediately with the file not being opened.
 /// \param[in]  fOpenMode_i
 ///             Open mode flag as used in std::ofstream.
 // *****************************************************************************
@@ -1383,8 +1513,7 @@ inline filesys::oflstream::oflstream() :
 inline filesys::oflstream::oflstream( const char* szFilePath_i,
                                       lock_action fAction_i,
                                       std::ios_base::openmode fOpenMode_i ) :
-  std::ostream ( nullptr ), // macOS fix: see default constructor
-  pFile        ( NULL ),
+  std::ostream ( nullptr ),
   pFileBuf     ( NULL )
 {
   // Call open():
@@ -1441,7 +1570,7 @@ inline filesys::oflstream::~oflstream()
 ///             lock cannot be acquired because a concurring lock is set by
 ///             another application:
 ///             - lock_action::WAIT:   waits until the lock to the file can be set.
-///             - lock_action::RETURN: returns immediately with the file not beeing opened.
+///             - lock_action::RETURN: returns immediately with the file not being opened.
 /// \param[in]  fOpenMode_i
 ///             Open mode flag as used in std::ofstream.
 ///
@@ -1455,7 +1584,7 @@ inline void filesys::oflstream::open( const char* szFilePath_i,
                                       std::ios_base::openmode fOpenMode_i )
 {
   // Check if the stream is already associated with a file and eventually fail
-  // (as if std::ofstream::open() would do on beeing alread opened).
+  // (as if std::ofstream::open() would do on being alread opened).
   if( pFileBuf != NULL )
   {
     // Set failbit as in std::ofstream::open().
@@ -1488,7 +1617,8 @@ inline void filesys::oflstream::open( const char* szFilePath_i,
   // See e.g. https://linux.die.net/man/2/fcntl
   {
     // Prepare lock info structure.
-    struct flock oLock; // macOS fix: 'flock' is hidden by the flock() function declared in <sys/fcntl.h>; 'struct' tag required
+    // (Explicitly state 'struct' for macOS compatibility.)
+    struct flock oLock;
     oLock.l_type = F_WRLCK;
     oLock.l_whence = SEEK_SET;
     oLock.l_start = 0;
@@ -1590,14 +1720,15 @@ inline void filesys::oflstream::close()
     // See e.g. https://linux.die.net/man/2/fcntl
     {
       // Prepare lock info structure.
-      struct flock oLock; // macOS fix: 'flock' is hidden by the flock() function declared in <sys/fcntl.h>; 'struct' tag required
+      // (Explicitly state 'struct' for macOS compatibility.)
+      struct flock oLock;
       oLock.l_type = F_UNLCK;
       oLock.l_whence = SEEK_SET;
       oLock.l_start = 0;
       oLock.l_len = 0;
 
       // Unlock the file.
-      fcntl( fileno( pFile ), F_SETLK, &oLock ); // macOS fix: was pFileBuf->file() (GCC-only method); pFile holds the same fd
+      fcntl( fileno( pFileBuf->file() ), F_SETLK, &oLock );
     }
 
     // Delete the file buffer. Set its pointer back to NULL.
@@ -1654,6 +1785,7 @@ inline void filesys::oflstream::close()
 ///             matching the canonical path name. If one element was found to
 ///             match the canonical path exactly (amongst other that only match
 ///             with respect to case insensitivity), it is placed at position 0.
+///             The paths are in OS specific format.
 ///
 /// \return     'true' if any file or directory element was found, 'false'
 ///             if no such element exists.
@@ -1971,15 +2103,71 @@ inline bool filesys::GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, s
   return !oaFileInfo_o.empty();
 }
 
-#endif
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the current working directory as canonical path.
+///
+/// \param[in]  szCanonCurrDirPath_o
+///             Returns the current working directory as canonical path.
+///
+/// \return     'true' if the function succeeds, 'false' otherwise.
+// *****************************************************************************
+
+inline bool filesys::GetCurrDir( char* szCanonCurrDirPath_o )
+{
+  // Reserver memory for working directory
+  char* szCurrDir = (char*) malloc( PATH_MAX );
+  if( szCurrDir == NULL )
+    return false;
+
+  // Get current working directory
+  if( getcwd( szCurrDir, PATH_MAX ) == NULL)
+  {
+    free( szCurrDir );
+    return false;
+  }
+  else
+  {
+    free( szCurrDir );
+    return GetCanonicalPath( szCurrDir, szCanonCurrDirPath_o );
+  }
+}
 
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-// *                                                                           *
-// *                          WINDOWS IMPLEMENTATION                           *
-// *                                                                           *
+/// \brief      Variant of \ref GetCurrDir( char* )
+///             that accepts a string as return variable.
 // *****************************************************************************
+
+inline bool filesys::GetCurrDir( std::string& sCanonCurrDirPath_o )
+{
+  // Reserver memory for working directory
+  char* szCurrDir = (char*) malloc( PATH_MAX );
+  if( szCurrDir == NULL )
+    return false;
+
+  // Get current working directory
+  if( getcwd( szCurrDir, PATH_MAX ) == NULL)
+  {
+    free( szCurrDir );
+    return false;
+  }
+  else
+  {
+    free( szCurrDir );
+    return GetCanonicalPath( szCurrDir, sCanonCurrDirPath_o );
+  }
+}
+
+#endif
+
+// ┌───────────────────────────────────────────────────────────────────────────┒
+// │                                                                           ┃
+// │                          WINDOWS IMPLEMENTATION                           ┃
+// │                                                                           ┃
+// ┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 #ifdef FILESYS_WINDOWS
 
@@ -2220,6 +2408,7 @@ inline void filesys::oflstream::close()
 ///             matching the canonical path name. If one element was found to
 ///             match the canonical path exactly (amongst other that only match
 ///             with respect to case insensitivity), it is placed at position 0.
+///             The paths are in OS specific format.
 ///
 /// \return     'true' if any file or directory element was found, 'false'
 ///             if no such element exists.
@@ -2395,18 +2584,12 @@ inline bool filesys::GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, s
             // Distinguish between directory-like items and file-like items.
             // See https://msdn.microsoft.com/en-us/library/windows/desktop/gg258117%28v=vs.85%29.aspx
             item_type fItemType;
-            switch( oEntry.dwFileAttributes )
-            {
+            if( oEntry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
               // Directory.
-              case FILE_ATTRIBUTE_DIRECTORY:
-                fItemType = item_type::DIRECTORY;
-                break;
-
+              fItemType = item_type::DIRECTORY;
+            else
               // Everything else.
-              default:
-                fItemType = item_type::FILE;
-                break;
-            }
+              fItemType = item_type::FILE;
 
             // Check whether the item shall be added to the result list.
             // Add files only when this is the last path section.
@@ -2523,27 +2706,71 @@ inline bool filesys::GetFilesInfo( char* szCanonPath_i, case_type fCaseType_i, s
   return !oaFileInfo_o.empty();
 }
 
-#endif
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Returns the current working directory as canonical path.
+///
+/// \param[in]  szCanonCurrDirPath_o
+///             Returns the current working directory as canonical path.
+///
+/// \return     'true' if the function succeeds, 'false' otherwise.
+// *****************************************************************************
+
+inline bool filesys::GetCurrDir( char* szCanonCurrDirPath_o )
+{
+  // Reserver memory for working directory
+  char* szCurrDir = (char*) malloc( PATH_MAX + 1 );
+  if( szCurrDir == NULL )
+    return false;
+
+  // Get current working directory
+  if( GetCurrentDirectory( PATH_MAX, szCurrDir ) == 0 )
+  {
+    free( szCurrDir );
+    return false;
+  }
+  else
+  {
+    free( szCurrDir );
+    return GetCanonicalPath( szCurrDir, szCanonCurrDirPath_o );
+  }
+}
 
 // -----------------------------------------------------------------------------
 
 // *****************************************************************************
-// *                                                                           *
-// *                          MAC-OS-X-IMPLEMENTATION                          *
-// *                                                                           *
+/// \brief      Variant of \ref GetCurrDir( char* )
+///             that accepts a string as return variable.
 // *****************************************************************************
 
-#ifdef FILESYS_MAC_OS_X
+inline bool filesys::GetCurrDir( std::string& sCanonCurrDirPath_o )
+{
+  // Reserver memory for working directory
+  char* szCurrDir = (char*) malloc( PATH_MAX + 1 );
+  if( szCurrDir == NULL )
+    return false;
+
+  // Get current working directory
+  if( GetCurrentDirectory( PATH_MAX, szCurrDir ) == 0 )
+  {
+    free( szCurrDir );
+    return false;
+  }
+  else
+  {
+    free( szCurrDir );
+    return GetCanonicalPath( szCurrDir, sCanonCurrDirPath_o );
+  }
+}
 
 #endif
 
-// -----------------------------------------------------------------------------
-
-// *****************************************************************************
-// *                                                                           *
-// *                       OS INDEPENDENT IMPLEMENTATIONS                      *
-// *                                                                           *
-// *****************************************************************************
+// ┌───────────────────────────────────────────────────────────────────────────┒
+// │                                                                           ┃
+// │                       OS INDEPENDENT IMPLEMENTATIONS                      ┃
+// │                                                                           ┃
+// ┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 // -----------------------------------------------------------------------------
 
