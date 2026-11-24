@@ -183,6 +183,25 @@ inline size_t config_file_parser::ParseConfigFile( const std::string& sConfigFil
         escrido::sLOutputDir = sDir;
     }
     else
+    if( sOption == "GENERATE_MARKDOWN" )
+    {
+      escrido::fMDOutput = ( StripValue( sLine ) == "YES" );
+    }
+    else
+    if( sOption == "MARKDOWN_OUT_DIR" )
+    {
+      std::string sDir = StripValue( sLine );
+      if( !sDir.empty() )
+        escrido::sMDOutputDir = sDir;
+    }
+    else
+    if( sOption == "MARKDOWN_FILE_ENDING" )
+    {
+      std::string sEnding = StripValue( sLine );
+      if( !sEnding.empty() )
+        escrido::sMDOutputPostfix = sEnding;
+    }
+    else
     {
       // Unknown OPTION
       return nResult;

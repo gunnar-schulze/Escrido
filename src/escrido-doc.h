@@ -350,6 +350,13 @@ class escrido::CDocPage
     void WriteLaTeXTagBlock( tag_type fTagType_i, const std::string& sIdentifier_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
+    void WriteMarkdownMetaDataList( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownHeadline( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTagBlock( tag_type fTagType_i, const std::string& sIdentifier_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
     // Appending to reference table:
     void AddToRefTable( CRefTable& oRefTable_o, const std::string& sOutputPostfix_i ) const;
 
@@ -470,6 +477,9 @@ class escrido::CDocumentation
     void WriteLaTeXDoc( const std::string& sTemplateDir_i,
                         const std::string& sOutputDir_i,
                         const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownDoc( const std::string& sOutputDir_i,
+                           const std::string& sOutputPostfix_i,
+                           const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
     void DebugOutput() const;
@@ -485,6 +495,8 @@ class escrido::CDocumentation
                                const CDocPage* pWritePage_i,
                                std::ostream& oOutStrm_i,
                                const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTOC( std::ostream& oOutStrm_i,
+                           const std::string& sOutputPostfix_i ) const;
     void WriteHTMLPaginatorURLPrev( const CDocPage* pWritePage_i,
                                      std::ostream& oOutStrm_i,
                                      const SWriteInfo& oWriteInfo_i ) const;

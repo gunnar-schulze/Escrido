@@ -12,10 +12,12 @@
 
 #include "content-unit.h"
 
+#include <cctype>           // isspace()
 #include <list>             // std::list
 #include <string.h>         // strlen()
 #include <iostream>         // cin, cout, cerr, endl
 #include <fstream>          // std::ofstream
+#include <sstream>          // std::ostringstream
 
 // -----------------------------------------------------------------------------
 
@@ -731,6 +733,279 @@ bool escrido::CContentChunk::WriteLaTeXAllButFirstWordOrQuote( std::ostream& oOu
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Prepares the text of a table cell for Markdown output.
+///
+/// \details    A GitHub-flavored Markdown table cell is a single physical line,
+///             so when the cell text is written inside a table, line breaks are
+///             turned into blank spaces and the '|' (cell delimiter) is escaped
+///             with a backslash. Note that '*' and '_' are deliberately NOT
+///             escaped: they are valid Markdown inline markup (and valid within
+///             the URL part of a link/ref), and escaping them would corrupt
+///             legitimate hrefs.
+// *****************************************************************************
+
+std::string escrido::EscapeMarkdownTableCell( const std::string& sText_i )
+{
+  std::string sResult;
+  for( size_t t = 0; t < sText_i.size(); t++ )
+  {
+    char cChar = sText_i[t];
+    if( cChar == '\n' )
+      sResult += ' ';
+    else
+      if( cChar == '|' )
+        sResult += '\\';
+    sResult += cChar;
+  }
+  return sResult;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the content chunk as Markdown into the stream.
+// *****************************************************************************
+
+void escrido::CContentChunk::WriteMarkdown( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Track the current table nesting: the last entry of 'aTableColN' is the
+  // column number of the innermost open table, an empty vector means
+  // 'no open table'.
+  bool fInTable = !oWriteInfo_i.aTableColN.empty();
+
+  switch( fType )
+  {
+    case cont_chunk_type::HTML_TEXT:
+      oOutStrm_i << ( fInTable ? EscapeMarkdownTableCell( ConvertHTML2Markdown( sContent ) ) : ConvertHTML2Markdown( sContent ) );
+      break;
+
+    case cont_chunk_type::PLAIN_TEXT:
+      oOutStrm_i << ( fInTable ? EscapeMarkdownTableCell( sContent ) : sContent );
+      break;
+
+    case cont_chunk_type::NEW_LINE:
+      oOutStrm_i << ( fInTable ? " " : "\n" );
+      break;
+
+    case cont_chunk_type::START_PARAGRAPH:
+      break;
+
+    case cont_chunk_type::END_PARAGRAPH:
+      oOutStrm_i << ( fInTable ? " " : "\n\n" );
+      break;
+
+    case cont_chunk_type::START_TABLE:
+    {
+      // Find out the number of columns in the first row.
+      int nColN = 1;
+      {
+        const CContentChunk* pNextContentChunk = oWriteInfo_i.pTagBlock->GetNextContentChunk( this );
+        while( pNextContentChunk != nullptr )
+        {
+          if( pNextContentChunk->GetType() == cont_chunk_type::END_TABLE ||
+              pNextContentChunk->GetType() == cont_chunk_type::NEW_TABLE_ROW )
+            break;
+          if( pNextContentChunk->GetType() == cont_chunk_type::NEW_TABLE_CELL )
+            nColN++;
+          pNextContentChunk = oWriteInfo_i.pTagBlock->GetNextContentChunk( pNextContentChunk );
+        }
+      }
+
+      // Register this table as the new innermost table.
+      oWriteInfo_i.aTableColN.push_back( nColN );
+
+      oOutStrm_i << "| ";
+      break;
+    }
+
+    case cont_chunk_type::END_TABLE:
+      oOutStrm_i << " |";
+
+      // Unregister the innermost table.
+      oWriteInfo_i.aTableColN.pop_back();
+      break;
+
+    case cont_chunk_type::NEW_TABLE_CELL:
+      oOutStrm_i << " | ";
+      break;
+
+    case cont_chunk_type::NEW_TABLE_ROW:
+    {
+      oOutStrm_i << " |";
+
+      // If this is the end of the first (header) row of the innermost table,
+      // write the separator row.
+      if( oWriteInfo_i.aTableColN.size() == 1 )
+      {
+        oOutStrm_i << "\n|";
+        for( int i = 0; i < oWriteInfo_i.aTableColN[0]; i++ )
+          oOutStrm_i << "---|";
+      }
+
+      oOutStrm_i << "\n| ";
+      break;
+    }
+
+    case cont_chunk_type::START_UL:
+      oOutStrm_i << ( fInTable ? "* " : "- " );
+      break;
+
+    case cont_chunk_type::END_UL:
+      oOutStrm_i << ( fInTable ? " " : "\n" );
+      break;
+
+    case cont_chunk_type::UL_ITEM:
+      oOutStrm_i << ( fInTable ? " * " : "\n- " );
+      break;
+
+    case cont_chunk_type::REF:
+    {
+      size_t nRefIdx;
+      bool fHasRef = oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx );
+      if( fHasRef )
+      {
+        std::string sText = this->GetPlainAllButFirstWord();
+        if( sText.empty() )
+          sText = oWriteInfo_i.oRefTable.GetText( nRefIdx );
+        std::string sOutput = "[" + sText + "](" + oWriteInfo_i.oRefTable.GetLink( nRefIdx ) + ")";
+        oOutStrm_i << ( fInTable ? EscapeMarkdownTableCell( sOutput ) : sOutput );
+      }
+      else
+        oOutStrm_i << ( fInTable ? EscapeMarkdownTableCell( sContent ) : sContent );
+      break;
+    }
+
+    case cont_chunk_type::START_CODE:
+      oOutStrm_i << "`";
+      break;
+
+    case cont_chunk_type::END_CODE:
+      oOutStrm_i << "`";
+      break;
+
+    case cont_chunk_type::LINK:
+    {
+      std::string sHREF = this->GetPlainFirstWord();
+      if( !sHREF.empty() )
+      {
+        std::string sText = this->GetPlainAllButFirstWord();
+        if( sText.empty() )
+          sText = sHREF;
+        std::string sOutput = "[" + sText + "](" + sHREF + ")";
+        oOutStrm_i << ( fInTable ? EscapeMarkdownTableCell( sOutput ) : sOutput );
+      }
+      break;
+    }
+
+    case cont_chunk_type::START_VERBATIM:
+      oOutStrm_i << "```" << std::endl;
+      break;
+
+    case cont_chunk_type::END_VERBATIM:
+      oOutStrm_i << std::endl << "```" << std::endl;
+      break;
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the first word of the chunk as Markdown into the stream.
+///
+/// \return     True if one or more characters were written, false otherwise.
+// *****************************************************************************
+
+bool escrido::CContentChunk::WriteMarkdownFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Get first word.
+  std::string sFirstWord;
+  if( !FirstWord( sContent, sFirstWord ) )
+    return false;
+
+  // Chunk dependend writing of the word.
+  switch( fType )
+  {
+    case cont_chunk_type::HTML_TEXT:
+      oOutStrm_i << ConvertHTML2Markdown( sFirstWord );
+      return true;
+
+    case cont_chunk_type::PLAIN_TEXT:
+      oOutStrm_i << sFirstWord;
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the text after the first word of the chunk as Markdown
+///             into the stream.
+///
+/// \return     True if one or more characters were written, false otherwise.
+// *****************************************************************************
+
+bool escrido::CContentChunk::WriteMarkdownAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Get all-but-first-word.
+  std::string sAllButFirstWord;
+  if( !AllButFirstWord( sContent, sAllButFirstWord ) )
+    return false;
+
+  // Chunk dependend writing of the word.
+  switch( fType )
+  {
+    case cont_chunk_type::HTML_TEXT:
+      oOutStrm_i << ConvertHTML2Markdown( sAllButFirstWord );
+      return true;
+
+    case cont_chunk_type::PLAIN_TEXT:
+      oOutStrm_i << sAllButFirstWord;
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the text after the first word or quote of the chunk as
+///             Markdown into the stream.
+///
+/// \return     True if one or more characters were written, false otherwise.
+// *****************************************************************************
+
+bool escrido::CContentChunk::WriteMarkdownAllButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Get all-but-first-word-or-quote.
+  std::string sAllButFirstWordOrQuote;
+  if( !AllButFirstQuote( sContent, sAllButFirstWordOrQuote ) )
+    if( !AllButFirstWord( sContent, sAllButFirstWordOrQuote ) )
+      return false;
+
+  // Chunk dependend writing of the word.
+  switch( fType )
+  {
+    case cont_chunk_type::HTML_TEXT:
+      oOutStrm_i << ConvertHTML2Markdown( sAllButFirstWordOrQuote );
+      return true;
+
+    case cont_chunk_type::PLAIN_TEXT:
+      oOutStrm_i << sAllButFirstWordOrQuote;
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+// .............................................................................
+
 void escrido::CContentChunk::DebugOutput() const
 {
   std::cout << "chunk type: " << (int) fType << ", content: '" << sContent << "'";
@@ -844,6 +1119,33 @@ void escrido::CTagBlock::CloseWrite()
     }
     faWriteMode.pop_back();
   }
+
+  // Remove a trailing blank space from a text chunk that is directly followed
+  // by a block-end delimiter (closing paragraph/table/row/cell, list item, or
+  // the title-line delimiter of a feature/attribute name). The space is an
+  // artefact of the newline-to-blank conversion during parsing and has no
+  // meaning at the end of a text run.
+  for( size_t c = 0; c + 1 < oaChunkList.size(); c++ )
+    if( oaChunkList[c].GetType() == cont_chunk_type::HTML_TEXT &&
+        IsBlockEndChunk( oaChunkList[c+1].GetType() ) )
+    {
+      std::string& sContent = oaChunkList[c].GetContent();
+      while( !sContent.empty() && ( sContent.back() == ' ' || sContent.back() == '\t' ) )
+        sContent.pop_back();
+    }
+}
+
+// .............................................................................
+
+bool escrido::CTagBlock::IsBlockEndChunk( cont_chunk_type fChunkType_i ) const
+{
+  return ( fChunkType_i == cont_chunk_type::END_PARAGRAPH )    ||
+         ( fChunkType_i == cont_chunk_type::DELIM_TITLE_LINE ) ||
+         ( fChunkType_i == cont_chunk_type::END_TABLE )        ||
+         ( fChunkType_i == cont_chunk_type::NEW_TABLE_CELL )   ||
+         ( fChunkType_i == cont_chunk_type::NEW_TABLE_ROW )    ||
+         ( fChunkType_i == cont_chunk_type::END_UL )           ||
+         ( fChunkType_i == cont_chunk_type::UL_ITEM );
 }
 
 // .............................................................................
@@ -2173,6 +2475,237 @@ void escrido::CTagBlock::WriteLaTeXAllButTitleLine( std::ostream& oOutStrm_i, co
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Writes the tag block as Markdown into the stream.
+// *****************************************************************************
+
+void escrido::CTagBlock::WriteMarkdown( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  switch( this->fType )
+  {
+    case tag_type::ATTRIBUTE:
+    {
+      oOutStrm_i << "- **";
+      WriteMarkdownFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << ":** ";
+      WriteMarkdownAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << std::endl;
+      break;
+    }
+
+    case tag_type::FEATURE:
+    {
+      oOutStrm_i << "- **";
+      WriteMarkdownTitleLineButFirstWordOrQuote( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << ":** ";
+      WriteMarkdownAllButTitleLine( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << std::endl;
+      break;
+    }
+
+    case tag_type::PARAM:
+    {
+      oOutStrm_i << "- **";
+      WriteMarkdownFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << ":** ";
+      WriteMarkdownAllButFirstWord( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << std::endl;
+      break;
+    }
+
+    case tag_type::SEE:
+    {
+      if( !this->oaChunkList.empty() )
+      {
+        oOutStrm_i << "- ";
+        size_t nRefIdx;
+        if( oWriteInfo_i.oRefTable.GetRefIdx( MakeIdentifier( this->GetPlainFirstWord() ), nRefIdx ) )
+        {
+          oOutStrm_i << "[" << oWriteInfo_i.oRefTable.GetText( nRefIdx )
+                     << "](" << oWriteInfo_i.oRefTable.GetLink( nRefIdx ) << ")";
+        }
+        else
+          WriteMarkdownFirstWord( oOutStrm_i, oWriteInfo_i );
+        oOutStrm_i << std::endl;
+      }
+      break;
+    }
+
+    case tag_type::SIGNATURE:
+    {
+      oOutStrm_i << "- ";
+      WriteMarkdownTitleLine( oOutStrm_i, oWriteInfo_i );
+      oOutStrm_i << std::endl;
+      break;
+    }
+
+    default:
+    {
+      for( size_t c = 0; c < this->oaChunkList.size(); c++ )
+        this->oaChunkList[c].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+      break;
+    }
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes the first word of the tag block as Markdown into the stream.
+// *****************************************************************************
+
+void escrido::CTagBlock::WriteMarkdownFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Loop through all text chunks until the first word was written.
+  for( size_t c = 0; c < oaChunkList.size(); c++ )
+    if( oaChunkList[c].WriteMarkdownFirstWord( oOutStrm_i, oWriteInfo_i ) )
+      return;
+}
+
+// .............................................................................
+
+void escrido::CTagBlock::WriteMarkdownTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Write all chunks up to the title line delimitor.
+  for( size_t c = 0; c < oaChunkList.size(); c++ )
+  {
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    oaChunkList[c].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+  }
+}
+
+// .............................................................................
+
+void escrido::CTagBlock::WriteMarkdownTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+  {
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    if( oaChunkList[c].WriteMarkdownAllButFirstWord( oOutStrm_i, oWriteInfo_i ) )
+      break;
+  }
+
+  // Write remaining chunks up to the title line delimitor.
+  for( c++; c < oaChunkList.size(); c++ )
+  {
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    oaChunkList[c].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+  }
+}
+
+// .............................................................................
+
+void escrido::CTagBlock::WriteMarkdownTitleLineButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+  {
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    if( oaChunkList[c].WriteMarkdownAllButFirstWordOrQuote( oOutStrm_i, oWriteInfo_i ) )
+      break;
+  }
+
+  // Write remaining chunks up to the title line delimitor.
+  for( c++; c < oaChunkList.size(); c++ )
+  {
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      return;
+
+    if( oaChunkList[c].GetType() == cont_chunk_type::START_PARAGRAPH ||
+        oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+      continue;
+
+    oaChunkList[c].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+  }
+}
+
+// .............................................................................
+
+void escrido::CTagBlock::WriteMarkdownAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Loop through all text chunks until something but the first word was written.
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+    if( oaChunkList[c].WriteMarkdownAllButFirstWord( oOutStrm_i, oWriteInfo_i ) )
+      break;
+    else
+      oaChunkList[c].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+
+  // Write full remaining chunks;
+  for( c++; c < oaChunkList.size(); c++ )
+    oaChunkList[c].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+}
+
+// .............................................................................
+
+void escrido::CTagBlock::WriteMarkdownAllButTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Set pointer to this tag block.
+  oWriteInfo_i.pTagBlock = this;
+
+  // Loop through all text chunks until the title line delimitor is found.
+  size_t c = 0;
+  for( c = 0; c < oaChunkList.size(); c++ )
+    if( oaChunkList[c].GetType() == cont_chunk_type::DELIM_TITLE_LINE )
+      break;
+
+  // Write full remaining chunks;
+  for( c++; c < oaChunkList.size(); c++ )
+  {
+    // Avoid writing the last END_PARAGRAPH chunk.
+    if( c + 1 == oaChunkList.size() )
+      if( oaChunkList[c].GetType() == cont_chunk_type::END_PARAGRAPH )
+        break;
+
+    oaChunkList[c].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+  }
+}
+
+// .............................................................................
+
 void escrido::CTagBlock::DebugOutput() const
 {
   std::cout << "block " << (unsigned long long) this << " tag type: ";
@@ -2208,6 +2741,10 @@ void escrido::CTagBlock::DebugOutput() const
 
 void escrido::CTagBlock::AppendCharDefault( const char cChar_i )
 {
+  // Remember whether this is the very first content character of the block
+  // (before any write mode has been established)
+  bool fFirstChar = faWriteMode.empty();
+
   // Define the default text chunk type for this block type.
   cont_chunk_type fTextChunkType;
   switch( fType )
@@ -2259,6 +2796,17 @@ void escrido::CTagBlock::AppendCharDefault( const char cChar_i )
     if( !( oaChunkList.back().GetType() == cont_chunk_type::PLAIN_TEXT ||
            oaChunkList.back().GetType() == cont_chunk_type::HTML_TEXT ) )
       oaChunkList.emplace_back( fTextChunkType );
+
+  // Drop the leading delimiter whitespace for paragraph-style text blocks
+  // (@brief, @details, @paragraph, @note, @remark) so the first rendered line
+  // has no leading space (same mechanism as @code, see AppendInlineTag)
+  if( fFirstChar &&
+      ( fType == tag_type::BRIEF ||
+        fType == tag_type::DETAILS ||
+        fType == tag_type::PARAGRAPH ||
+        fType == tag_type::NOTE ||
+        fType == tag_type::REMARK ) )
+    oaChunkList.back().SetSkipFirstWhiteMode( skip_first_white::INIT );
 
   // Append character to the text chunk.
   oaChunkList.back().AppendChar( cChar_i );
@@ -3618,6 +4166,349 @@ void escrido::CContentUnit::WriteLaTeXTagBlockList( tag_type fTagType_i,
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Writes the PARAGRAPH, SECTION, DETAILS and embedded
+///             EXAMPLE, IMAGE, INTERNAL, NOTES, OUTPUT and REMARK tag blocks
+///             as Markdown.
+// *****************************************************************************
+
+void escrido::CContentUnit::WriteMarkdownParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  // Text section type blocks in their order of appearance.
+  {
+    bool fInDetails = false;
+
+    for( size_t t = 0; t < oaBlockList.size(); t++ )
+    {
+      switch( oaBlockList[t].GetTagType() )
+      {
+        case tag_type::PARAGRAPH:
+          oaBlockList[t].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+          break;
+
+        case tag_type::DETAILS:
+        {
+          if( !fInDetails )
+          {
+            oOutStrm_i << "## " << oWriteInfo_i.Label( "Details" ) << std::endl << std::endl;
+            fInDetails = true;
+          }
+          oaBlockList[t].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl;
+          break;
+        }
+
+        case tag_type::SECTION:
+        {
+          if( fInDetails )
+            fInDetails = false;
+
+          // Anchor for internal cross-references (matches the link target).
+          oOutStrm_i << "<a id=\""
+                     << MakeIdentifier( oaBlockList[t].GetPlainFirstWord() )
+                     << "\"></a>" << std::endl << std::endl;
+
+          oOutStrm_i << "## ";
+          oaBlockList[t].WriteMarkdownTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+
+          oaBlockList[t].WriteMarkdownAllButTitleLine( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::SUBSECTION:
+        {
+          // Anchor for internal cross-references (matches the link target).
+          oOutStrm_i << "<a id=\""
+                     << MakeIdentifier( oaBlockList[t].GetPlainFirstWord() )
+                     << "\"></a>" << std::endl << std::endl;
+
+          oOutStrm_i << "### ";
+          oaBlockList[t].WriteMarkdownTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+
+          oaBlockList[t].WriteMarkdownAllButTitleLine( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::SUBSUBSECTION:
+        {
+          // Anchor for internal cross-references (matches the link target).
+          oOutStrm_i << "<a id=\""
+                     << MakeIdentifier( oaBlockList[t].GetPlainFirstWord() )
+                     << "\"></a>" << std::endl << std::endl;
+
+          oOutStrm_i << "#### ";
+          oaBlockList[t].WriteMarkdownTitleLineButFirstWord( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+
+          oaBlockList[t].WriteMarkdownAllButTitleLine( oOutStrm_i, oWriteInfo_i );
+          oOutStrm_i << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::EXAMPLE:
+        {
+          oOutStrm_i << "#### " << oWriteInfo_i.Label( "Example" ) << std::endl << std::endl;
+          oOutStrm_i << "```" << std::endl;
+          oOutStrm_i << oaBlockList[t].GetPlainText() << std::endl;
+          oOutStrm_i << "```" << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::IMAGE:
+        {
+          // The caption is the tag content after the file name;
+          // write it (as Markdown) into a string.
+          std::string sCaption;
+          {
+            std::ostringstream oStrm;
+            oaBlockList[t].WriteMarkdownAllButFirstWord( oStrm, oWriteInfo_i );
+            sCaption = oStrm.str();
+          }
+          // Trim surrounding whitespace and remember whether a caption is present.
+          const size_t nBegin = sCaption.find_first_not_of( " \t\r\n" );
+          const bool fHasCaption = ( nBegin != std::string::npos );
+          if( fHasCaption )
+          {
+            const size_t nEnd = sCaption.find_last_not_of( " \t\r\n" );
+            sCaption = sCaption.substr( nBegin, nEnd - nBegin + 1 );
+          }
+
+          // Emit the image with an empty alt-text. A caption (if any) is written
+          // as a visible line below, mirroring the HTML <figcaption> (the <img>
+          // element itself carries no alt attribute).
+          oOutStrm_i << "!" << "[](" << oaBlockList[t].GetPlainFirstWord() << ")" << std::endl << std::endl;
+
+          if( fHasCaption )
+          {
+            // Prefix the caption with the (relabelable) "Figure" label so that
+            // it is clear the text belongs to the image above.
+            oOutStrm_i << "**" << oWriteInfo_i.Label( "Figure" ) << ":** " << sCaption << std::endl << std::endl;
+          }
+          break;
+        }
+
+        case tag_type::INTERNAL:
+        {
+          if( oWriteInfo_i.fInternalTags )
+          {
+            oOutStrm_i << "#### " << oWriteInfo_i.Label( "Internal" ) << std::endl << std::endl;
+            oaBlockList[t].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+            oOutStrm_i << std::endl << std::endl;
+          }
+          break;
+        }
+
+        case tag_type::NOTE:
+        {
+          oOutStrm_i << "> **" << oWriteInfo_i.Label( "Note" ) << ":**" << std::endl;
+          {
+            // Write block content as blockquote.
+            std::ostringstream oStrm;
+            oaBlockList[t].WriteMarkdown( oStrm, oWriteInfo_i );
+            std::string sText = oStrm.str();
+            // Prefix each line with "> "
+            size_t nPos = 0;
+            while( nPos < sText.size() )
+            {
+              size_t nNext = sText.find( '\n', nPos );
+              if( nNext == std::string::npos )
+                nNext = sText.size();
+              oOutStrm_i << "> ";
+              oOutStrm_i << sText.substr( nPos, nNext - nPos );
+              if( nNext < sText.size() )
+                oOutStrm_i << "\n";
+              nPos = nNext + 1;
+            }
+          }
+          oOutStrm_i << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::OUTPUT:
+        {
+          oOutStrm_i << "#### " << oWriteInfo_i.Label( "Output" ) << std::endl << std::endl;
+          oOutStrm_i << "```" << std::endl;
+          oOutStrm_i << oaBlockList[t].GetPlainText() << std::endl;
+          oOutStrm_i << "```" << std::endl << std::endl;
+          break;
+        }
+
+        case tag_type::REMARK:
+        {
+          oOutStrm_i << "> **" << oWriteInfo_i.Label( "Remark" ) << ":**" << std::endl;
+          {
+            std::ostringstream oStrm;
+            oaBlockList[t].WriteMarkdown( oStrm, oWriteInfo_i );
+            std::string sText = oStrm.str();
+            size_t nPos = 0;
+            while( nPos < sText.size() )
+            {
+              size_t nNext = sText.find( '\n', nPos );
+              if( nNext == std::string::npos )
+                nNext = sText.size();
+              oOutStrm_i << "> ";
+              oOutStrm_i << sText.substr( nPos, nNext - nPos );
+              if( nNext < sText.size() )
+                oOutStrm_i << "\n";
+              nPos = nNext + 1;
+            }
+          }
+          oOutStrm_i << std::endl << std::endl;
+          break;
+        }
+      }
+    }
+
+    fInDetails = false;
+  }
+}
+
+// .............................................................................
+
+void escrido::CContentUnit::WriteMarkdownTagBlock( tag_type fTagType_i,
+                                                   std::ostream& oOutStrm_i,
+                                                   const SWriteInfo& oWriteInfo_i ) const
+{
+  if( this->HasTagBlock( fTagType_i ) )
+  {
+    switch( fTagType_i )
+    {
+      case tag_type::BRIEF:
+        this->GetFirstTagBlock( tag_type::BRIEF )->WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+        break;
+
+      case tag_type::RETURN:
+        oOutStrm_i << "## " << oWriteInfo_i.Label( "Return value" ) << std::endl << std::endl;
+        this->GetFirstTagBlock( tag_type::RETURN )->WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+        break;
+    }
+  }
+}
+
+// .............................................................................
+
+void escrido::CContentUnit::WriteMarkdownTagBlock( tag_type fTagType_i,
+                                                   const std::string& sIdentifier_i,
+                                                   std::ostream& oOutStrm_i,
+                                                   const SWriteInfo& oWriteInfo_i ) const
+{
+  switch( fTagType_i )
+  {
+    case tag_type::FEATURE:
+    {
+      bool fIdentFeatExists = false;
+      for( size_t t = 0; t < oaBlockList.size(); t++ )
+        if( oaBlockList[t].GetTagType() == fTagType_i &&
+            oaBlockList[t].GetPlainFirstWordOrQuote() == sIdentifier_i )
+        {
+          fIdentFeatExists = true;
+          break;
+        }
+
+      if( fIdentFeatExists )
+        this->WriteMarkdownFeatureType( sIdentifier_i, oOutStrm_i, oWriteInfo_i );
+      break;
+    }
+  }
+}
+
+// .............................................................................
+
+void escrido::CContentUnit::WriteMarkdownTagBlockList( tag_type fTagType_i,
+                                                       std::ostream& oOutStrm_i,
+                                                       const SWriteInfo& oWriteInfo_i ) const
+{
+  if( this->HasTagBlock( fTagType_i ) )
+  {
+    // FEATURE tag blocks are grouped by feature type.
+    if( fTagType_i == tag_type::FEATURE )
+    {
+      std::list <std::string> saFeatureTypeList;
+      for( size_t t = 0; t < oaBlockList.size(); t++ )
+      {
+        if( oaBlockList[t].GetTagType() == tag_type::FEATURE )
+        {
+          const std::string sIdent = oaBlockList[t].GetPlainFirstWordOrQuote();
+          bool fFound = false;
+          for( std::list <std::string>::iterator iF = saFeatureTypeList.begin();
+               iF != saFeatureTypeList.end(); ++iF )
+            if( *iF == sIdent )
+            {
+              fFound = true;
+              break;
+            }
+          if( !fFound )
+            saFeatureTypeList.push_back( sIdent );
+        }
+      }
+
+      // Write all feature type groups.
+      for( std::list <std::string>::iterator iFeatType = saFeatureTypeList.begin();
+           iFeatType != saFeatureTypeList.end(); )
+      {
+        this->WriteMarkdownFeatureType( *iFeatType, oOutStrm_i, oWriteInfo_i );
+
+        std::list <std::string>::iterator iFeat = iFeatType;
+        while( iFeat != saFeatureTypeList.end() &&
+               *iFeat == *iFeatType )
+          ++iFeat;
+        iFeatType = iFeat;
+      }
+
+      return;
+    }
+
+    // Write tag block title line for some tag types.
+    switch( fTagType_i )
+    {
+      case tag_type::ATTRIBUTE:
+        oOutStrm_i << "## " << oWriteInfo_i.Label( "Attributes" ) << std::endl << std::endl;
+        break;
+
+      case tag_type::PARAM:
+        oOutStrm_i << "## " << oWriteInfo_i.Label( "Parameters" ) << std::endl << std::endl;
+        break;
+
+      case tag_type::SEE:
+        oOutStrm_i << "## " << oWriteInfo_i.Label( "See also" ) << std::endl << std::endl;
+        break;
+
+      case tag_type::SIGNATURE:
+        oOutStrm_i << "## " << oWriteInfo_i.Label( "Signatures" ) << std::endl << std::endl;
+        break;
+    }
+
+    // Write all tag blocks of the specified type.
+    for( size_t t = 0; t < oaBlockList.size(); t++ )
+      if( oaBlockList[t].GetTagType() == fTagType_i )
+        oaBlockList[t].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+    oOutStrm_i << std::endl;
+  }
+}
+
+// .............................................................................
+
+void escrido::CContentUnit::WriteMarkdownFeatureType( const std::string& sTypeIdentifier_i,
+                                                      std::ostream& oOutStrm_i,
+                                                      const SWriteInfo& oWriteInfo_i ) const
+{
+  // Write heading and feature list.
+  oOutStrm_i << "## " << GetCapForm( sTypeIdentifier_i ) << std::endl << std::endl;
+
+  // Loop over all tag blocks.
+  for( size_t t = 0; t < oaBlockList.size(); t++ )
+    if( oaBlockList[t].GetTagType() == tag_type::FEATURE )
+      if( oaBlockList[t].GetPlainFirstWordOrQuote() == sTypeIdentifier_i )
+        oaBlockList[t].WriteMarkdown( oOutStrm_i, oWriteInfo_i );
+  oOutStrm_i << std::endl;
+}
+
+// .............................................................................
+
 void escrido::CContentUnit::DebugOutput() const
 {
   switch( fContUnitType )
@@ -3930,6 +4821,49 @@ std::string escrido::ConvertHTML2LaTeX( const std::string& sText_i )
     if( ReplaceIfMatch( sTextCpy, nPos, "|", "{\\textbar}" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, "<", "{\\textless}" ) ) continue;
     if( ReplaceIfMatch( sTextCpy, nPos, ">", "{\\textgreater}" ) ) continue;
+
+    // Increase counter;
+    nPos++;
+  }
+
+  return sTextCpy;
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Converts a string containing HTML content into Markdown inline
+///             content and returns it.
+///
+/// \details    The following modifications are applied:
+///             - converting <em>, </em>, <b>, </b> to Markdown markup
+///             - replacing HTML entities
+///             - converting <HR> to a Markdown horizontal rule
+// *****************************************************************************
+
+std::string escrido::ConvertHTML2Markdown( const std::string& sText_i )
+{
+  std::string sTextCpy( sText_i );
+  for( size_t nPos = 0; nPos < sTextCpy.size(); )
+  {
+    // HTML specific commands:
+    if( ReplaceIfMatch( sTextCpy, nPos, "<em>", "*" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "</em>", "*" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "<b>", "**" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "</b>", "**" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "<HR>", "---" ) ) continue;
+
+    // HTML entities:
+    if( ReplaceIfMatch( sTextCpy, nPos, "&nbsp;", " " ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&amp;", "&" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&gamma;", "gamma" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#42;", "*" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#124;", "|" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#47;", "/" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#64;", "@" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&lt;", "<" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&gt;", ">" ) ) continue;
+    if( ReplaceIfMatch( sTextCpy, nPos, "&#8477;", "R" ) ) continue;
 
     // Increase counter;
     nPos++;

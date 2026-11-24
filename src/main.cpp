@@ -64,6 +64,9 @@ namespace escrido
   std::string sWDOutputPostfix = ".html";       ///< Output postfix (file ending) of webdocument files.
   bool fLOutput = false;                        ///< Flag whether LaTeX output shall be created.
   std::string sLOutputDir = "./latex/";         ///< Output directory name for LaTeX document files.
+  bool fMDOutput = false;                       ///< Flag whether Markdown output shall be created.
+  std::string sMDOutputDir = "./markdown/";     ///< Output directory name for Markdown document files.
+  std::string sMDOutputPostfix = ".md";         ///< Output postfix (file ending) of Markdown files.
   bool fDebug   = false;                        ///< Output debug information.
 
   bool fSearchIndex = false;                    ///< Flag whether an index list for static search shall be generated.
@@ -264,6 +267,24 @@ int main( int argc, char* argv[] )
     escrido::oDocumentation.WriteLaTeXDoc( sTemplateDir,
                                            sLOutputDir,
                                            oWriteInfo );
+    std::cout << std::endl;
+  }
+
+  // Output Markdown document.
+  if( fMDOutput )
+  {
+    std::cout << "Writing Markdown document(s) into '" << sMDOutputDir << "':" << std::endl
+              << std::endl;
+
+    // Create a separate write info container for Markdown so that cross
+    // reference links are resolved with the Markdown output postfix.
+    SWriteInfo oMDWriteInfo( asRelabel );
+    escrido::oDocumentation.CreateRefTable( sMDOutputPostfix, oMDWriteInfo );
+    oMDWriteInfo.fInternalTags = fInternalTags;
+
+    escrido::oDocumentation.WriteMarkdownDoc( sMDOutputDir,
+                                              sMDOutputPostfix,
+                                              oMDWriteInfo );
     std::cout << std::endl;
   }
 

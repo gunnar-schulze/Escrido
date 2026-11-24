@@ -21,6 +21,18 @@
 
 // -----------------------------------------------------------------------------
 
+// FUNCTIONS OVERVIEW
+
+// -----------------------------------------------------------------------------
+
+namespace escrido
+{
+  static bool IsMarkdownFenceLine( const std::string& sLine_i );
+  static std::string CollapseBlankLines( const std::string& sIn_i );
+}
+
+// -----------------------------------------------------------------------------
+
 // CLASS CGroupNode
 
 // -----------------------------------------------------------------------------
@@ -945,6 +957,106 @@ void escrido::CDocPage::WriteLaTeXTagBlockList( tag_type fTagType_i,
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Writes Markdown output of page metadata list.
+// *****************************************************************************
+
+void escrido::CDocPage::WriteMarkdownMetaDataList( std::ostream& oOutStrm_i,
+                                                   const SWriteInfo& oWriteInfo_i ) const
+{
+  // Author:
+  if( oContUnit.HasTagBlock( tag_type::AUTHOR ) )
+    oOutStrm_i << "**" << oWriteInfo_i.Label( "Author" ) << ":** "
+               << oContUnit.GetFirstTagBlock( tag_type::AUTHOR )->GetPlainText()
+               << std::endl;
+
+  // Date:
+  if( oContUnit.HasTagBlock( tag_type::DATE ) )
+    oOutStrm_i << "**" << oWriteInfo_i.Label( "Date" ) << ":** "
+               << oContUnit.GetFirstTagBlock( tag_type::DATE )->GetPlainText()
+               << std::endl;
+
+  // Version:
+  if( oContUnit.HasTagBlock( tag_type::VERSION ) )
+    oOutStrm_i << "**" << oWriteInfo_i.Label( "Version" ) << ":** "
+               << oContUnit.GetFirstTagBlock( tag_type::VERSION )->GetPlainText()
+               << std::endl;
+
+  // Copyright:
+  if( oContUnit.HasTagBlock( tag_type::COPYRIGHT ) )
+    oOutStrm_i << "**" << oWriteInfo_i.Label( "Copyright" ) << ":** "
+               << oContUnit.GetFirstTagBlock( tag_type::COPYRIGHT )->GetPlainText()
+               << std::endl;
+
+  oOutStrm_i << std::endl;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes Markdown output of page headline.
+// *****************************************************************************
+
+void escrido::CDocPage::WriteMarkdownHeadline( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  oOutStrm_i << "# " << sTitle << std::endl << std::endl;
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes Markdown output of PARAGRAPH, SECTION, DETAILS and
+///             embedded tag blocks.
+// *****************************************************************************
+
+void escrido::CDocPage::WriteMarkdownParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const
+{
+  oContUnit.WriteMarkdownParSectDet( oOutStrm_i, oWriteInfo_i );
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes Markdown output of one tag block of a given type of the page.
+// *****************************************************************************
+
+void escrido::CDocPage::WriteMarkdownTagBlock( tag_type fTagType_i,
+                                               std::ostream& oOutStrm_i,
+                                               const SWriteInfo& oWriteInfo_i ) const
+{
+  oContUnit.WriteMarkdownTagBlock( fTagType_i, oOutStrm_i, oWriteInfo_i );
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes Markdown output of one tag block of a given type and
+///             specified by a given identifier of the page.
+// *****************************************************************************
+
+void escrido::CDocPage::WriteMarkdownTagBlock( tag_type fTagType_i,
+                                               const std::string& sIdentifier_i,
+                                               std::ostream& oOutStrm_i,
+                                               const SWriteInfo& oWriteInfo_i ) const
+{
+  oContUnit.WriteMarkdownTagBlock( fTagType_i, sIdentifier_i, oOutStrm_i, oWriteInfo_i );
+}
+
+// .............................................................................
+
+// *****************************************************************************
+/// \brief      Writes Markdown output of all tag blocks of a given type of the page.
+// *****************************************************************************
+
+void escrido::CDocPage::WriteMarkdownTagBlockList( tag_type fTagType_i,
+                                                   std::ostream& oOutStrm_i,
+                                                   const SWriteInfo& oWriteInfo_i ) const
+{
+  oContUnit.WriteMarkdownTagBlockList( fTagType_i, oOutStrm_i, oWriteInfo_i );
+}
+
+// .............................................................................
+
 void escrido::CDocPage::AddToRefTable( CRefTable& oRefTable_o, const std::string& sOutputPostfix_i ) const
 {
   // Add reference to the page.
@@ -1700,6 +1812,107 @@ void escrido::CDocumentation::WriteLaTeXDoc( const std::string& sTemplateDir_i,
 
 // .............................................................................
 
+// *****************************************************************************
+/// \brief      Writes the whole documentation as a set of Markdown files,
+///             one file per page, into the output directory.
+// *****************************************************************************
+
+void escrido::CDocumentation::WriteMarkdownDoc( const std::string& sOutputDir_i,
+                                                const std::string& sOutputPostfix_i,
+                                                const SWriteInfo& oWriteInfo_i ) const
+{
+  // Get list of names of all "feature" tags present in the documentation.
+  std::vector <std::string> aoFeatureNames = this->GetFeatureNames();
+
+  // Find "mainpage".
+  CPageMainpage* pMainpage = NULL;
+  {
+    for( size_t p = 0; p < this->paDocPageList.size(); p++ )
+      if( this->paDocPageList[p]->GetIdent() == "mainpage" )
+      {
+        pMainpage = static_cast<CPageMainpage*>( this->paDocPageList[p] );
+        break;
+      }
+  }
+
+  // The mainpage is written as part of the index.md overview (see below).
+  std::string sMainpageContent;
+
+  // Create all pages.
+  for( size_t p = 0; p < this->paDocPageList.size(); p++ )
+  {
+    // Get a pointer to this page.
+    CDocPage* pPage = paDocPageList[p];
+
+    // Output.
+    std::cout << "writing page '" << pPage->GetIdent() << "' ";
+
+    // Build the page content.
+    std::ostringstream oStrm;
+
+    // Metadata (only for mainpage).
+    if( pPage == pMainpage )
+      pPage->WriteMarkdownMetaDataList( oStrm, oWriteInfo_i );
+
+    // Headline.
+    pPage->WriteMarkdownHeadline( oStrm, oWriteInfo_i );
+
+    // Brief.
+    pPage->WriteMarkdownTagBlock( tag_type::BRIEF, oStrm, oWriteInfo_i );
+
+    // Signatures.
+    pPage->WriteMarkdownTagBlockList( tag_type::SIGNATURE, oStrm, oWriteInfo_i );
+
+    // Page content (paragraphs, sections, details, etc.).
+    pPage->WriteMarkdownParSectDet( oStrm, oWriteInfo_i );
+
+    // Parameters.
+    pPage->WriteMarkdownTagBlockList( tag_type::PARAM, oStrm, oWriteInfo_i );
+
+    // Features.
+    pPage->WriteMarkdownTagBlockList( tag_type::FEATURE, oStrm, oWriteInfo_i );
+
+    // Attributes.
+    pPage->WriteMarkdownTagBlockList( tag_type::ATTRIBUTE, oStrm, oWriteInfo_i );
+
+    // Return value.
+    pPage->WriteMarkdownTagBlock( tag_type::RETURN, oStrm, oWriteInfo_i );
+
+    // See also.
+    pPage->WriteMarkdownTagBlockList( tag_type::SEE, oStrm, oWriteInfo_i );
+
+    // Save data (blank lines outside code blocks collapsed to a single line).
+    // The mainpage is stored for the index.md overview (written below) instead
+    // of being saved as a separate file.
+    std::string sPageContent = CollapseBlankLines( oStrm.str() );
+    if( pPage == pMainpage )
+      sMainpageContent = sPageContent;
+    else
+      WriteOutput( sOutputDir_i + pPage->GetURL( sOutputPostfix_i ), sPageContent );
+
+    // Output.
+    std::cout << std::endl;
+  }
+
+  // Write the overview file "index.md": the mainpage content, then the
+  // grouped navigation.
+  {
+    // Mainpage content, or a plain title if there is no mainpage.
+    std::ostringstream oStrm;
+    if( !sMainpageContent.empty() )
+      oStrm << sMainpageContent << std::endl;
+    else
+      oStrm << "# Documentation" << std::endl << std::endl;
+
+    // The navigation already starts with its own "## Contents" heading (root group).
+    this->WriteMarkdownTOC( oStrm, sOutputPostfix_i );
+
+    WriteOutput( sOutputDir_i + "index" + sOutputPostfix_i, CollapseBlankLines( oStrm.str() ) );
+  }
+}
+
+// .............................................................................
+
 void escrido::CDocumentation::DebugOutput() const
 {
   for( size_t f = 0; f < this->paDocPageList.size(); f++ )
@@ -2161,6 +2374,121 @@ void escrido::CDocumentation::FillNavOrderList() const
 // .............................................................................
 
 // *****************************************************************************
+/// \brief      Writes the grouped navigation (table of content) for the Markdown
+///             overview file, mirroring the grouping of the HTML navigation.
+///
+/// \details    Pages are grouped by their @ingroup tags (nested) and, within each
+///             group, by page type ("mainpage", "page" and the user-defined types
+///             in order of first appearance), in the same order as the HTML
+///             navigation. The mainpage is skipped, since its own file *is* the
+///             "index" overview file.
+// *****************************************************************************
+
+void escrido::CDocumentation::WriteMarkdownTOC( std::ostream& oOutStrm_i,
+                                                const std::string& sOutputPostfix_i ) const
+{
+  // Make sure the group list is prepared and ordered.
+  if( !fGroupOrdered )
+    this->FillGroupTreeOrdered();
+
+  // Find the mainpage. It is skipped in the navigation, since its own file is
+  // the "index" overview file that is written from this content.
+  CPageMainpage* pMainpage = NULL;
+  for( size_t p = 0; p < this->paDocPageList.size(); p++ )
+    if( this->paDocPageList[p]->GetIdent() == "mainpage" )
+    {
+      pMainpage = static_cast<CPageMainpage*>( this->paDocPageList[p] );
+      break;
+    }
+
+  // Loop over the group tree (depth-first), like WriteHTMLTableOfContent().
+  size_t nLvl;
+  const CGroupNode* pGroup = this->oGroupTree.FirstGroupNode( nLvl );
+  while( pGroup != NULL )
+  {
+    // Group heading.
+    // Level 1 is reserved for the document title; level 6 is reserved for page
+    // types (as in the HTML navigation). Hence group headings span level 2-5.
+    if( !( pGroup->sGroupName.empty() ) )
+    {
+      size_t nGroupHeadingLvl = nLvl + 2;
+      if( nGroupHeadingLvl > 5 )
+        nGroupHeadingLvl = 5;
+      oOutStrm_i << std::string( nGroupHeadingLvl, '#' ) << " " << pGroup->sGroupName << std::endl << std::endl;
+    }
+
+    // Page types of this group, in navigation order ("mainpage", "page" and the
+    // user-defined types in their order of first appearance), like
+    // FillNavOrderList().
+    std::vector<std::string>saPageTypeList = { "mainpage", "page" };
+    for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); ++p )
+    {
+      std::string sPageTypeID = paDocPageList[pGroup->naDocPageIdxList[p]]->GetPageTypeID();
+
+      bool fExists = false;
+      for( size_t pt = 0; pt < saPageTypeList.size(); ++pt )
+        if( saPageTypeList[pt] == sPageTypeID )
+        {
+          fExists = true;
+          break;
+        }
+
+      if( !fExists )
+        saPageTypeList.push_back( sPageTypeID );
+    }
+
+    // Write each page type.
+    for( size_t pt = 0; pt < saPageTypeList.size(); ++pt )
+    {
+      const std::string& sPageTypeID = saPageTypeList[pt];
+
+      // Check whether any (non-mainpage) page of this type exists in the group,
+      // and (if so) retrieve the literal form of the page type name.
+      bool fPageExist = false;
+      std::string sPageTypeLit;
+      for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); ++p )
+      {
+        const CDocPage* pPage = paDocPageList[pGroup->naDocPageIdxList[p]];
+        if( ( pPage->GetPageTypeID() == sPageTypeID ) && ( pPage != pMainpage ) )
+        {
+          sPageTypeLit = pPage->GetPageTypeLit();
+          fPageExist = true;
+          break;
+        }
+      }
+
+      // Skip page types without any (non-mainpage) page.
+      if( !fPageExist )
+        continue;
+
+      // User-defined page types get a heading (one level below the group heading,
+      // capped at level 6), like the "<h6>" in the HTML navigation.
+      if( ( sPageTypeID != "mainpage" ) && ( sPageTypeID != "page" ) )
+      {
+        size_t nTypeHeadingLvl = nLvl + 3;
+        if( nTypeHeadingLvl > 6 )
+          nTypeHeadingLvl = 6;
+        oOutStrm_i << std::string( nTypeHeadingLvl, '#' ) << " " << GetCapPluralForm( sPageTypeLit ) << std::endl << std::endl;
+      }
+
+      // Write the bullet list of the group's pages of this type.
+      for( size_t p = 0; p < pGroup->naDocPageIdxList.size(); ++p )
+      {
+        const CDocPage* pPage = paDocPageList[pGroup->naDocPageIdxList[p]];
+        if( ( pPage->GetPageTypeID() == sPageTypeID ) && ( pPage != pMainpage ) )
+          oOutStrm_i << "- [" << pPage->GetTitle() << "](" << pPage->GetURL( sOutputPostfix_i ) << ")" << std::endl;
+      }
+      oOutStrm_i << std::endl;
+    }
+
+    // Get next group.
+    pGroup = this->oGroupTree.NextGroupNode( pGroup, nLvl );
+  }
+}
+
+// .............................................................................
+
+// *****************************************************************************
 /// \brief      Creates a cleaned and JSON escaped string for the search index.
 // *****************************************************************************
 
@@ -2207,6 +2535,90 @@ std::string escrido::CDocumentation::CleanAndJSONEscape( const std::string& sTex
 // -----------------------------------------------------------------------------
 
 // FUNCTIONS IMPLEMENTATION
+
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      True if the line is a Markdown code-fence delimiter ("```" at
+///             the line start). Used to skip code blocks during the blank-line
+///             cleanup so that their content is preserved.
+// *****************************************************************************
+
+static bool escrido::IsMarkdownFenceLine( const std::string& sLine_i )
+{
+  return ( sLine_i.find_first_not_of( " \t" ) == 0 &&
+           sLine_i.compare( 0, 3, "```" ) == 0 );
+}
+
+// -----------------------------------------------------------------------------
+
+// *****************************************************************************
+/// \brief      Collapses runs of two or more consecutive blank lines down to a
+///             single blank line. Content inside fenced code blocks ("``` ...
+///             ```") is left unchanged.
+// *****************************************************************************
+
+static std::string escrido::CollapseBlankLines( const std::string& sIn_i )
+{
+  std::string sOut;
+  bool fInFence = false;
+  bool fPrevBlankOutside = false;
+
+  size_t nBeg = 0;
+  while( nBeg < sIn_i.size() )
+  {
+    size_t nEnd = sIn_i.find( '\n', nBeg );
+    std::string sLine = ( nEnd == std::string::npos )
+      ? sIn_i.substr( nBeg )
+      : sIn_i.substr( nBeg, nEnd - nBeg );
+
+    bool fBlank = ( sLine.find_first_not_of( " \t" ) == std::string::npos );
+    bool fSkip  = false;
+
+    if( IsMarkdownFenceLine( sLine ) )
+    {
+      fInFence = !fInFence;
+      fPrevBlankOutside = false;
+    }
+    else if( fBlank )
+    {
+      if( fInFence )
+      {
+        // Blank line inside a code block: part of the code, keep as-is.
+      }
+      else if( fPrevBlankOutside )
+      {
+        fSkip = true;          // Consecutive blank line outside a fence: drop.
+      }
+      else
+      {
+        fPrevBlankOutside = true;
+      }
+    }
+    else
+    {
+      fPrevBlankOutside = false;
+    }
+
+    if( nEnd == std::string::npos )
+    {
+      // Last line (no trailing newline): append if kept, then terminate.
+      if( !fSkip )
+        sOut += sLine;
+      break;
+    }
+
+    if( !fSkip )
+    {
+      sOut += sLine;
+      sOut += '\n';
+    }
+    nBeg = nEnd + 1;
+  }
+
+  return sOut;
+}
 
 // -----------------------------------------------------------------------------
 

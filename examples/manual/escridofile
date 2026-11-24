@@ -122,3 +122,28 @@ GENERATE_LATEX     = YES
 # Equals the "-ldo" and "--latex-output-dir" command line options
 
 LATEX_OUT_DIR      = "./manual/latex/"
+
+# -----------------------------------------------------------------------------
+# Markdown document output options
+# -----------------------------------------------------------------------------
+
+# Flag defining whether a Markdown document shall be created. If this flag is set
+# to YES, Escrido will generate Markdown output.
+#
+# Equals the "-md" and "--markdown" command line options
+
+GENERATE_MARKDOWN    = YES
+
+# This parameter should point to a directory that will be filled with the Markdown
+# document output files. Default is "./markdown/".
+#
+# Equals the "-mdo" and "--markdown-output-dir" command line options
+
+MARKDOWN_OUT_DIR     = "./manual/markdown/"
+
+# This parameter specifies an alternative file ending to the Markdown document
+# output files, e.g. ".mdown". Default is ".md".
+#
+# Equals the "-mdfe" and "--markdown-file-ending" command line options
+
+MARKDOWN_FILE_ENDING =

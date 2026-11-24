@@ -145,4 +145,27 @@ ldo                  string
   'Output directory for LaTeX document files. (default "./latex/")'
                                                  {escrido::sLOutputDir = #1;}
 
+md                   onoff
+  'Flag defining whether a Markdown document shall be created. If this flag is set to "on",
+   Escrido will generate Markdown output. (default "off")'
+                                                 {escrido::fMDOutput = #1;}
+-markdown            onoff
+  'Flag defining whether a Markdown document shall be created. If this flag is set to "on",
+   Escrido will generate Markdown output. (default "off")'
+                                                 {escrido::fMDOutput = #1;}
+
+mdo                  string
+  'Output directory for Markdown document files. (default "./markdown/")'
+                                                 {escrido::sMDOutputDir = #1;}
+-markdown-output-dir string
+  'Output directory for Markdown document files. (default "./markdown/")'
+                                                 {escrido::sMDOutputDir = #1;}
+
+mdfe                 string
+  'Ending of Markdown output file. (default ".md")'
+                                                 {escrido::sMDOutputPostfix = #1;}
+-markdown-file-ending string
+  'Ending of Markdown output file. (default ".md")'
+                                                 {escrido::sMDOutputPostfix = #1;}
+
 -debug               'Output debug information'  {escrido::fDebug = true;}

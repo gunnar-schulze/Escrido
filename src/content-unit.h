@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <vector>
 
 #include "reftable.h"
 
@@ -261,6 +262,8 @@ namespace escrido
   std::string   HTMLEscape( const std::string& sText_i );
   std::string   LaTeXEscape( const std::string& sText_i );
   std::string   ConvertHTML2LaTeX( const std::string& sText_i );
+  std::string   ConvertHTML2Markdown( const std::string& sText_i );
+  std::string   EscapeMarkdownTableCell( const std::string& sText_i );
   std::string   ConvertHTML2ClearText( const std::string& sText_i );
   bool          ReplaceIfMatch( std::string& sText_i, size_t& nPos_i, const char* szPattern_i, const char* szReplacement_i );
   bool          All( const std::string& sText_i, std::string& sAll_o );
@@ -293,6 +296,7 @@ struct escrido::SWriteInfo
 
   mutable const CTagBlock*   pTagBlock;
   mutable signed int         nIndent;
+  mutable std::vector<int>   aTableColN;   ///< Column number of each currently open table (last entry = innermost table).
 
   SWriteInfo( const std::vector <std::pair<std::string, std::string>>& oRelabelList_i );
 
@@ -352,6 +356,11 @@ class escrido::CContentChunk
     bool WriteLaTeXFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     bool WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     bool WriteLaTeXAllButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
+    void WriteMarkdown( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    bool WriteMarkdownFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    bool WriteMarkdownAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    bool WriteMarkdownAllButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
     // Debug output:
     void DebugOutput() const;
@@ -423,6 +432,14 @@ class escrido::CTagBlock
     void WriteLaTeXAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXAllButTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
+    void WriteMarkdown( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTitleLineButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTitleLineButFirstWordOrQuote( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownAllButFirstWord( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownAllButTitleLine( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
     // Debug output:
     void DebugOutput() const;
 
@@ -430,6 +447,7 @@ class escrido::CTagBlock
 
     void AppendCharDefault( const char cChar_i );
     void EscapeFromWriteModes( const std::vector<tag_block_write_mode>& oaWriteModes_i );
+    bool IsBlockEndChunk( cont_chunk_type fChunkType_i ) const;
 
   friend class escrido::CContentUnit;
 };
@@ -486,6 +504,11 @@ class escrido::CContentUnit
     void WriteLaTeXTagBlock( tag_type fTagType_i, const std::string& sIdentifier_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
     void WriteLaTeXTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
 
+    void WriteMarkdownParSectDet( std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTagBlock( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTagBlock( tag_type fTagType_i, const std::string& sIdentifier_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+    void WriteMarkdownTagBlockList( tag_type fTagType_i, std::ostream& oOutStrm_i, const SWriteInfo& oWriteInfo_i ) const;
+
     // Debug output:
     void DebugOutput() const;
 
@@ -498,6 +521,10 @@ class escrido::CContentUnit
     void WriteLaTeXFeatureType( const std::string& sTypeIdentifier_i,
                                 std::ostream& oOutStrm_i,
                                 const SWriteInfo& oWriteInfo_i ) const;
+
+    void WriteMarkdownFeatureType( const std::string& sTypeIdentifier_i,
+                                   std::ostream& oOutStrm_i,
+                                   const SWriteInfo& oWriteInfo_i ) const;
 
     // Parsing state setting:
     void SetParseState( parse_state fParseState_i );
