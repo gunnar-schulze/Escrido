@@ -6,11 +6,11 @@ Authors
 
 Date
 
-:   2025-04-22
+:   2026-11-24
 
 Version
 
-:   1.12.0
+:   1.13.0
 
 Contact
 
