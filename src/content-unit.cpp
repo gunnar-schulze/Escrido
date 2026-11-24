@@ -4310,6 +4310,13 @@ void escrido::CContentUnit::WriteMarkdownParSectDet( std::ostream& oOutStrm_i, c
             std::ostringstream oStrm;
             oaBlockList[t].WriteMarkdown( oStrm, oWriteInfo_i );
             std::string sText = oStrm.str();
+            // Drop trailing blank lines so the last prefixed line is real
+            // content (avoids a dangling "> " line at the end of the note).
+            const size_t nLast = sText.find_last_not_of( " \t\r\n" );
+            if( nLast == std::string::npos )
+              sText.clear();
+            else
+              sText = sText.substr( 0, nLast + 1 );
             // Prefix each line with "> "
             size_t nPos = 0;
             while( nPos < sText.size() )
@@ -4344,6 +4351,13 @@ void escrido::CContentUnit::WriteMarkdownParSectDet( std::ostream& oOutStrm_i, c
             std::ostringstream oStrm;
             oaBlockList[t].WriteMarkdown( oStrm, oWriteInfo_i );
             std::string sText = oStrm.str();
+            // Drop trailing blank lines so the last prefixed line is real
+            // content (avoids a dangling "> " line at the end of the remark).
+            const size_t nLast = sText.find_last_not_of( " \t\r\n" );
+            if( nLast == std::string::npos )
+              sText.clear();
+            else
+              sText = sText.substr( 0, nLast + 1 );
             size_t nPos = 0;
             while( nPos < sText.size() )
             {
