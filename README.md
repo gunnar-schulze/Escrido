@@ -21,7 +21,7 @@ Contact
 ## What is this?
 
 Escrido is a multi-language documentation generator. It is a tool that
-generates HTML and LaTeX documents of references and manuals for code
+generates HTML, LaTeX and Markdown documents of references and manuals for code
 and/or programming languages. It is influenced by Doxygen and has a
 similar syntax. Nevertheless it differs from Doxygen in several points:
 

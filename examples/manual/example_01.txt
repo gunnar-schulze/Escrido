@@ -10,7 +10,7 @@ Everything outside the Escrido markup deliminators is ignored.
  *  @brief      Manual to the Escrido multi-language documentation generator.
  *
  *  @image      fig/Escrido_logo_362x117.png
- *  @par        "Escrido" is a tool that generates LaTeX, markdown and web
+ *  @par        "Escrido" is a tool that generates LaTeX, Markdown and web
  *              documents of references and manuals for code and/or programming
  *              languages. It is strongly influenced by Doxygen and has a
  *              similar syntax. Nevertheless it differs from Doxygen in several
