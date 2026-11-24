@@ -814,6 +814,7 @@ void escrido::CContentChunk::WriteMarkdown( std::ostream& oOutStrm_i, const SWri
 
       // Register this table as the new innermost table.
       oWriteInfo_i.aTableColN.push_back( nColN );
+      oWriteInfo_i.aTableSepWritten.push_back( false );
 
       oOutStrm_i << "| ";
       break;
@@ -824,6 +825,7 @@ void escrido::CContentChunk::WriteMarkdown( std::ostream& oOutStrm_i, const SWri
 
       // Unregister the innermost table.
       oWriteInfo_i.aTableColN.pop_back();
+      oWriteInfo_i.aTableSepWritten.pop_back();
       break;
 
     case cont_chunk_type::NEW_TABLE_CELL:
@@ -836,11 +838,13 @@ void escrido::CContentChunk::WriteMarkdown( std::ostream& oOutStrm_i, const SWri
 
       // If this is the end of the first (header) row of the innermost table,
       // write the separator row.
-      if( oWriteInfo_i.aTableColN.size() == 1 )
+      if( oWriteInfo_i.aTableSepWritten.size() == 1 &&
+          !oWriteInfo_i.aTableSepWritten.back() )
       {
         oOutStrm_i << "\n|";
         for( int i = 0; i < oWriteInfo_i.aTableColN[0]; i++ )
           oOutStrm_i << "---|";
+        oWriteInfo_i.aTableSepWritten.back() = true;
       }
 
       oOutStrm_i << "\n| ";

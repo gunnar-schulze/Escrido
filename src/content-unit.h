@@ -297,6 +297,7 @@ struct escrido::SWriteInfo
   mutable const CTagBlock*   pTagBlock;
   mutable signed int         nIndent;
   mutable std::vector<int>   aTableColN;   ///< Column number of each currently open table (last entry = innermost table).
+  mutable std::vector<bool>  aTableSepWritten;   ///< Has the separator row of each currently open table been written yet? (parallel to aTableColN)
 
   SWriteInfo( const std::vector <std::pair<std::string, std::string>>& oRelabelList_i );
 
